@@ -26,6 +26,12 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
+      - name: Update lockfile for path gems
+        run: |
+          bundle config set frozen false
+          bundle install
+          bundle config set frozen true
+
       - name: Build
         run: bundle exec rake build
 
