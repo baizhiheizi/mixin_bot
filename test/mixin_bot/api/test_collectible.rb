@@ -5,7 +5,6 @@ require 'test_helper'
 module MixinBot
   class TestCollectible < Minitest::Test
     def setup
-      skip 'No config file found' unless MixinBot.config.valid?
     end
 
     def test_collectible
@@ -25,12 +24,11 @@ module MixinBot
     def test_collectibles
       r = MixinBot.api.collectibles
 
-      assert r['data'].is_a?(Array)
+      assert_kind_of Array, r
     end
 
     def test_create_collectible_sign_request
-      collectible = MixinBot.api.collectibles(state: :unspent)['data'].first
-      skip 'no unpent collectible' if collectible.nil?
+      collectible = MixinBot.api.collectibles(state: :unspent).first
 
       nfo = MixinBot.api.collectible(collectible['token_id'])['data']['nfo']
       tx = MixinBot.api.build_collectible_transaction(
@@ -49,8 +47,7 @@ module MixinBot
     end
 
     def test_send_collectible_raw_transaction
-      collectible = MixinBot.api.collectibles(state: :signed)['data'].first
-      skip 'no signed collectible' if collectible.blank?
+      collectible = MixinBot.api.collectibles(state: :signed).first
 
       raw = collectible['signed_tx']
       r = MixinBot.api.send_raw_transaction raw
@@ -59,8 +56,7 @@ module MixinBot
     end
 
     def test_create_collectible_unlock_request
-      collectible = MixinBot.api.collectibles(state: :signed)['data'].first
-      skip 'no signed collectible' if collectible.blank?
+      collectible = MixinBot.api.collectibles(state: :signed).first
 
       request = MixinBot.api.create_unlock_collectible_request collectible['signed_tx']
       r = MixinBot.api.unlock_collectible_request request['request_id'], PIN_CODE
@@ -92,7 +88,8 @@ module MixinBot
           media: {}
         }
       }
-      metahash = SHA3::Digest::SHA256.hexdigest [meta[:collection][:id], meta[:collection][:name], meta[:token][:id], meta[:token][:name]].join
+      metahash = SHA3::Digest::SHA256.hexdigest [meta[:collection][:id], meta[:collection][:name], meta[:token][:id],
+                                                 meta[:token][:name]].join
       memo = MixinBot.api.nft_memo collection, token_id, metahash
 
       payment = MixinBot.api.create_multisig_payment(

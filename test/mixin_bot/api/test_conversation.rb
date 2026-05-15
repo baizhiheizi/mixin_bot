@@ -5,14 +5,17 @@ require 'test_helper'
 module MixinBot
   class TestConversation < Minitest::Test
     def setup
-      skip 'No config file found' unless MixinBot.config.valid?
-
       @conversation_id = MixinBot.api.unique_conversation_id(TEST_UID)
       MixinBot.config.debug = true
     end
 
-    def generate_conversation_id
-      assert MixinBot.api.unique_conversation_id(TEST_UID) == '204c0633-ef55-38c3-bbf7-4069cd6661bb'
+    def teardown
+      MixinBot.config.debug = false
+    end
+
+    def test_unique_conversation_id_format
+      cid = MixinBot.api.unique_conversation_id(TEST_UID)
+      assert_match(/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i, cid)
     end
 
     def test_conversation

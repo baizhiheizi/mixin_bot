@@ -14,11 +14,9 @@ module MixinBot
             label: kwargs[:label]
           }
 
-        if pin.length > 6
-          payload[:pin_base64] = encrypt_tip_pin pin, 'TIP:ADDRESS:ADD:', payload[:asset_id], payload[:destination], payload[:tag], payload[:label]
-        else
-          payload[:pin] = encrypt_pin pin
-        end
+        payload.update(
+          tip_or_legacy_pin_payload(pin, 'TIP:ADDRESS:ADD:', payload[:asset_id], payload[:destination], payload[:tag], payload[:label])
+        )
 
         client.post path, **payload
       end
@@ -33,16 +31,7 @@ module MixinBot
         pin = kwargs[:pin]
 
         path = format('/addresses/%<address>s/delete', address:)
-        payload =
-          if pin.length > 6
-            {
-              pin_base64: encrypt_tip_pin(pin, 'TIP:ADDRESS:REMOVE:', address)
-            }
-          else
-            {
-              pin: encrypt_pin(pin)
-            }
-          end
+        payload = tip_or_legacy_pin_payload(pin, 'TIP:ADDRESS:REMOVE:', address)
 
         client.post path, **payload
       end
@@ -53,7 +42,7 @@ module MixinBot
         amount = format('%.8f', kwargs[:amount].to_d.to_r)
         trace_id = kwargs[:trace_id]
         memo = kwargs[:memo]
-        kwargs[:access_token]
+        access_token = kwargs[:access_token]
 
         path = '/withdrawals'
         payload = {
@@ -63,14 +52,12 @@ module MixinBot
           memo:
         }
 
-        if pin.length > 6
-          fee = '0'
-          payload[:pin_base64] = encrypt_tip_pin pin, 'TIP:WITHDRAW:', address_id, amount, fee, trace_id, memo
-        else
-          payload[:pin] = encrypt_pin pin
-        end
+        fee = '0'
+        payload.update(
+          tip_or_legacy_pin_payload(pin, 'TIP:WITHDRAW:', address_id, amount, fee, trace_id, memo)
+        )
 
-        client.post path, **payload
+        client.post path, **payload, access_token:
       end
     end
   end

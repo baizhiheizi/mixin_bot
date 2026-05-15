@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Module: MVM
+  
+    &mdash; Documentation by YARD 0.9.43
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css">
+
+  <link rel="stylesheet" href="css/common.css" type="text/css">
+
+<script type="text/javascript">
+  pathId = "MVM";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
+    <div class="nav_wrap">
+      <iframe id="nav" src="class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index (M)</a> &raquo;
+    
+    
+    <span class="title">MVM</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Module: MVM
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/mvm.rb<span class="defines">,<br>
+  lib/mvm/nft.rb,<br> lib/mvm/scan.rb,<br> lib/mvm/bridge.rb,<br> lib/mvm/client.rb,<br> lib/mvm/registry.rb</span>
+
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <h1 id="MVM__Mixin_Virtual_Machine_">MVM (Mixin Virtual Machine)</h1>
+<p>MVM module provides integration with Mixin Virtual Machine, an Ethereum-compatible
+virtual machine running on Mixin Network.</p>
+<h2 id="Overview">Overview</h2>
+<p>MVM enables smart contract execution on Mixin Network with:</p>
+<ul>
+<li>EVM compatibility (Ethereum Virtual Machine)</li>
+<li>High performance and low cost</li>
+<li>Seamless integration with Mixin Network assets</li>
+<li>NFT support (ERC-721, ERC-1155)</li>
+<li>Bridge functionality for cross-chain operations</li>
+</ul>
+<h2 id="Components">Components</h2>
+<p>[MVM::Bridge] Bridge operations for cross-chain transfers
+[MVM::Client] HTTP client for MVM services
+[MVM::Nft] NFT operations (ERC-721, ERC-1155)
+[MVM::Registry] Contract registry operations
+[MVM::Scan] Blockchain explorer interface</p>
+<h2 id="Constants">Constants</h2>
+<p>[RPC_URL] The default RPC endpoint for MVM
+[MIRROR_ADDRESS] The mirror contract address
+[REGISTRY_ADDRESS] The registry contract address</p>
+<h2 id="Usage">Usage</h2>
+<p>Access bridge information:</p>
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_bridge'>bridge</span> <span class='op'>=</span> <span class='const'>MVM</span><span class='period'>.</span><span class='id identifier rubyid_bridge'><span class='object_link'><a href="#bridge-class_method" title="MVM.bridge (method)">bridge</a></span></span>
+<span class='id identifier rubyid_info'>info</span> <span class='op'>=</span> <span class='id identifier rubyid_bridge'>bridge</span><span class='period'>.</span><span class='id identifier rubyid_info'>info</span>
+</code></pre>
+<p>Work with NFTs:</p>
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_nft'>nft</span> <span class='op'>=</span> <span class='const'>MVM</span><span class='period'>.</span><span class='id identifier rubyid_nft'><span class='object_link'><a href="#nft-class_method" title="MVM.nft (method)">nft</a></span></span>
+<span class='comment'># NFT operations...
+</span></code></pre>
+<p>Use the blockchain scanner:</p>
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_scan'>scan</span> <span class='op'>=</span> <span class='const'>MVM</span><span class='period'>.</span><span class='id identifier rubyid_scan'><span class='object_link'><a href="#scan-class_method" title="MVM.scan (method)">scan</a></span></span>
+<span class='comment'># Scan operations...
+</span></code></pre>
+<p>Access the registry:</p>
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_registry'>registry</span> <span class='op'>=</span> <span class='const'>MVM</span><span class='period'>.</span><span class='id identifier rubyid_registry'><span class='object_link'><a href="#registry-class_method" title="MVM.registry (method)">registry</a></span></span>
+<span class='comment'># Registry operations...
+</span></code></pre>
+<h2 id="References">References</h2>
+<ul>
+<li><a href="https://mvm.dev">MVM Documentation</a></li>
+</ul>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><h2>Defined Under Namespace</h2>
+<p class="children">
+  
+    
+  
+    
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="MVM/Bridge.html" title="MVM::Bridge (class)">Bridge</a></span>, <span class='object_link'><a href="MVM/Client.html" title="MVM::Client (class)">Client</a></span>, <span class='object_link'><a href="MVM/Error.html" title="MVM::Error (class)">Error</a></span>, <span class='object_link'><a href="MVM/HttpError.html" title="MVM::HttpError (class)">HttpError</a></span>, <span class='object_link'><a href="MVM/Nft.html" title="MVM::Nft (class)">Nft</a></span>, <span class='object_link'><a href="MVM/Registry.html" title="MVM::Registry (class)">Registry</a></span>, <span class='object_link'><a href="MVM/ResponseError.html" title="MVM::ResponseError (class)">ResponseError</a></span>, <span class='object_link'><a href="MVM/Scan.html" title="MVM::Scan (class)">Scan</a></span>
+    
+  
+</p>
+
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="RPC_URL-constant" class="">RPC_URL =
+          <div class="docstring">
+  <div class="discussion">
+    <p>The default RPC URL for Mixin Virtual Machine.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>https://geth.mvm.dev</span><span class='tstring_end'>&#39;</span></span></pre></dd>
+      
+        <dt id="MIRROR_ADDRESS-constant" class="">MIRROR_ADDRESS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>The mirror contract address for cross-chain operations.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>0xC193486e6Bf3E8461cb8fcdF178676a5D75c066A</span><span class='tstring_end'>&#39;</span></span></pre></dd>
+      
+        <dt id="REGISTRY_ADDRESS-constant" class="">REGISTRY_ADDRESS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>The registry contract address for contract management.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>0x3c84B6C98FBeB813e05a7A7813F0442883450B1F</span><span class='tstring_end'>&#39;</span></span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#bridge-class_method" title="bridge (class method)">.<strong>bridge</strong>  &#x21d2; MVM::Bridge </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns a singleton Bridge instance.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#nft-class_method" title="nft (class method)">.<strong>nft</strong>(**params)  &#x21d2; MVM::Nft </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns a singleton or new NFT instance.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#registry-class_method" title="registry (class method)">.<strong>registry</strong>(**params)  &#x21d2; MVM::Registry </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns a singleton or new Registry instance.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#scan-class_method" title="scan (class method)">.<strong>scan</strong>  &#x21d2; MVM::Scan </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns a singleton Scan instance.</p></div></span>
+  
+</li>
+
+      
+    </ul>
+    
+  
+
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="bridge-class_method">
+  
+    .<strong>bridge</strong>  &#x21d2; <tt><span class='object_link'><a href="MVM/Bridge.html" title="MVM::Bridge (class)">MVM::Bridge</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a singleton Bridge instance.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="MVM/Bridge.html" title="MVM::Bridge (class)">MVM::Bridge</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the bridge instance</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+97
+98
+99</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/mvm.rb', line 97</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_bridge'>bridge</span>
+  <span class='ivar'>@bridge</span> <span class='op'>||=</span> <span class='const'><span class='object_link'><a href="" title="MVM (module)">MVM</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="MVM/Bridge.html" title="MVM::Bridge (class)">Bridge</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="MVM/Bridge.html#initialize-instance_method" title="MVM::Bridge#initialize (method)">new</a></span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="nft-class_method">
+  
+    .<strong>nft</strong>(**params)  &#x21d2; <tt><span class='object_link'><a href="MVM/Nft.html" title="MVM::Nft (class)">MVM::Nft</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a singleton or new NFT instance.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>params</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>optional parameters for NFT operations</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="MVM/Nft.html" title="MVM::Nft (class)">MVM::Nft</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the NFT instance</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+107
+108
+109</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/mvm.rb', line 107</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_nft'>nft</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_params'>params</span><span class='rparen'>)</span>
+  <span class='ivar'>@nft</span> <span class='op'>||=</span> <span class='const'><span class='object_link'><a href="" title="MVM (module)">MVM</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="MVM/Nft.html" title="MVM::Nft (class)">Nft</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="MVM/Nft.html#initialize-instance_method" title="MVM::Nft#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_params'>params</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="registry-class_method">
+  
+    .<strong>registry</strong>(**params)  &#x21d2; <tt><span class='object_link'><a href="MVM/Registry.html" title="MVM::Registry (class)">MVM::Registry</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a singleton or new Registry instance.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>params</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>optional parameters for registry operations</p></div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="MVM/Registry.html" title="MVM::Registry (class)">MVM::Registry</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the registry instance</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+126
+127
+128</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/mvm.rb', line 126</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_registry'>registry</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_params'>params</span><span class='rparen'>)</span>
+  <span class='ivar'>@registry</span> <span class='op'>||=</span> <span class='const'><span class='object_link'><a href="" title="MVM (module)">MVM</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="MVM/Registry.html" title="MVM::Registry (class)">Registry</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="MVM/Registry.html#initialize-instance_method" title="MVM::Registry#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_params'>params</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="scan-class_method">
+  
+    .<strong>scan</strong>  &#x21d2; <tt><span class='object_link'><a href="MVM/Scan.html" title="MVM::Scan (class)">MVM::Scan</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a singleton Scan instance.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="MVM/Scan.html" title="MVM::Scan (class)">MVM::Scan</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the scan instance</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+116
+117
+118</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/mvm.rb', line 116</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_scan'>scan</span>
+  <span class='ivar'>@scan</span> <span class='op'>||=</span> <span class='const'><span class='object_link'><a href="" title="MVM (module)">MVM</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="MVM/Scan.html" title="MVM::Scan (class)">Scan</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="MVM/Scan.html#initialize-instance_method" title="MVM::Scan#initialize (method)">new</a></span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Sat May 16 00:47:21 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.43 (ruby-3.3.6).
+</div>
+
+    </div>
+  </body>
+</html>

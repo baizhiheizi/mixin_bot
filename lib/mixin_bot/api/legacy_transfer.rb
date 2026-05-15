@@ -5,7 +5,10 @@ module MixinBot
     module LegacyTransfer
       TRANSFER_ARGUMENTS = %i[asset_id opponent_id amount].freeze
       def create_legacy_transfer(pin, **kwargs)
-        raise ArgumentError, "#{TRANSFER_ARGUMENTS.join(', ')} are needed for create transfer" unless TRANSFER_ARGUMENTS.all? { |param| kwargs.keys.include? param }
+        warn_legacy_mixin_api!('LegacyTransfer#create_legacy_transfer')
+        raise ArgumentError, "#{TRANSFER_ARGUMENTS.join(', ')} are needed for create transfer" unless TRANSFER_ARGUMENTS.all? do |param|
+                                                                                                        kwargs.keys.include? param
+                                                                                                      end
 
         asset_id = kwargs[:asset_id]
         opponent_id = kwargs[:opponent_id]
@@ -21,22 +24,22 @@ module MixinBot
           memo:
         }
 
-        if pin.length > 6
-          pin_base64 = encrypt_tip_pin pin, 'TIP:TRANSFER:CREATE:', asset_id, opponent_id, amount, trace_id, memo
-          payload[:pin_base64] = pin_base64
-        else
-          encrypted_pin = encrypt_pin pin
-          payload[:pin] = encrypted_pin
-        end
+        payload.update(
+          tip_or_legacy_pin_payload(pin, 'TIP:TRANSFER:CREATE:', asset_id, opponent_id, amount, trace_id, memo)
+        )
 
         path = '/transfers'
         client.post path, **payload
       end
 
       def legacy_transfer(trace_id, access_token: nil)
+        warn_legacy_mixin_api!('LegacyTransfer#legacy_transfer')
         path = format('/transfers/trace/%<trace_id>s', trace_id:)
         client.get path, access_token:
       end
+
+      alias transfer legacy_transfer
+      alias create_transfer create_legacy_transfer
     end
   end
 end

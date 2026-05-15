@@ -5,7 +5,6 @@ require 'test_helper'
 module MixinBot
   class TestLegacyOutput < Minitest::Test
     def setup
-      skip 'No config file found' unless MixinBot.config.valid?
     end
 
     def test_outputs
@@ -19,7 +18,7 @@ module MixinBot
       # {"data"=>{"type"=>"ghost_key", "mask"=>"1bb3c2718f22fd6ea9c20655e4246552890ef23d7a07edacd8fa4e1125604260", "keys"=>["9b36d8f4110d6fb82f7d100ae879817cad118835cd91f40dbd1e8e47e60d1b6b", "1fee396d8fdfb858684e81788d2934c5c47bd54ed19cb2a9b295c3c14fe3460a", "d6f5f1d26b0e45a621422a6c01ceca25783d1b12b8dc2a1dd7bbea94f3a7a690"]}}
       res = MixinBot.api.create_output(receivers: MULTI_SIGN_MEMBERS, index: 0, hint: SecureRandom.uuid)
 
-      assert_equal res['data']['type'], 'ghost_key'
+      assert_equal 'ghost_key', res['data']['type']
     end
   end
 end

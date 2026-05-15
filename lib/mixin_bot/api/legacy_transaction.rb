@@ -18,7 +18,13 @@ module MixinBot
       # }
       RAW_TRANSACTION_ARGUMENTS = %i[utxos senders senders_threshold receivers receivers_threshold amount].freeze
       def build_raw_transaction(**kwargs)
-        raise ArgumentError, "#{RAW_TRANSACTION_ARGUMENTS.join(', ')} are needed for build raw transaction" unless RAW_TRANSACTION_ARGUMENTS.all? { |param| kwargs.keys.include? param }
+        warn_legacy_mixin_api!('LegacyTransaction#build_raw_transaction')
+        unless RAW_TRANSACTION_ARGUMENTS.all? do |param|
+                 kwargs.keys.include? param
+               end
+          raise ArgumentError,
+                "#{RAW_TRANSACTION_ARGUMENTS.join(', ')} are needed for build raw transaction"
+        end
 
         senders             = kwargs[:senders]
         senders_threshold   = kwargs[:senders_threshold]
@@ -96,7 +102,13 @@ module MixinBot
       # use safe transaction protocol instead
       MULTISIG_TRANSACTION_ARGUMENTS = %i[asset_id receivers threshold amount].freeze
       def create_multisig_transaction(pin, **options)
-        raise ArgumentError, "#{MULTISIG_TRANSACTION_ARGUMENTS.join(', ')} are needed for create multisig transaction" unless MULTISIG_TRANSACTION_ARGUMENTS.all? { |param| options.keys.include? param }
+        warn_legacy_mixin_api!('LegacyTransaction#create_multisig_transaction')
+        unless MULTISIG_TRANSACTION_ARGUMENTS.all? do |param|
+                 options.keys.include? param
+               end
+          raise ArgumentError,
+                "#{MULTISIG_TRANSACTION_ARGUMENTS.join(', ')} are needed for create multisig transaction"
+        end
 
         asset_id = options[:asset_id]
         receivers = options[:receivers].sort
@@ -117,11 +129,9 @@ module MixinBot
           memo:
         }
 
-        if pin.length > 6
-          payload[:pin_base64] = encrypt_tip_pin(pin, 'TIP:TRANSACTION:CREATE:', asset_id, receivers.join, threshold, amount, trace_id, memo)
-        else
-          payload[:pin] = encrypt_pin(pin)
-        end
+        payload.update(
+          tip_or_legacy_pin_payload(pin, 'TIP:TRANSACTION:CREATE:', asset_id, receivers.join, threshold, amount, trace_id, memo)
+        )
 
         client.post path, **payload
       end
@@ -129,7 +139,13 @@ module MixinBot
       # use safe transaction protocol instead
       MAINNET_TRANSACTION_ARGUMENTS = %i[asset_id opponent_id amount].freeze
       def create_mainnet_transaction(pin, **options)
-        raise ArgumentError, "#{MAINNET_TRANSACTION_ARGUMENTS.join(', ')} are needed for create main net transactions" unless MAINNET_TRANSACTION_ARGUMENTS.all? { |param| options.keys.include? param }
+        warn_legacy_mixin_api!('LegacyTransaction#create_mainnet_transaction')
+        unless MAINNET_TRANSACTION_ARGUMENTS.all? do |param|
+                 options.keys.include? param
+               end
+          raise ArgumentError,
+                "#{MAINNET_TRANSACTION_ARGUMENTS.join(', ')} are needed for create main net transactions"
+        end
 
         asset_id = options[:asset_id]
         opponent_id = options[:opponent_id]
@@ -146,17 +162,16 @@ module MixinBot
           memo:
         }
 
-        if pin.length > 6
-          payload[:pin_base64] = encrypt_tip_pin(pin, 'TIP:TRANSACTION:CREATE:', asset_id, opponent_id, amount, trace_id, memo)
-        else
-          payload[:pin] = encrypt_pin(pin)
-        end
+        payload.update(
+          tip_or_legacy_pin_payload(pin, 'TIP:TRANSACTION:CREATE:', asset_id, opponent_id, amount, trace_id, memo)
+        )
 
         client.post path, **payload
       end
 
       # use safe transaction protocol instead
       def transactions(**options)
+        warn_legacy_mixin_api!('LegacyTransaction#transactions')
         path = '/external/transactions'
         params = {
           limit: options[:limit],

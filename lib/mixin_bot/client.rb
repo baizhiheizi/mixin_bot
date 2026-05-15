@@ -1,62 +1,16 @@
 # frozen_string_literal: true
 
+require_relative 'client/error_mapper'
+
 module MixinBot
   ##
   # HTTP client for making requests to the Mixin Network API.
   #
-  # The Client handles:
-  # - HTTP connection management
-  # - Request authentication via JWT tokens
-  # - JSON encoding/decoding
-  # - Error handling and response parsing
-  # - Automatic retry logic
-  #
-  # == Usage
-  #
-  # The Client is typically created automatically by the API class,
-  # but can be instantiated directly if needed:
-  #
-  #   config = MixinBot::Configuration.new(...)
-  #   client = MixinBot::Client.new(config)
-  #   response = client.get('/me')
-  #
-  # == Error Handling
-  #
-  # The client automatically raises appropriate exceptions based on
-  # API error responses:
-  # - UnauthorizedError (401, 20121)
-  # - ForbiddenError (403, 20116, 10002, 429)
-  # - NotFoundError (404)
-  # - UserNotFoundError (10404)
-  # - InsufficientBalanceError (20117)
-  # - PinError (20118, 20119)
-  # - InsufficientPoolError (30103)
-  # - ResponseError (other errors)
-  #
   class Client
-    ##
-    # The HTTPS scheme used for API requests.
     SERVER_SCHEME = 'https'
 
-    ##
-    # @return [MixinBot::Configuration] the configuration
-    attr_reader :config
+    attr_reader :config, :conn
 
-    ##
-    # @return [Faraday::Connection] the HTTP connection
-    attr_reader :conn
-
-    ##
-    # Initializes a new Client instance.
-    #
-    # Sets up the HTTP connection with:
-    # - JSON request/response handling
-    # - Automatic retry on failures
-    # - Custom User-Agent header
-    # - Optional debug logging
-    #
-    # @param config [MixinBot::Configuration] the configuration (defaults to global config)
-    #
     def initialize(config)
       @config = config || MixinBot.config
       @conn = Faraday.new(
@@ -67,106 +21,113 @@ module MixinBot
         }
       ) do |f|
         f.request :json
-        f.request :retry
+        f.request :retry, max: 2, interval: 0.5, interval_randomness: 0.5, backoff_factor: 2,
+                          exceptions: [Faraday::ConnectionFailed, Faraday::TimeoutError]
         f.response :json
         f.response :logger if config.debug
       end
     end
 
     ##
-    # Performs a GET request to the Mixin API.
+    # GET request. Remaining keyword arguments are treated as query-string parameters.
     #
-    # @param path [String] the API endpoint path
-    # @param args [Array] positional arguments
-    # @param kwargs [Hash] keyword arguments including query parameters
-    # @return [Hash] the parsed response
-    # @raise [MixinBot::Error] on API errors
+    # @return [MixinBot::Models::ApiEnvelope]
     #
-    def get(path, *, **)
-      request(:get, path, *, **)
-    end
-
-    ##
-    # Performs a POST request to the Mixin API.
-    #
-    # @param path [String] the API endpoint path
-    # @param args [Array] positional arguments
-    # @param kwargs [Hash] keyword arguments for request body
-    # @return [Hash] the parsed response
-    # @raise [MixinBot::Error] on API errors
-    #
-    def post(path, *, **)
-      request(:post, path, *, **)
-    end
-
-    private
-
-    def request(verb, path, *args, **kwargs)
-      access_token = kwargs.delete :access_token
+    def get(path, **kwargs)
+      access_token = kwargs.delete(:access_token)
       exp_in = kwargs.delete(:exp_in) || 600
       scp = kwargs.delete(:scp) || 'FULL'
 
       kwargs.compact!
+      body = ''
+      full_path = kwargs.empty? ? path : "#{path}?#{URI.encode_www_form(kwargs.sort_by { |k, _| k.to_s })}"
+
+      token = access_token.presence || sign_token('GET', full_path, body, exp_in:, scp:)
+      response = @conn.get(full_path, nil, authorization_headers(token))
+      parse_response!(verb: 'GET', path: full_path, body:, response:)
+    end
+
+    ##
+    # POST with a Hash body (+**kwargs+ merged into JSON object) or an Array body (+*args+).
+    #
+    # @return [MixinBot::Models::ApiEnvelope]
+    #
+    def post(path, *args, **kwargs)
+      access_token = kwargs.delete(:access_token)
+      exp_in = kwargs.delete(:exp_in) || 600
+      scp = kwargs.delete(:scp) || 'FULL'
+
       body =
-        if verb == :post
-          if args.present?
-            args.to_json
-          else
-            kwargs.to_json
-          end
+        if args.present?
+          args.to_json
         else
-          ''
+          kwargs.compact.to_json
         end
 
-      path = "#{path}?#{URI.encode_www_form(kwargs.sort_by { |k, _v| k })}" if verb == :get && kwargs.present?
-      access_token ||=
-        MixinBot.utils.access_token(
-          verb.to_s.upcase,
-          path,
-          body,
-          exp_in:,
-          scp:,
-          app_id: config.app_id,
-          session_id: config.session_id,
-          private_key: config.session_private_key
-        )
-      authorization = format('Bearer %<access_token>s', access_token:)
+      token = access_token.presence || sign_token('POST', path, body, exp_in:, scp:)
+      response = @conn.post(path, body, authorization_headers(token))
+      parse_response!(verb: 'POST', path:, body:, response:)
+    end
 
-      response =
-        case verb
-        when :get
-          @conn.get path, nil, { Authorization: authorization }
-        when :post
-          @conn.post path, body, { Authorization: authorization }
-        end
+    ##
+    # Explicit query-string GET (preferred for new code).
+    #
+    def fetch_get(path, query: nil, access_token: nil, exp_in: 600, scp: 'FULL')
+      q = (query || {}).dup
+      q.compact!
+      body = ''
+      full_path = q.empty? ? path : "#{path}?#{URI.encode_www_form(q.sort_by { |k, _| k.to_s })}"
+      token = access_token.presence || sign_token('GET', full_path, body, exp_in:, scp:)
+      response = @conn.get(full_path, nil, authorization_headers(token))
+      parse_response!(verb: 'GET', path: full_path, body:, response:)
+    end
 
+    ##
+    # Explicit JSON-object POST (preferred for new code).
+    #
+    def fetch_post(path, body:, access_token: nil, exp_in: 600, scp: 'FULL')
+      payload = body.is_a?(String) ? body : body.compact.to_json
+      token = access_token.presence || sign_token('POST', path, payload, exp_in:, scp:)
+      response = @conn.post(path, payload, authorization_headers(token))
+      parse_response!(verb: 'POST', path:, body: payload, response:)
+    end
+
+    ##
+    # Explicit JSON-array POST (e.g. +/users/fetch+, +/safe/keys+).
+    #
+    def fetch_post_array(path, array_body, access_token: nil, exp_in: 600, scp: 'FULL')
+      payload = array_body.to_json
+      token = access_token.presence || sign_token('POST', path, payload, exp_in:, scp:)
+      response = @conn.post(path, payload, authorization_headers(token))
+      parse_response!(verb: 'POST', path:, body: payload, response:)
+    end
+
+    private
+
+    def authorization_headers(token)
+      return {} if token.blank?
+
+      { Authorization: format('Bearer %<access_token>s', access_token: token) }
+    end
+
+    def sign_token(method, uri, body, exp_in:, scp:)
+      MixinBot.utils.access_token(
+        method,
+        uri,
+        body,
+        exp_in:,
+        scp:,
+        app_id: config.app_id,
+        session_id: config.session_id,
+        private_key: config.session_private_key
+      )
+    end
+
+    def parse_response!(verb:, path:, body:, response:)
       result = response.body
+      return MixinBot::Models::ApiEnvelope.new(result) if result['error'].blank?
 
-      if result['error'].blank?
-        result.merge! result['data'] if result['data'].is_a? Hash
-        return result
-      end
-
-      errmsg = "#{verb.upcase} | #{path} | #{body}, errcode: #{result['error']['code']}, errmsg: #{result['error']['description']}, request_id: #{response&.[]('X-Request-Id')}, server_time: #{response&.[]('X-Server-Time')}'"
-
-      case result['error']['code']
-      when 401, 20121
-        raise UnauthorizedError, errmsg
-      when 403, 20116, 10002, 429
-        raise ForbiddenError, errmsg
-      when 404
-        raise NotFoundError, errmsg
-      when 20117
-        raise InsufficientBalanceError, errmsg
-      when 20118, 20119
-        raise PinError, errmsg
-      when 30103
-        raise InsufficientPoolError, errmsg
-      when 10404
-        raise UserNotFoundError, errmsg
-      else
-        raise ResponseError, errmsg
-      end
+      ErrorMapper.raise_for!(verb:, path:, body:, response:, result:)
     end
   end
 end

@@ -88,7 +88,12 @@ module MixinBot
       # }
       SAFE_RAW_TRANSACTION_ARGUMENTS = %i[utxos receivers].freeze
       def build_safe_transaction(**kwargs)
-        raise ArgumentError, "#{SAFE_RAW_TRANSACTION_ARGUMENTS.join(', ')} are needed for build safe transaction" unless SAFE_RAW_TRANSACTION_ARGUMENTS.all? { |param| kwargs.keys.include? param }
+        unless SAFE_RAW_TRANSACTION_ARGUMENTS.all? do |param|
+                 kwargs.keys.include? param
+               end
+          raise ArgumentError,
+                "#{SAFE_RAW_TRANSACTION_ARGUMENTS.join(', ')} are needed for build safe transaction"
+        end
         raise ArgumentError, 'receivers should be an array' unless kwargs[:receivers].is_a? Array
         raise ArgumentError, 'utxos should be an array' unless kwargs[:utxos].is_a? Array
 
@@ -126,10 +131,20 @@ module MixinBot
         end
         raise ArgumentError, 'recipients too many' if recipients.size > 256
 
-        asset = utxos[0]['asset']
+        mixin_asset_for = lambda do |u|
+          h = u.with_indifferent_access
+          next h[:asset] if h[:asset].present?
+
+          aid = h[:asset_id]
+          raise ArgumentError, 'utxo asset_id or asset is required' if aid.blank?
+
+          SHA3::Digest::SHA256.hexdigest(aid)
+        end
+
+        asset = mixin_asset_for.call(utxos[0])
         inputs = []
         utxos.each do |utxo|
-          raise ArgumentError, 'utxo asset not match' unless utxo['asset'] == asset
+          raise ArgumentError, 'utxo asset not match' unless mixin_asset_for.call(utxo) == asset
 
           inputs << {
             hash: utxo['transaction_hash'],
@@ -199,7 +214,12 @@ module MixinBot
 
       SIGN_SAFE_TRANSACTION_ARGUMENTS = %i[raw utxos request spend_key].freeze
       def sign_safe_transaction(**kwargs)
-        raise ArgumentError, "#{SIGN_SAFE_TRANSACTION_ARGUMENTS.join(', ')} are needed for sign safe transaction" unless SIGN_SAFE_TRANSACTION_ARGUMENTS.all? { |param| kwargs.keys.include? param }
+        unless SIGN_SAFE_TRANSACTION_ARGUMENTS.all? do |param|
+                 kwargs.keys.include? param
+               end
+          raise ArgumentError,
+                "#{SIGN_SAFE_TRANSACTION_ARGUMENTS.join(', ')} are needed for sign safe transaction"
+        end
 
         raw = kwargs[:raw]
         tx = MixinBot.utils.decode_raw_transaction raw
@@ -265,7 +285,12 @@ module MixinBot
 
       INSCRIBE_TRANSACTION_ARGUMENTS = %i[content collection_hash].freeze
       def build_inscribe_transaction(**kwargs)
-        raise ArgumentError, "#{INSCRIBE_TRANSACTION_ARGUMENTS.join(', ')} are needed for inscribe transaction" unless INSCRIBE_TRANSACTION_ARGUMENTS.all? { |param| kwargs.keys.include? param }
+        unless INSCRIBE_TRANSACTION_ARGUMENTS.all? do |param|
+                 kwargs.keys.include? param
+               end
+          raise ArgumentError,
+                "#{INSCRIBE_TRANSACTION_ARGUMENTS.join(', ')} are needed for inscribe transaction"
+        end
 
         receivers = kwargs[:receivers].presence || [config.app_id]
         receivers_threshold = kwargs[:receivers_threshold] || receivers.length
@@ -285,7 +310,12 @@ module MixinBot
 
       OCCUPY_INSCRIPTION_TRANSACTION_ARGUMENTS = %i[amount inscription_hash utxos].freeze
       def build_occupy_transaction(**kwargs)
-        raise ArgumentError, "#{OCCUPY_INSCRIPTION_TRANSACTION_ARGUMENTS.join(', ')} are needed for occupy NFT transaction" unless OCCUPY_INSCRIPTION_TRANSACTION_ARGUMENTS.all? { |param| kwargs.keys.include? param }
+        unless OCCUPY_INSCRIPTION_TRANSACTION_ARGUMENTS.all? do |param|
+                 kwargs.keys.include? param
+               end
+          raise ArgumentError,
+                "#{OCCUPY_INSCRIPTION_TRANSACTION_ARGUMENTS.join(', ')} are needed for occupy NFT transaction"
+        end
 
         members = kwargs[:members].presence || [config.app_id]
         threshold = kwargs[:threshold] || members.length

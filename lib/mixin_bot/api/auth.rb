@@ -30,19 +30,14 @@ module MixinBot
 
         path = '/oauth/authorize'
         pin = kwargs[:pin] || config.pin
+        raise ArgumentError, 'pin is required' if pin.blank?
+
+        tip = tip_or_legacy_pin_payload(pin, 'TIP:OAUTH:APPROVE:', data['scopes'], data['authorization_id'])
         payload = {
           authorization_id: data['authorization_id'],
           scopes: data['scopes'],
-          pin_base64: encrypt_pin(kwargs[:pin])
+          pin_base64: tip[:pin_base64] || tip[:pin]
         }
-
-        raise ArgumentError, 'pin is required' if pin.blank?
-
-        payload[:pin_base64] = if pin.size > 6
-                                 encrypt_tip_pin(pin, 'TIP:OAUTH:APPROVE:', data['scopes'], data['authorization_id'])
-                               else
-                                 encrypt_pin(pin)
-                               end
 
         client.post path, **payload, access_token: kwargs[:access_token]
       end

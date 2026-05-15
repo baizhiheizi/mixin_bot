@@ -5,7 +5,6 @@ require 'test_helper'
 module MixinBot
   class TestAsset < Minitest::Test
     def setup
-      skip 'No config file found' unless MixinBot.config.valid?
     end
 
     def test_assets

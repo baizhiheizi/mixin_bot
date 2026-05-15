@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: README
+  
+    &mdash; Documentation by YARD 0.9.43
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css">
+
+  <link rel="stylesheet" href="css/common.css" type="text/css">
+
+<script type="text/javascript">
+  pathId = "README";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
+    <div class="nav_wrap">
+      <iframe id="nav" src="file_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: README</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'><h1 id="MixinBot">MixinBot</h1>
+<p><a href="https://github.com/an-lee/mixin_bot/actions/workflows/ci.yml"><img src="https://github.com/an-lee/mixin_bot/actions/workflows/ci.yml/badge.svg" alt="CI" /></a></p>
+<p>An API wrapper for <a href="https://developers.mixin.one/docs/api-overview">Mixin Network</a></p>
+<h2 id="Installation">Installation</h2>
+<p>Add to gemfile, and <code>bundle install</code></p>
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_gem'>gem</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>mixin_bot</span><span class='tstring_end'>&#39;</span></span>
+</code></pre>
+<p>Or</p>
+<pre class="code shell"><code class="shell">gem install mixin_bot
+</code></pre>
+<h2 id="Usage">Usage</h2>
+<h3 id="CLI">CLI</h3>
+<pre class="code bash"><code class="bash">Commands:
+  mixinbot api PATH -k, --keystore=KEYSTORE                                   # request PATH of Mixin API
+  mixinbot decodetx TRANSACTION                                               # decode raw transaction
+  mixinbot encrypt PIN -k, --keystore=KEYSTORE                                # encrypt PIN using private key
+  mixinbot generatetrace HASH                                                 # generate trace ID from Tx hash
+  mixinbot help [COMMAND]                                                     # Describe available commands or one specific command
+  mixinbot nftmemo -c, --collection=COLLECTION -h, --hash=HASH -t, --token=N  # memo for mint NFT
+  mixinbot unique UUIDS                                                       # generate unique UUID for two or more UUIDs
+  mixinbot version                                                            # Distay MixinBot version
+
+Options:
+  -a, [--apihost=APIHOST]        # Specify mixin api host
+                                 # Default: api.mixin.one
+  -r, [--pretty], [--no-pretty]  # Print output in pretty
+                                 # Default: true
+</code></pre>
+<p>Example:</p>
+<pre class="code bash"><code class="bash">$ mixinbot api /me -k ~/.mixinbot/keystore.json
+</code></pre>
+<h3 id="Initialize_params">Initialize params</h3>
+<p>To use MixinBot api, you should set the keys first.</p>
+<pre class="code ruby"><code class="ruby"><span class='const'><span class='object_link'><a href="MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span><span class='period'>.</span><span class='id identifier rubyid_configure'><span class='object_link'><a href="MixinBot.html#configure-class_method" title="MixinBot.configure (method)">configure</a></span></span> <span class='kw'>do</span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_app_id'>app_id</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>25696f85-b7b4-4509-8c3f-2684a8fc4a2a</span><span class='tstring_end'>&#39;</span></span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_client_secret'>client_secret</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>d9dc58107bacde671...</span><span class='tstring_end'>&#39;</span></span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_session_id'>session_id</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>25696f85-b7b4-4509-8c3f-2684a8fc4a2a</span><span class='tstring_end'>&#39;</span></span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_server_public_key'>server_public_key</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>b0pjBUKI0Vp9K+NspaL....</span><span class='tstring_end'>&#39;</span></span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_session_private_key'>session_private_key</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span>
+<span class='kw'>end</span>
+</code></pre>
+<p>Supported Ruby: <strong>3.2.x or 3.3.x</strong> (see the gemspec). Ruby 4.0 is not supported yet because several native extensions do not publish gems for it.</p>
+<h3 id="Call_mixin_apis">Call mixin apis</h3>
+<p>Then you can use MixinBot by call <code>MixinBot.api</code>, for example</p>
+<pre class="code ruby"><code class="ruby"><span class='comment'># get the bot profile
+</span><span class='const'><span class='object_link'><a href="MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span><span class='period'>.</span><span class='id identifier rubyid_api'><span class='object_link'><a href="MixinBot.html#api-class_method" title="MixinBot.api (method)">api</a></span></span><span class='period'>.</span><span class='id identifier rubyid_me'><span class='object_link'><a href="MixinBot/API/Me.html#me-instance_method" title="MixinBot::API::Me#me (method)">me</a></span></span>
+
+<span class='comment'># get assets of the bot
+</span><span class='const'><span class='object_link'><a href="MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span><span class='period'>.</span><span class='id identifier rubyid_api'><span class='object_link'><a href="MixinBot.html#api-class_method" title="MixinBot.api (method)">api</a></span></span><span class='period'>.</span><span class='id identifier rubyid_assets'><span class='object_link'><a href="MixinBot/API/Asset.html#assets-instance_method" title="MixinBot::API::Asset#assets (method)">assets</a></span></span>
+
+<span class='comment'># transfer asset to somebody
+</span><span class='const'><span class='object_link'><a href="MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span><span class='period'>.</span><span class='id identifier rubyid_api'><span class='object_link'><a href="MixinBot.html#api-class_method" title="MixinBot.api (method)">api</a></span></span>
+  <span class='period'>.</span><span class='id identifier rubyid_create_transfer'>create_transfer</span><span class='lparen'>(</span>
+    <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>123456</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='comment'># pin_code
+</span>    <span class='label'>asset_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>965e5c6e-434c-3fa9-b780-c50f43cd955c</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='comment'># the asset uuid to transfer
+</span>    <span class='label'>opponent_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>6ae1c7ae-1df1-498e-8f21-d48cb6d129b5</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='comment'># receiver&#39;s mixin uuid
+</span>    <span class='label'>amount:</span> <span class='float'>0.00000001</span><span class='comma'>,</span> <span class='comment'># amount
+</span>    <span class='label'>memo:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>test from MixinBot</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='comment'># memo, 140 length at max
+</span>    <span class='label'>trace_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>0798327a-d499-416e-9b26-5cdc5b7d841e</span><span class='tstring_end'>&#39;</span></span> <span class='comment'># a uuid to trace transfer
+</span><span class='rparen'>)</span>
+
+<span class='comment'># etc
+</span></code></pre>
+<h3 id="Connect_Mixin_Blaze">Connect Mixin Blaze</h3>
+<p>Your bot can receive/send messages from/to any users in Mixin Network, including all users in Mixin Messenger by connecting to Mixin Blaze.</p>
+<p>With MixinBot, doing this is super easy.</p>
+<pre class="code ruby"><code class="ruby"><span class='comment'># run it in a EventMachine
+</span><span class='const'>EM</span><span class='period'>.</span><span class='id identifier rubyid_run'>run</span> <span class='lbrace'>{</span>
+  <span class='const'><span class='object_link'><a href="MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span><span class='period'>.</span><span class='id identifier rubyid_api'><span class='object_link'><a href="MixinBot.html#api-class_method" title="MixinBot.api (method)">api</a></span></span><span class='period'>.</span><span class='id identifier rubyid_start_blaze_connect'><span class='object_link'><a href="MixinBot/API/Blaze.html#start_blaze_connect-instance_method" title="MixinBot::API::Blaze#start_blaze_connect (method)">start_blaze_connect</a></span></span> <span class='kw'>do</span>
+    <span class='comment'># do something when the websocket connected
+</span>    <span class='kw'>def</span> <span class='id identifier rubyid_on_open'>on_open</span><span class='lparen'>(</span><span class='id identifier rubyid_blaze'>blaze</span><span class='comma'>,</span> <span class='id identifier rubyid__event'>_event</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_p'>p</span> <span class='lbracket'>[</span><span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='comma'>,</span> <span class='symbol'>:on_open</span><span class='rbracket'>]</span>
+
+      <span class='comment'># send the list_pending_message to receive messages
+</span>      <span class='id identifier rubyid_blaze'>blaze</span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span> <span class='id identifier rubyid_list_pending_message'>list_pending_message</span>
+    <span class='kw'>end</span>
+
+    <span class='comment'># do something when receive message
+</span>    <span class='kw'>def</span> <span class='id identifier rubyid_on_message'>on_message</span><span class='lparen'>(</span><span class='id identifier rubyid_blaze'>blaze</span><span class='comma'>,</span> <span class='id identifier rubyid_event'>event</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_raw'>raw</span> <span class='op'>=</span> <span class='const'>JSON</span><span class='period'>.</span><span class='id identifier rubyid_parse'>parse</span> <span class='id identifier rubyid_ws_message'>ws_message</span><span class='lparen'>(</span><span class='id identifier rubyid_event'>event</span><span class='period'>.</span><span class='id identifier rubyid_data'>data</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_p'>p</span> <span class='lbracket'>[</span><span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='comma'>,</span> <span class='symbol'>:on_message</span><span class='comma'>,</span> <span class='id identifier rubyid_raw'>raw</span><span class='op'>&amp;.</span><span class='op'>[]</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>action</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='rbracket'>]</span>
+
+      <span class='id identifier rubyid_blaze'>blaze</span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span> <span class='id identifier rubyid_acknowledge_message_receipt'>acknowledge_message_receipt</span><span class='lparen'>(</span><span class='id identifier rubyid_raw'>raw</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>data</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>message_id</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='id identifier rubyid_raw'>raw</span><span class='op'>&amp;.</span><span class='op'>[]</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>data</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='op'>&amp;.</span><span class='op'>[]</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>message_id</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+    <span class='kw'>end</span>
+
+    <span class='comment'># do something when websocket error
+</span>    <span class='kw'>def</span> <span class='id identifier rubyid_on_error'>on_error</span><span class='lparen'>(</span><span class='id identifier rubyid_blaze'>blaze</span><span class='comma'>,</span> <span class='id identifier rubyid_event'>event</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_p'>p</span> <span class='lbracket'>[</span><span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='comma'>,</span> <span class='symbol'>:on_error</span><span class='rbracket'>]</span>
+    <span class='kw'>end</span>
+
+    <span class='comment'># do something when websocket close
+</span>    <span class='kw'>def</span> <span class='id identifier rubyid_on_close'>on_close</span><span class='lparen'>(</span><span class='id identifier rubyid_blaze'>blaze</span><span class='comma'>,</span> <span class='id identifier rubyid_event'>event</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_p'>p</span> <span class='lbracket'>[</span><span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='comma'>,</span> <span class='symbol'>:on_close</span><span class='comma'>,</span> <span class='id identifier rubyid_event'>event</span><span class='period'>.</span><span class='id identifier rubyid_code'>code</span><span class='comma'>,</span> <span class='id identifier rubyid_event'>event</span><span class='period'>.</span><span class='id identifier rubyid_reason'>reason</span><span class='rbracket'>]</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='rbrace'>}</span>
+</code></pre>
+<h3 id="Multiple_Bot_management">Multiple Bot management</h3>
+<p>If you need to manage multiple mixin bot, you can config like this.</p>
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_bot1_api'>bot1_api</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="MixinBot/API.html" title="MixinBot::API (class)">API</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="MixinBot/API.html#initialize-instance_method" title="MixinBot::API#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+  <span class='label'>app_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>client_secret:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>session_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>server_public_key:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>session_private_key:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span>
+<span class='rparen'>)</span>
+
+<span class='id identifier rubyid_bot2_api'>bot2_api</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="MixinBot/API.html" title="MixinBot::API (class)">API</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="MixinBot/API.html#initialize-instance_method" title="MixinBot::API#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+  <span class='label'>app_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>client_secret:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>session_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>server_public_key:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>session_private_key:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>...</span><span class='tstring_end'>&#39;</span></span>
+<span class='rparen'>)</span>
+
+<span class='id identifier rubyid_bot1_api'>bot1_api</span><span class='period'>.</span><span class='id identifier rubyid_me'>me</span>
+<span class='id identifier rubyid_bot2_api'>bot2_api</span><span class='period'>.</span><span class='id identifier rubyid_me'>me</span>
+</code></pre>
+<h2 id="Documentation">Documentation</h2>
+<p>Comprehensive RDoc documentation is available for the entire gem.</p>
+<h3 id="Generate_Documentation">Generate Documentation</h3>
+<pre class="code bash"><code class="bash"># Using Rake
+rake rdoc
+
+# Or using RDoc directly
+rdoc
+</code></pre>
+<p>Then open <code>doc/index.html</code> in your browser.</p>
+<h3 id="Online_Documentation">Online Documentation</h3>
+<p>Documentation is also available online at <a href="https://www.rubydoc.info/gems/mixin_bot">RubyDoc.info</a>.</p>
+<h3 id="Documentation_Guides">Documentation Guides</h3>
+<ul>
+<li><a href="DOCUMENTATION.md">DOCUMENTATION.md</a> - Complete documentation guide</li>
+<li><a href="RDOC_GUIDE.md">RDOC_GUIDE.md</a> - RDoc formatting and style guide</li>
+</ul>
+<h2 id="More_Example">More Example</h2>
+<p>See in the <code>Spec</code> files.</p>
+<p>For WebSocket use case, see in <code>examples/blaze.rb</code>.</p>
+<h2 id="Test">Test</h2>
+<p>Clone the project:</p>
+<pre class="code shell"><code class="shell">git clone https://github.com/an-lee/mixin_bot
+</code></pre>
+<p>Update the spec config.yml to your own Mixin App(create in <a href="https://developers.mixin.one/dashboard">developers.mixin.one</a>).</p>
+<pre class="code shell"><code class="shell">cd mixin_bot
+mv spec/config.yml.example spec/config.yml
+</code></pre>
+<p>Run the test.</p>
+<pre class="code shell"><code class="shell">rake
+</code></pre>
+<h2 id="References">References</h2>
+<ul>
+<li><a href="https://developers.mixin.one/api">Mixin Network Document</a></li>
+<li><a href="https://github.com/myrual/mixin_client_demo">mixin_client_demo (python)</a></li>
+<li><a href="https://github.com/virushuo/mixin-node">mixin-node (nodejs)</a></li>
+</ul>
+<h2 id="License">License</h2>
+<p>This project rocks and uses MIT-LICENSE.</p></div></div>
+
+      <div id="footer">
+  Generated on Sat May 16 00:47:21 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.43 (ruby-3.3.6).
+</div>
+
+    </div>
+  </body>
+</html>

@@ -5,7 +5,6 @@ require 'test_helper'
 module MixinBot
   class TestLegacyTransfer < Minitest::Test
     def setup
-      skip 'No config file found' unless MixinBot.config.valid?
     end
 
     def test_transfer_asset_to_user
@@ -27,7 +26,6 @@ module MixinBot
 
     def test_transfer
       snapshots = MixinBot.api.snapshots['data']
-      skip 'No snapshots found' if snapshots.blank?
 
       trace_id = snapshots.first['trace_id']
       res = MixinBot.api.transfer(trace_id)

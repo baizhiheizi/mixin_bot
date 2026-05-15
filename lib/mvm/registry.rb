@@ -6,7 +6,8 @@ module MVM
 
     def initialize(rpc_url: MVM::RPC_URL, registry_address: MVM::REGISTRY_ADDRESS)
       @rpc = Eth::Client.create rpc_url
-      @registry = Eth::Contract.from_abi name: 'Registry', address: registry_address, abi: File.read(File.expand_path('./abis/registry.json', __dir__))
+      @registry = Eth::Contract.from_abi name: 'Registry', address: registry_address,
+                                         abi: File.read(File.expand_path('./abis/registry.json', __dir__))
     end
 
     def pid

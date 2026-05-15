@@ -33,7 +33,8 @@ module MixinBot
           {}
         end
 
-      access_token = options[:accesstoken] || api_instance.access_token(options[:method].upcase, path, payload.blank? ? '' : payload.to_json)
+      access_token = options[:accesstoken] || api_instance.access_token(options[:method].upcase, path,
+                                                                        payload.blank? ? '' : payload.to_json)
       authorization = format('Bearer %<access_token>s', access_token:)
       res = {}
 

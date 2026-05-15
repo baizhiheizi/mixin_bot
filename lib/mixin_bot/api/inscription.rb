@@ -21,8 +21,8 @@ module MixinBot
         client.get path, offset:
       end
 
-      def collectibles(members: [], access_token: nil)
-        unspent_outputs = safe_outputs(state: :unspent, members:, access_token:)['data']
+      def collectibles(members: [], access_token: nil, state: :unspent)
+        unspent_outputs = safe_outputs(state:, members:, access_token:)['data']
         unspent_outputs.select { |output| output['inscription_hash'].present? }
       end
 

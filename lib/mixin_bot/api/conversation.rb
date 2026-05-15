@@ -29,7 +29,8 @@ module MixinBot
 
       def create_group_conversation(user_ids:, name:, **kwargs)
         random_id = kwargs[:random_id] || SecureRandom.uuid
-        conversation_id = kwargs[:conversation_id] || MixinBot.utils.generate_group_conversation_id(user_ids:, name:, owner_id: config.app_id, random_id:)
+        conversation_id = kwargs[:conversation_id] || MixinBot.utils.generate_group_conversation_id(user_ids:, name:,
+                                                                                                    owner_id: config.app_id, random_id:)
         create_conversation(
           announcement: kwargs[:announcement],
           category: 'GROUP',

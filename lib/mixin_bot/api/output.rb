@@ -21,7 +21,7 @@ module MixinBot
         members = kwargs[:members].presence || [config.app_id]
         threshold = kwargs[:threshold] || members.length
 
-        members_hash = SHA3::Digest::SHA256.hexdigest(members&.sort&.join)
+        members_hash = MixinBot.utils.hash_members(members)
 
         path = '/safe/outputs'
         params = {

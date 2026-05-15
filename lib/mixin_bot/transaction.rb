@@ -51,7 +51,7 @@ module MixinBot
       bytes += encode_outputs
 
       # placeholder for `references`
-      bytes += encode_references if version >= REFERENCES_TX_VERSION
+      bytes += encode_references if version >= REFERENCES_TX_VERSION && references.present?
 
       # extra
       extra_bytes = extra.bytes
@@ -93,8 +93,8 @@ module MixinBot
       # read outputs
       decode_outputs
 
-      # read references
-      decode_references if version >= REFERENCES_TX_VERSION
+      # read references (must mirror +encode+ — only present when references are non-empty)
+      decode_references if version >= REFERENCES_TX_VERSION && references.present?
 
       # read extra
       # unsigned 32 endian for extra size
@@ -121,16 +121,16 @@ module MixinBot
           masks.each_with_index do |mask, i|
             8.times do |j|
               k = 1 << j
-              aggregated['signers'].push((i * 8) + j) if mask & k == k
+              @aggregated['signers'].push((i * 8) + j) if mask & k == k
             end
           end
         when AGGREGATED_SIGNATURE_SPARSE_MASK.first
           signers_size = MixinBot.utils.decode_uint16 @bytes.shift(2)
-          return if signers_size.zero?
-
-          aggregated['signers'] = []
-          signers_size.times do
-            aggregated['signers'].push MixinBot.utils.decode_uint16(@bytes.shift(2))
+          @aggregated['signers'] = []
+          unless signers_size.zero?
+            signers_size.times do
+              @aggregated['signers'].push MixinBot.utils.decode_uint16(@bytes.shift(2))
+            end
           end
         end
       elsif num.present? && num.positive? && @bytes.size.positive?
@@ -220,7 +220,7 @@ module MixinBot
           # group
           group = mint['group'] || ''
           if group.empty?
-            bytes += MixinBot.utils.encode_uint16 NULL_BYTES
+            bytes += NULL_BYTES
           else
             group_bytes = [group].pack('H*')
             bytes += MixinBot.utils.encode_uint16 group_bytes.size
@@ -277,9 +277,9 @@ module MixinBot
           bytes += [withdrawal['chain']].pack('H*').bytes
 
           # asset
-          @asset_bytes = [withdrawal['asset']].pack('H*')
-          bytes += MixinBot.utils.encode_uint16 asset_bytes.size
-          bytes += asset_bytes
+          asset_bytes = [withdrawal['asset']].pack('H*')
+          bytes += MixinBot.utils.encode_uint16 asset_bytes.bytesize
+          bytes += asset_bytes.bytes
 
           # address
           address = withdrawal['address'] || ''
@@ -287,7 +287,7 @@ module MixinBot
             bytes += NULL_BYTES
           else
             address_bytes = [address].pack('H*').bytes
-            bytes += MixinBot.utils.encode_uint16 address.size
+            bytes += MixinBot.utils.encode_uint16 address_bytes.size
             bytes += address_bytes
           end
 
@@ -296,9 +296,9 @@ module MixinBot
           if tag.empty?
             bytes += NULL_BYTES
           else
-            address_bytes = [tag].pack('H*').bytes
-            bytes += MixinBot.utils.encode_uint16 tag.size
-            bytes += address_bytes
+            tag_bytes = [tag].pack('H*').bytes
+            bytes += MixinBot.utils.encode_uint16 tag_bytes.size
+            bytes += tag_bytes
           end
         end
       end
@@ -325,26 +325,28 @@ module MixinBot
       bytes += MixinBot.utils.encode_uint16 AGGREGATED_SIGNATURE_PREFIX
       bytes += [aggregated['signature']].pack('H*').bytes
 
-      signers = aggregated['signers']
+      signers = aggregated['signers'] || []
       if signers.empty?
         bytes += AGGREGATED_SIGNATURE_ORDINAY_MASK
         bytes += NULL_BYTES
+        return bytes
+      end
+
+      signers.each_with_index do |sig, i|
+        raise ArgumentError, 'signers not sorted' if i.positive? && sig <= signers[i - 1]
+        raise ArgumentError, 'signers not sorted' if sig > MAX_ENCODE_INT
+      end
+
+      max = signers.last
+      sig_byte_len = [aggregated['signature']].pack('H*').bytes.size
+      if ((max / 8) + 1) > sig_byte_len
+        bytes += AGGREGATED_SIGNATURE_SPARSE_MASK
+        bytes += MixinBot.utils.encode_uint16 signers.size
+        signers.each { |signer| bytes += MixinBot.utils.encode_uint16(signer) }
       else
-        signers.each do |sig, i|
-          raise ArgumentError, 'signers not sorted' if i.positive? && sig <= signers[i - 1]
-          raise ArgumentError, 'signers not sorted' if sig > MAX_ENCODE_INT
-        end
-
-        max = signers.last
-        if ((((max / 8) | 0) + 1) | 0) > aggregated['signature'].size * 2
-          bytes += AGGREGATED_SIGNATURE_SPARSE_MASK
-          bytes += MixinBot.utils.encode_uint16 aggregated['signers'].size
-          signers.map(&->(signer) { bytes += MixinBot.utils.encode_uint16(signer) })
-        end
-
         masks_bytes = Array.new((max / 8) + 1, 0)
         signers.each do |signer|
-          masks[signer / 8] = masks[signer / 8] ^ (1 << (signer % 8))
+          masks_bytes[signer / 8] ^= (1 << (signer % 8))
         end
         bytes += AGGREGATED_SIGNATURE_ORDINAY_MASK
         bytes += MixinBot.utils.encode_uint16 masks_bytes.size
@@ -434,7 +436,7 @@ module MixinBot
           raise ArgumentError, 'Not valid input' unless magic == MAGIC
 
           mint = {}
-          if bytes[...2] == NULL_BYTES
+          if @bytes[...2] == NULL_BYTES
             @bytes.shift 2
           else
             group_size = MixinBot.utils.decode_uint16 @bytes.shift(2)
@@ -443,7 +445,7 @@ module MixinBot
 
           mint['batch'] = MixinBot.utils.decode_uint64 @bytes.shift(8)
           _amount_size = MixinBot.utils.decode_uint16 @bytes.shift(2)
-          mint['amount'] = MixinBot.utils.decode_int bytes.shift(_amount_size)
+          mint['amount'] = MixinBot.utils.decode_int @bytes.shift(_amount_size)
 
           input['mint'] = mint
         end
@@ -484,26 +486,27 @@ module MixinBot
           magic = @bytes.shift(2)
           raise ArgumentError, 'Not valid output' unless magic == MAGIC
 
-          output['chain'] = @bytes.shift(32).pack('C*').unpack1('H*')
+          withdrawal = {}
+          withdrawal['chain'] = @bytes.shift(32).pack('C*').unpack1('H*')
 
           asset_size = MixinBot.utils.decode_uint16 @bytes.shift(2)
-          output['asset'] = @bytes.shift(asset_size).unpack1('H*')
+          withdrawal['asset'] = @bytes.shift(asset_size).unpack1('H*')
 
           if @bytes[...2] == NULL_BYTES
             @bytes.shift 2
           else
-
-            adderss_size = MixinBot.utils.decode_uint16 @bytes.shift(2)
-            output['adderss'] = @bytes.shift(adderss_size).pack('C*').unpack1('H*')
+            address_size = MixinBot.utils.decode_uint16 @bytes.shift(2)
+            withdrawal['address'] = @bytes.shift(address_size).pack('C*').unpack1('H*')
           end
 
           if @bytes[...2] == NULL_BYTES
             @bytes.shift 2
           else
-
             tag_size = MixinBot.utils.decode_uint16 @bytes.shift(2)
-            output['tag'] = @bytes.shift(tag_size).pack('C*').unpack1('H*')
+            withdrawal['tag'] = @bytes.shift(tag_size).pack('C*').unpack1('H*')
           end
+
+          output['withdrawal'] = withdrawal
         end
 
         @outputs.push output

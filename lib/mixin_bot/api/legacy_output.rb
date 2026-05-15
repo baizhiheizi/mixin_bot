@@ -4,20 +4,20 @@ module MixinBot
   class API
     module LegacyOutput
       def legacy_outputs(**kwargs)
+        warn_legacy_mixin_api!('LegacyOutput#legacy_outputs')
         limit = kwargs[:limit] || 100
         offset = kwargs[:offset] || ''
         state = kwargs[:state] || ''
-        members = kwargs[:members] || []
+        members_hash = MixinBot.utils.hash_members(kwargs[:members] || [])
         threshold = kwargs[:threshold] || ''
         access_token = kwargs[:access_token]
-        members = SHA3::Digest::SHA256.hexdigest(members&.sort&.join)
 
         path = '/multisigs/outputs'
         params = {
           limit:,
           offset:,
           state:,
-          members:,
+          members: members_hash,
           threshold:
         }.compact_blank
 
@@ -27,6 +27,7 @@ module MixinBot
       alias multisig_outputs legacy_outputs
 
       def create_output(receivers:, index:, hint: nil, access_token: nil)
+        warn_legacy_mixin_api!('LegacyOutput#create_output')
         path = '/outputs'
         payload = {
           receivers:,
@@ -37,6 +38,7 @@ module MixinBot
       end
 
       def build_output(receivers:, index:, amount:, threshold:, hint: nil)
+        warn_legacy_mixin_api!('LegacyOutput#build_output')
         _output = create_output(receivers:, index:, hint:)
         {
           amount: format('%.8f', amount.to_d.to_r),

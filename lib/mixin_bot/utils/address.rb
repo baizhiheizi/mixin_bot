@@ -117,6 +117,14 @@ module MixinBot
 
         MixinBot::Utils.build_main_address spend_key + view_key
       end
+
+      ##
+      # Sorted-member hash used by Safe outputs and legacy collectible listing (Go +HashMembers+).
+      #
+      def hash_members(ids)
+        list = Array(ids).flatten.compact.map(&:to_s).sort
+        SHA3::Digest::SHA256.hexdigest(list.join)
+      end
     end
   end
 end

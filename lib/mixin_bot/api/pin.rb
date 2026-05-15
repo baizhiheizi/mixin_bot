@@ -21,7 +21,7 @@ module MixinBot
             }
           else
             {
-              pin: MixinBot.utils.encrypt_pin(pin)
+              pin: encrypt_pin(pin)
             }
           end
 
@@ -57,8 +57,9 @@ module MixinBot
         }
       end
 
-      def encrypt_pin(pin, iterator: nil)
-        MixinBot.utils.encrypt_pin(pin, iterator:, shared_key: generate_shared_key_with_server)
+      def encrypt_pin(pin, iterator: nil, shared_key: nil)
+        sk = shared_key.presence || generate_shared_key_with_server
+        MixinBot.utils.encrypt_pin(pin, iterator:, shared_key: sk)
       end
 
       def decrypt_pin(msg)

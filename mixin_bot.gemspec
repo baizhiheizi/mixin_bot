@@ -23,9 +23,11 @@ Gem::Specification.new do |s|
   s.add_dependency 'awesome_print', '~> 1.8'
   s.add_dependency 'base58', '~> 0.2'
   s.add_dependency 'bcrypt', '~> 3.1'
+  s.add_dependency 'benchmark', '>= 0.4'
   s.add_dependency 'blake3-rb', '~> 1.5'
   s.add_dependency 'cli-ui', '~> 2.2'
-  s.add_dependency 'eth', '~> 0.5'
+  # 0.5.17+ pulls openssl ~> 3.3 (works on Ruby 4); older 0.5.x pinned openssl < 4 and broke Ruby 4.
+  s.add_dependency 'eth', '>= 0.5.17', '< 0.6'
   s.add_dependency 'faraday', '~> 2'
   s.add_dependency 'faraday-multipart', '~> 1'
   s.add_dependency 'faraday-retry', '~> 2'

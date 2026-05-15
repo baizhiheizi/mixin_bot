@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 module MixinBot
   class API
@@ -17,65 +17,56 @@ module MixinBot
       end
 
       def plain_text(options)
-        options.merge!(category: 'PLAIN_TEXT')
-        base_message_params(options)
+        base_message_params(options.merge(category: 'PLAIN_TEXT'))
       end
 
       def plain_post(options)
-        options.merge!(category: 'PLAIN_POST')
-        base_message_params(options)
+        base_message_params(options.merge(category: 'PLAIN_POST'))
       end
 
       def plain_image(options)
-        options.merge!(category: 'PLAIN_IMAGE')
-        base_message_params(options)
+        base_message_params(options.merge(category: 'PLAIN_IMAGE'))
       end
 
       def plain_data(options)
-        options.merge!(category: 'PLAIN_DATA')
-        base_message_params(options)
+        base_message_params(options.merge(category: 'PLAIN_DATA'))
       end
 
       def plain_sticker(options)
-        options.merge!(category: 'PLAIN_STICKER')
-        base_message_params(options)
+        base_message_params(options.merge(category: 'PLAIN_STICKER'))
       end
 
       def plain_contact(options)
-        options.merge!(category: 'PLAIN_CONTACT')
-        base_message_params(options)
+        base_message_params(options.merge(category: 'PLAIN_CONTACT'))
       end
 
       def plain_audio(options)
-        options.merge!(category: 'PLAIN_AUDIO')
-        base_message_params(options)
+        base_message_params(options.merge(category: 'PLAIN_AUDIO'))
       end
 
       def plain_video(options)
-        options.merge!(category: 'PLAIN_VIDEO')
-        base_message_params(options)
+        base_message_params(options.merge(category: 'PLAIN_VIDEO'))
       end
 
       def app_card(options)
-        options.merge!(category: 'APP_CARD')
-        base_message_params(options)
+        base_message_params(options.merge(category: 'APP_CARD'))
       end
 
       def app_button_group(options)
-        options.merge!(category: 'APP_BUTTON_GROUP')
-        base_message_params(options)
+        base_message_params(options.merge(category: 'APP_BUTTON_GROUP'))
       end
 
       def recall_message_params(message_id, options)
         raise 'recipient_id is required!' if options[:recipient_id].nil?
 
-        options.merge!(
-          category: 'MESSAGE_RECALL',
-          data: {
-            message_id:
-          }
+        base_message_params(
+          options.merge(
+            category: 'MESSAGE_RECALL',
+            data: {
+              message_id:
+            }
+          )
         )
-        base_message_params(options)
       end
 
       # base format of message params

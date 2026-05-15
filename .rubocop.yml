@@ -45,7 +45,7 @@ Style/NumericLiterals:
   Enabled: false
 
 Naming/PredicateName:
-  Enabled: false
+  Enabled: true
 
 Lint/UnderscorePrefixedVariableName:
   Enabled: false
@@ -54,7 +54,9 @@ Lint/FormatParameterMismatch:
   Enabled: false
 
 Layout/LineLength:
-  Enabled: false
+  Max: 140
+  Exclude:
+    - 'test/**/*'
 
 Layout/EmptyLinesAroundAttributeAccessor:
   Enabled: true

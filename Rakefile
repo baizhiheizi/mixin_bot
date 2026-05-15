@@ -9,15 +9,20 @@ Rake::TestTask.new(:test) do |t|
   t.libs << 'lib'
   t.test_files =
     FileList[
-      'test/**/utils/test_*.rb',
-      'test/mixin_bot/api/**/test_*.rb',
-    ]
+      'test/**/*_test.rb',
+      'test/**/test_*.rb'
+    ].exclude('test/mvm/**').uniq
   t.warning = false
 end
 
 require 'rubocop/rake_task'
 
 RuboCop::RakeTask.new
+
+desc 'Run tests with LIVE=1 (real network; requires test/config.yml)'
+task :test_live do
+  sh({ 'LIVE' => '1' }, 'bundle', 'exec', 'rake', 'test')
+end
 
 task default: %i[test rubocop]
 
@@ -57,7 +62,7 @@ RDoc::Task.new(:rdoc) do |rdoc|
   rdoc.title = 'MixinBot - Ruby SDK for Mixin Network'
   rdoc.options << '--line-numbers'
   rdoc.options << '--charset=UTF-8'
-  rdoc.rdoc_files.include('README.md', 'MIT-LICENSE', 'DOCUMENTATION.md')
+  rdoc.rdoc_files.include('README.md', 'MIT-LICENSE')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 

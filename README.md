@@ -52,13 +52,15 @@ To use MixinBot api, you should set the keys first.
 
 ```ruby
 MixinBot.configure do
-  app_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
-  client_secret = 'd9dc58107bacde671...'
-  session_id ='25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
-  server_public_key = 'b0pjBUKI0Vp9K+NspaL....'
-  session_private_key = '...'
+  self.app_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
+  self.client_secret = 'd9dc58107bacde671...'
+  self.session_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
+  self.server_public_key = 'b0pjBUKI0Vp9K+NspaL....'
+  self.session_private_key = '...'
 end
 ```
+
+Supported Ruby: **3.2 through 4.x** (see the gemspec). Use **Bundler 2.5+** on Ruby 4. CI runs 3.2, 3.3, and 4.0.
 
 ### Call mixin apis
 

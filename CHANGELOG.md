@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-05-16
+
+### Added
+
+- `MixinBot.utils.hash_members` (Go `HashMembers`) for sorted member hashing; used by `safe_outputs` and legacy output/collectible helpers.
+- `MixinBot::API#tip_or_legacy_pin_payload` and adoption across legacy PIN/TIP call sites.
+- Offline WebMock harness (`test/support/mixin_api_stubs.rb`), deterministic `OfflineConfig`, and `rake test_live` (runs `test` with `LIVE=1`).
+- Golden-vector fixtures under `test/fixtures/golden/` and transaction hex under `test/fixtures/transactions/`.
+
+### Changed
+
+- **HTTP responses** — `MixinBot::Client` returns `MixinBot::Models::ApiEnvelope` (no `merge!` of `data` into the top level). One-liners such as `#me` still return the inner `data` hash where that was the historical contract.
+- **`MixinBot::API#build_safe_transaction`** — derives the mixin asset hash from each UTXO’s `asset_id` when `asset` is absent (matches API output shapes).
+- **`MixinBot::Transaction#decode`** — reads the `references` section only when `references` is non-empty, matching encode behavior (fixes Safe tx round-trips).
+
+### Deprecated
+
+- All `Legacy*` API modules emit `MixinBot.deprecator` warnings (silenced in the default test suite). Migrate to Safe APIs (`create_safe_transfer`, `build_safe_transaction`, `safe_outputs`, inscriptions, etc.).
+
+### Fixed
+
+- **Ruby 4.0** — declare the `benchmark` gem (stdlib is no longer auto-loaded), bump **`eth` ≥ 0.5.17** (compatible `openssl` stack), add **`rdoc`** for `rake`/YARD, replace **`CGI.parse`** in offline stubs with **`URI.decode_www_form`**, and run CI on **4.0**.
+
 ## [1.5.0] - 2026-05-15
 
 ### Changed (breaking)

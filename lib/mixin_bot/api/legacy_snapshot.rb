@@ -4,6 +4,7 @@ module MixinBot
   class API
     module LegacySnapshot
       def network_snapshots(**kwargs)
+        warn_legacy_mixin_api!('LegacySnapshot#network_snapshots')
         path = '/network/snapshots'
         params = {
           limit: kwargs[:limit],
@@ -16,6 +17,7 @@ module MixinBot
       end
 
       def snapshots(**kwargs)
+        warn_legacy_mixin_api!('LegacySnapshot#snapshots')
         path = '/snapshots'
 
         params = {
@@ -30,6 +32,7 @@ module MixinBot
       end
 
       def network_snapshot(snapshot_id, **kwargs)
+        warn_legacy_mixin_api!('LegacySnapshot#network_snapshot')
         path = format('/network/snapshots/%<snapshot_id>s', snapshot_id:)
 
         client.get path, access_token: kwargs[:access_token]
