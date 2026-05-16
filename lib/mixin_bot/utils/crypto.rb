@@ -297,7 +297,8 @@ module MixinBot
         decode_cipher.update(cipher)
       end
 
-      # use timestamp(timestamp) for iterator as default: must be bigger than the previous, the first time must be greater than 0. After a new session created, it will be reset to 0.
+      # use timestamp(timestamp) for iterator as default: must be bigger than the previous,
+      # the first time must be greater than 0. After a new session created, it will be reset to 0.
       def encrypt_pin(pin, **kwargs)
         pin = MixinBot.utils.decode_key pin
 

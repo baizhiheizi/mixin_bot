@@ -6,7 +6,8 @@ module MVM
 
     def initialize(rpc_url: MVM::RPC_URL, mirror_address: MVM::MIRROR_ADDRESS)
       @rpc = Eth::Client.create rpc_url
-      @mirror = Eth::Contract.from_abi name: 'Mirror', address: mirror_address, abi: File.read(File.expand_path('./abis/mirror.json', __dir__))
+      @mirror = Eth::Contract.from_abi name: 'Mirror', address: mirror_address,
+                                       abi: File.read(File.expand_path('./abis/mirror.json', __dir__))
     end
 
     def collection_from_contract(address)
@@ -40,7 +41,8 @@ module MVM
     end
 
     def token_of_owner_by_index(contract, owner, index)
-      contract = Eth::Contract.from_abi name: 'Collectible', address: contract, abi: File.read(File.expand_path('./abis/erc721.json', __dir__))
+      contract = Eth::Contract.from_abi name: 'Collectible', address: contract,
+                                        abi: File.read(File.expand_path('./abis/erc721.json', __dir__))
 
       @rpc.call contract, 'tokenOfOwnerByIndex', owner, index
     rescue IOError

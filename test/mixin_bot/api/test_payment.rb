@@ -3,7 +3,7 @@
 require 'test_helper'
 
 module MixinBot
-  class TestLegacyPayment < Minitest::Test
+  class TestSafePayUrl < Minitest::Test
     def test_generate_safe_pay_url
       res = MixinBot.api.safe_pay_url(
         members: [MixinBot.config.app_id],

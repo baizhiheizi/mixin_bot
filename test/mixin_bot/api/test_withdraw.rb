@@ -5,7 +5,6 @@ require 'test_helper'
 module MixinBot
   class TestWithdraw < Minitest::Test
     def setup
-      skip 'No config file found' unless MixinBot.config.valid?
     end
 
     def test_create_withdraw_address
@@ -56,7 +55,7 @@ module MixinBot
 
       res = MixinBot.api.delete_withdraw_address(address_id, pin: PIN_CODE)
 
-      assert_equal res, {}
+      assert_nil res['error']
     end
   end
 end

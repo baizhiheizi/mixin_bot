@@ -18,7 +18,8 @@ module MixinBot
         asset_mixin_id: CNB_MIXIN_ID,
         amount: 0.000001,
         memo: 'test of sign request',
-        hint: SecureRandom.uuid
+        hint: SecureRandom.uuid,
+        access_token: 'offline-test-token'
       )
 
       raw = MixinBot.api.encode_raw_transaction tx

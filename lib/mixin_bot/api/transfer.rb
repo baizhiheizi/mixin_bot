@@ -139,13 +139,6 @@ module MixinBot
       end
 
       ##
-      # Alias for create_safe_transfer.
-      #
-      # @see #create_safe_transfer
-      #
-      alias create_transfer create_safe_transfer
-
-      ##
       # Builds a UTXO set for a transfer.
       #
       # Selects unspent outputs (UTXOs) from the bot's wallet that sum up
@@ -173,14 +166,25 @@ module MixinBot
       #   puts "Total: #{utxos.sum { |u| u['amount'].to_d }}"
       #
       def build_utxos(asset_id:, amount:)
+        amount = amount.to_d
         outputs = safe_outputs(state: 'unspent', asset: asset_id, limit: 500)['data'].sort_by { |o| o['amount'].to_d }
 
         utxos = []
         outputs.each do |output|
-          break if utxos.sum { |o| o['amount'].to_d } >= amount
+          break if utxos.size >= 256
 
-          utxos.shift if utxos.size >= 256
           utxos << output
+          break if utxos.sum { |o| o['amount'].to_d } >= amount
+        end
+
+        total_in = utxos.sum { |o| o['amount'].to_d }
+        if total_in < amount
+          raise MixinBot::UtxoInsufficientError.new(
+            'insufficient utxo',
+            total_input: total_in,
+            total_output: amount,
+            output_size: utxos.size
+          )
         end
 
         utxos

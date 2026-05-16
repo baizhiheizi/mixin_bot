@@ -3,10 +3,8 @@
 require 'test_helper'
 
 module MixinBot
-  class TestMessage < Minitest::Test
-    def setup
-      skip 'No config file found' unless MixinBot.config.valid?
-    end
+  class TestPin < Minitest::Test
+    def setup; end
 
     def test_verify_pin
       res = MixinBot.api.verify_pin(PIN_CODE)
@@ -19,9 +17,7 @@ module MixinBot
       encrypted_pin = MixinBot.api.encrypt_pin(PIN_CODE)
       decrypted_pin = MixinBot.api.decrypt_pin(encrypted_pin)
 
-      key = MixinBot.utils.decode_key PIN_CODE
-
-      assert_equal decrypted_pin, key[0...decrypted_pin.length]
+      assert_equal PIN_CODE, decrypted_pin.byteslice(0, PIN_CODE.bytesize)
     end
   end
 end

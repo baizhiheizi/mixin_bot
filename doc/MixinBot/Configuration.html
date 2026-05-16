@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: MixinBot::Configuration
+  
+    &mdash; Documentation by YARD 0.9.43
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css">
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css">
+
+<script type="text/javascript">
+  pathId = "MixinBot::Configuration";
+  relpath = '../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="main_progress" aria-hidden="true"></div>
+
+    <div class="nav_wrap">
+      <iframe id="nav" src="../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../_index.html">Index (C)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span>
+     &raquo; 
+    <span class="title">Configuration</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: MixinBot::Configuration
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">MixinBot::Configuration</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/mixin_bot/configuration.rb
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Configuration class for storing Mixin bot credentials and settings.</p>
+<p>This class handles the configuration of bot credentials including:</p>
+<ul>
+<li>Application ID and secret</li>
+<li>Session ID and private key</li>
+<li>Server public key</li>
+<li>Spend key and PIN</li>
+<li>API and Blaze host settings</li>
+</ul>
+<h2 id="Usage">Usage</h2>
+<p>Configure globally:</p>
+<pre class="code ruby"><code class="ruby"><span class='const'><span class='object_link'><a href="../MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span><span class='period'>.</span><span class='id identifier rubyid_configure'><span class='object_link'><a href="../MixinBot.html#configure-class_method" title="MixinBot.configure (method)">configure</a></span></span> <span class='kw'>do</span>
+<span class='id identifier rubyid_app_id'>app_id</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>your-app-id</span><span class='tstring_end'>&#39;</span></span>
+<span class='id identifier rubyid_session_id'>session_id</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>your-session-id</span><span class='tstring_end'>&#39;</span></span>
+<span class='id identifier rubyid_session_private_key'>session_private_key</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>your-private-key</span><span class='tstring_end'>&#39;</span></span>
+<span class='id identifier rubyid_server_public_key'>server_public_key</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>server-public-key</span><span class='tstring_end'>&#39;</span></span>
+<span class='id identifier rubyid_spend_key'>spend_key</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>your-spend-key</span><span class='tstring_end'>&#39;</span></span>
+<span class='kw'>end</span>
+</code></pre>
+<p>Or create a specific configuration instance:</p>
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_config'>config</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span><span class='op'>::</span><span class='const'>Configuration</span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="#initialize-instance_method" title="MixinBot::Configuration#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+<span class='label'>app_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>your-app-id</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+<span class='label'>session_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>your-session-id</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+<span class='label'>session_private_key:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>your-private-key</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+<span class='label'>server_public_key:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>server-public-key</span><span class='tstring_end'>&#39;</span></span>
+<span class='rparen'>)</span>
+</code></pre>
+<h2 id="Key_Conversion">Key Conversion</h2>
+<p>The configuration automatically handles key format conversions:</p>
+<ul>
+<li>Ed25519 keys are converted from seed format (32 bytes) to full format (64 bytes)</li>
+<li>Keys are converted to Curve25519 format when needed</li>
+<li>Keys can be provided in various encodings (Base64, hex, etc.)</li>
+</ul>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="CONFIGURABLE_ATTRS-constant" class="">CONFIGURABLE_ATTRS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>List of configurable attributes.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='qsymbols_beg'>%i[</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>app_id</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>client_secret</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>session_id</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>session_private_key</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>server_public_key</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>spend_key</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>pin</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>api_host</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>blaze_host</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>session_private_key_curve25519</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>server_public_key_curve25519</span><span class='words_sep'>
+</span><span class='words_sep'>  </span><span class='tstring_content'>debug</span><span class='words_sep'>
+</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(**kwargs)  &#x21d2; Configuration </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Initializes a new Configuration instance.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#pin=-instance_method" title="#pin= (instance method)">#<strong>pin=</strong>(key)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Sets the PIN with automatic format conversion.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#server_public_key=-instance_method" title="#server_public_key= (instance method)">#<strong>server_public_key=</strong>(key)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Sets the server public key with automatic format conversion.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#session_private_key=-instance_method" title="#session_private_key= (instance method)">#<strong>session_private_key=</strong>(key)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Sets the session private key with automatic format conversion.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#spend_key=-instance_method" title="#spend_key= (instance method)">#<strong>spend_key=</strong>(key)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Sets the spend key with automatic format conversion.</p></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#valid%3F-instance_method" title="#valid? (instance method)">#<strong>valid?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Validates if the configuration has all required credentials.</p></div></span>
+  
+</li>
+
+      
+    </ul>
+    
+  
+
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(**kwargs)  &#x21d2; <tt><span class='object_link'><a href="" title="MixinBot::Configuration (class)">Configuration</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Initializes a new Configuration instance.</p>
+
+  </div>
+</div>
+<div class="tags">
+  
+  <div class="examples">
+    <h4 class="tag_title">Examples:</h4>
+    
+      
+      <pre class="example code"><code><span class='id identifier rubyid_config'>config</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../MixinBot.html" title="MixinBot (module)">MixinBot</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="MixinBot::Configuration (class)">Configuration</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span>
+  <span class='label'>app_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>25696f85-b7b4-4509-8c3f-2684a8fc4a2a</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>session_id:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>25696f85-b7b4-4509-8c3f-2684a8fc4a2a</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>session_private_key:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>base64_encoded_key</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+  <span class='label'>server_public_key:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>base64_encoded_key</span><span class='tstring_end'>&#39;</span></span>
+<span class='rparen'>)</span></code></pre>
+    
+  </div>
+<p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>kwargs</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>configuration options</p></div>
+      
+    </li>
+  
+</ul>
+
+  
+    
+    
+    <p class="tag_title">Options Hash (<tt>**kwargs</tt>):</p>
+    <ul class="option">
+      
+        <li>
+          <span class="name">:app_id</span>
+          <span class="type">(<tt>String</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>the application ID (or :client_id)</p></div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:client_secret</span>
+          <span class="type">(<tt>String</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>the client secret</p></div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:session_id</span>
+          <span class="type">(<tt>String</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>the session ID</p></div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:session_private_key</span>
+          <span class="type">(<tt>String</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>the session private key (or :private_key)</p></div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:server_public_key</span>
+          <span class="type">(<tt>String</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>the server public key (or :pin_token)</p></div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:spend_key</span>
+          <span class="type">(<tt>String</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>the spend private key</p></div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:pin</span>
+          <span class="type">(<tt>String</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>the PIN (defaults to spend_key if not provided)</p></div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:api_host</span>
+          <span class="type">(<tt>String</tt>)</span>
+          <span class="default">
+            
+              &mdash; default:
+              <tt>&#39;api.mixin.one&#39;</tt>
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>the API host</p></div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:blaze_host</span>
+          <span class="type">(<tt>String</tt>)</span>
+          <span class="default">
+            
+              &mdash; default:
+              <tt>&#39;blaze.mixin.one&#39;</tt>
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>the Blaze WebSocket host</p></div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:debug</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+              &mdash; default:
+              <tt>false</tt>
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>enable debug logging</p></div>
+          
+        </li>
+      
+    </ul>
+  
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/mixin_bot/configuration.rb', line 84</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_kwargs'>kwargs</span><span class='rparen'>)</span>
+  <span class='ivar'>@app_id</span> <span class='op'>=</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:app_id</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:client_id</span><span class='rbracket'>]</span>
+  <span class='ivar'>@client_secret</span> <span class='op'>=</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:client_secret</span><span class='rbracket'>]</span>
+  <span class='ivar'>@session_id</span> <span class='op'>=</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:session_id</span><span class='rbracket'>]</span>
+  <span class='ivar'>@api_host</span> <span class='op'>=</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:api_host</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>api.mixin.one</span><span class='tstring_end'>&#39;</span></span>
+  <span class='ivar'>@blaze_host</span> <span class='op'>=</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:blaze_host</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>blaze.mixin.one</span><span class='tstring_end'>&#39;</span></span>
+  <span class='ivar'>@debug</span> <span class='op'>=</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:debug</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='kw'>false</span>
+
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_session_private_key'>session_private_key</span> <span class='op'>=</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:session_private_key</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:private_key</span><span class='rbracket'>]</span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_server_public_key'>server_public_key</span> <span class='op'>=</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:server_public_key</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:pin_token</span><span class='rbracket'>]</span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_spend_key'>spend_key</span> <span class='op'>=</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:spend_key</span><span class='rbracket'>]</span>
+  <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_pin'>pin</span> <span class='op'>=</span> <span class='id identifier rubyid_kwargs'>kwargs</span><span class='lbracket'>[</span><span class='symbol'>:pin</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_spend_key'>spend_key</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="pin=-instance_method">
+  
+    #<strong>pin=</strong>(key)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Sets the PIN with automatic format conversion.</p>
+<p>The PIN is used for certain operations requiring additional authorization.
+Defaults to the spend_key if not explicitly set.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>key</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the PIN key</p></div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/mixin_bot/configuration.rb', line 187</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_pin='>pin=</span><span class='lparen'>(</span><span class='id identifier rubyid_key'>key</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_key'>key</span><span class='period'>.</span><span class='id identifier rubyid_blank?'>blank?</span>
+
+  <span class='id identifier rubyid__private_key'>_private_key</span> <span class='op'>=</span> <span class='id identifier rubyid_decode_key'>decode_key</span> <span class='id identifier rubyid_key'>key</span>
+  <span class='ivar'>@pin</span> <span class='op'>=</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid__private_key'>_private_key</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span> <span class='op'>==</span> <span class='int'>32</span>
+      <span class='const'>JOSE</span><span class='op'>::</span><span class='const'>JWA</span><span class='op'>::</span><span class='const'>Ed25519</span><span class='period'>.</span><span class='id identifier rubyid_keypair'>keypair</span><span class='lparen'>(</span><span class='id identifier rubyid__private_key'>_private_key</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_last'>last</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid__private_key'>_private_key</span>
+    <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="server_public_key=-instance_method">
+  
+    #<strong>server_public_key=</strong>(key)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Sets the server public key with automatic format conversion.</p>
+<p>Converts Ed25519 public key to Curve25519 format when needed.
+Handles both hex-encoded and Base64-encoded keys.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>key</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the server public key</p></div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/mixin_bot/configuration.rb', line 146</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_server_public_key='>server_public_key=</span><span class='lparen'>(</span><span class='id identifier rubyid_key'>key</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_key'>key</span><span class='period'>.</span><span class='id identifier rubyid_blank?'>blank?</span>
+
+  <span class='ivar'>@server_public_key</span> <span class='op'>=</span> <span class='id identifier rubyid_decode_key'>decode_key</span> <span class='id identifier rubyid_key'>key</span>
+  <span class='comment'># HEX encoded
+</span>  <span class='ivar'>@server_public_key_curve25519</span> <span class='op'>=</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_key'>key</span><span class='period'>.</span><span class='id identifier rubyid_match?'>match?</span><span class='lparen'>(</span><span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>\A[\h]{32,}\z</span><span class='regexp_end'>/i</span></span><span class='rparen'>)</span>
+      <span class='const'>JOSE</span><span class='op'>::</span><span class='const'>JWA</span><span class='op'>::</span><span class='const'>Ed25519</span><span class='period'>.</span><span class='id identifier rubyid_pk_to_curve25519'>pk_to_curve25519</span> <span class='ivar'>@server_public_key</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid_server_public_key'>server_public_key</span>
+    <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="session_private_key=-instance_method">
+  
+    #<strong>session_private_key=</strong>(key)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Sets the session private key with automatic format conversion.</p>
+<p>Handles Ed25519 key conversion:</p>
+<ul>
+<li>If key is 32 bytes (seed), converts to 64-byte keypair</li>
+<li>Automatically converts to Curve25519 format for encryption</li>
+</ul>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>key</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the session private key in various formats</p></div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/mixin_bot/configuration.rb', line 124</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_session_private_key='>session_private_key=</span><span class='lparen'>(</span><span class='id identifier rubyid_key'>key</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_key'>key</span><span class='period'>.</span><span class='id identifier rubyid_blank?'>blank?</span>
+
+  <span class='id identifier rubyid__private_key'>_private_key</span> <span class='op'>=</span> <span class='id identifier rubyid_decode_key'>decode_key</span> <span class='id identifier rubyid_key'>key</span>
+  <span class='ivar'>@session_private_key</span> <span class='op'>=</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid__private_key'>_private_key</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span> <span class='op'>==</span> <span class='int'>32</span>
+      <span class='const'>JOSE</span><span class='op'>::</span><span class='const'>JWA</span><span class='op'>::</span><span class='const'>Ed25519</span><span class='period'>.</span><span class='id identifier rubyid_keypair'>keypair</span><span class='lparen'>(</span><span class='id identifier rubyid__private_key'>_private_key</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_last'>last</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid__private_key'>_private_key</span>
+    <span class='kw'>end</span>
+
+  <span class='ivar'>@session_private_key_curve25519</span> <span class='op'>=</span> <span class='const'>JOSE</span><span class='op'>::</span><span class='const'>JWA</span><span class='op'>::</span><span class='const'>Ed25519</span><span class='period'>.</span><span class='id identifier rubyid_sk_to_curve25519'>sk_to_curve25519</span><span class='lparen'>(</span><span class='ivar'>@session_private_key</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='ivar'>@session_private_key</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span> <span class='op'>==</span> <span class='int'>64</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="spend_key=-instance_method">
+  
+    #<strong>spend_key=</strong>(key)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Sets the spend key with automatic format conversion.</p>
+<p>Used for signing transactions in the Safe API.
+Converts from seed format to full keypair if needed.</p>
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>key</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the spend private key</p></div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/mixin_bot/configuration.rb', line 167</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_spend_key='>spend_key=</span><span class='lparen'>(</span><span class='id identifier rubyid_key'>key</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_key'>key</span><span class='period'>.</span><span class='id identifier rubyid_blank?'>blank?</span>
+
+  <span class='id identifier rubyid__private_key'>_private_key</span> <span class='op'>=</span> <span class='id identifier rubyid_decode_key'>decode_key</span> <span class='id identifier rubyid_key'>key</span>
+  <span class='ivar'>@spend_key</span> <span class='op'>=</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid__private_key'>_private_key</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span> <span class='op'>==</span> <span class='int'>32</span>
+      <span class='const'>JOSE</span><span class='op'>::</span><span class='const'>JWA</span><span class='op'>::</span><span class='const'>Ed25519</span><span class='period'>.</span><span class='id identifier rubyid_keypair'>keypair</span><span class='lparen'>(</span><span class='id identifier rubyid__private_key'>_private_key</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_last'>last</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid__private_key'>_private_key</span>
+    <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="valid?-instance_method">
+  
+    #<strong>valid?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Validates if the configuration has all required credentials.</p>
+<p>Required fields are:</p>
+<ul>
+<li>app_id</li>
+<li>session_id</li>
+<li>session_private_key</li>
+<li>server_public_key</li>
+</ul>
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if all required fields are present</p></div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+109
+110
+111
+112
+113</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/mixin_bot/configuration.rb', line 109</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_valid?'>valid?</span>
+  <span class='qsymbols_beg'>%i[</span><span class='tstring_content'>app_id</span><span class='words_sep'> </span><span class='tstring_content'>session_id</span><span class='words_sep'> </span><span class='tstring_content'>session_private_key</span><span class='words_sep'> </span><span class='tstring_content'>server_public_key</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_all?'>all?</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_attr'>attr</span><span class='op'>|</span>
+    <span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='id identifier rubyid_attr'>attr</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Sat May 16 00:47:24 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.43 (ruby-3.3.6).
+</div>
+
+    </div>
+  </body>
+</html>

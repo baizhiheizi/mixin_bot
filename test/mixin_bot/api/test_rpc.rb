@@ -3,10 +3,8 @@
 require 'test_helper'
 
 module MixinBot
-  class TestMessage < Minitest::Test
-    def setup
-      skip 'No config file found' unless MixinBot.config.valid?
-    end
+  class TestRpc < Minitest::Test
+    def setup; end
 
     def test_get_transaction
       hash = '25bea01c02af130579e44cd878ce0dcfe82d8acb42d5dbaaf96b08735d5f6626'

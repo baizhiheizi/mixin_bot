@@ -10,6 +10,14 @@ module MixinBot
   class MixAddress
     attr_accessor :version, :uuid_members, :xin_members, :threshold, :address, :payload
 
+    def self.parse(string)
+      new(address: string)
+    end
+
+    def self.from_members(members:, threshold:)
+      new(members:, threshold:)
+    end
+
     def initialize(**args)
       args = args.with_indifferent_access
 
@@ -57,7 +65,18 @@ module MixinBot
       raise ArgumentError, 'members should be an array' unless uuid_members.is_a?(Array) || xin_members.is_a?(Array)
       raise ArgumentError, 'members should not be empty' if uuid_members.empty? && xin_members.empty?
       raise ArgumentError, 'members length should less than 256' if uuid_members.length + xin_members.length > 255
-      raise ArgumentError, "invalid threshold: #{threshold}" if threshold > (uuid_members.length + xin_members.length)
+
+      member_count = uuid_members.length + xin_members.length
+      # UUID mix (Go NewUUIDMixAddress): threshold must be in 1..len(members).
+      # XIN-only mix (Go NewMainnetMixAddress): threshold may exceed member count (sparse), e.g. storage 1-of-64 style.
+      if uuid_members.present? && xin_members.empty?
+        raise ArgumentError, "invalid threshold: #{threshold}" unless threshold.positive? && threshold <= member_count
+      elsif xin_members.present? && uuid_members.empty?
+        raise ArgumentError, "invalid threshold: #{threshold}" unless threshold.positive?
+        raise ArgumentError, 'too many XIN members' if member_count > 64
+      elsif threshold > member_count
+        raise ArgumentError, "invalid threshold: #{threshold}"
+      end
 
       prefix =
         [version].pack('C*') +

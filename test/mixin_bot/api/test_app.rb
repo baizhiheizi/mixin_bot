@@ -5,8 +5,6 @@ require 'test_helper'
 module MixinBot
   class TestApp < Minitest::Test
     def setup
-      skip 'No config file found' unless MixinBot.config.valid?
-
       @opponent_app_id = 'c1412f68-6152-40ad-a193-f7fadf9328a1'
     end
 

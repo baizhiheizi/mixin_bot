@@ -5,7 +5,11 @@ module MixinBot
     module LegacyMultisig
       MULTISIG_REQUEST_ACTIONS = %i[sign unlock].freeze
       def create_multisig_request(action, raw, access_token: nil)
-        raise ArgumentError, "request action is limited in #{MULTISIG_REQUEST_ACTIONS.join(', ')}" unless MULTISIG_REQUEST_ACTIONS.include? action.to_sym
+        warn_legacy_mixin_api!('LegacyMultisig#create_multisig_request')
+        unless MULTISIG_REQUEST_ACTIONS.include? action.to_sym
+          raise ArgumentError,
+                "request action is limited in #{MULTISIG_REQUEST_ACTIONS.join(', ')}"
+        end
 
         path = '/multisigs/requests'
         payload = {
@@ -17,46 +21,32 @@ module MixinBot
 
       # transfer from the multisig address
       def create_sign_multisig_request(raw, access_token: nil)
+        warn_legacy_mixin_api!('LegacyMultisig#create_sign_multisig_request')
         create_multisig_request 'sign', raw, access_token:
       end
 
       # transfer from the multisig address
       # create a request for unlock a multi-sign
       def create_unlock_multisig_request(raw, access_token: nil)
+        warn_legacy_mixin_api!('LegacyMultisig#create_unlock_multisig_request')
         create_multisig_request 'unlock', raw, access_token:
       end
 
       def sign_multisig_request(request_id, pin = nil)
+        warn_legacy_mixin_api!('LegacyMultisig#sign_multisig_request')
         pin ||= config.pin
         path = format('/multisigs/requests/%<request_id>s/sign', request_id:)
-        payload =
-          if pin.length > 6
-            {
-              pin_base64: encrypt_tip_pin(pin, 'TIP:MULTISIG:REQUEST:SIGN:', request_id)
-            }
-          else
-            {
-              pin: encrypt_pin(pin)
-            }
-          end
+        payload = tip_or_legacy_pin_payload(pin, 'TIP:MULTISIG:REQUEST:SIGN:', request_id)
 
         client.post path, **payload
       end
 
       def unlock_multisig_request(request_id, pin = nil)
+        warn_legacy_mixin_api!('LegacyMultisig#unlock_multisig_request')
         pin ||= config.pin
 
         path = format('/multisigs/requests/%<request_id>s/unlock', request_id:)
-        payload =
-          if pin.length > 6
-            {
-              pin_base64: encrypt_tip_pin(pin, 'TIP:MULTISIG:REQUEST:UNLOCK:', request_id)
-            }
-          else
-            {
-              pin: encrypt_pin(pin)
-            }
-          end
+        payload = tip_or_legacy_pin_payload(pin, 'TIP:MULTISIG:REQUEST:UNLOCK:', request_id)
 
         client.post path, **payload
       end
@@ -64,6 +54,7 @@ module MixinBot
       # pay to the multisig address
       # used for create multisig payment code_id
       def create_multisig_payment(**kwargs)
+        warn_legacy_mixin_api!('LegacyMultisig#create_multisig_payment')
         path = '/payments'
         payload = {
           asset_id: kwargs[:asset_id],
@@ -79,6 +70,7 @@ module MixinBot
       end
 
       def verify_multisig(code_id, access_token: nil)
+        warn_legacy_mixin_api!('LegacyMultisig#verify_multisig')
         path = format('/codes/%<code_id>s', code_id:)
         client.get path, access_token:
       end

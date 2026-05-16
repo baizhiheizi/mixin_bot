@@ -5,7 +5,6 @@ require 'test_helper'
 module MixinBot
   class TestSnapshot < Minitest::Test
     def setup
-      skip 'No config file found' unless MixinBot.config.valid?
     end
 
     def test_safe_snapshots
@@ -28,7 +27,7 @@ module MixinBot
 
       r = MixinBot.api.create_safe_snapshot_notification(
         transaction_hash: res['data'].first['transaction_hash'],
-        output_id: 0,
+        output_index: 0,
         receiver_id: TEST_UID
       )
 

@@ -23,6 +23,7 @@ require_relative 'api/message'
 require_relative 'api/multisig'
 require_relative 'api/output'
 require_relative 'api/payment'
+require_relative 'api/pin_payload'
 require_relative 'api/pin'
 require_relative 'api/rpc'
 require_relative 'api/snapshot'
@@ -52,10 +53,10 @@ module MixinBot
   # === Using Global Configuration
   #
   #   MixinBot.configure do
-  #     app_id = 'your-app-id'
-  #     session_id = 'your-session-id'
-  #     session_private_key = 'your-private-key'
-  #     server_public_key = 'server-public-key'
+  #     self.app_id = 'your-app-id'
+  #     self.session_id = 'your-session-id'
+  #     self.session_private_key = 'your-private-key'
+  #     self.server_public_key = 'server-public-key'
   #   end
   #
   #   # Access via global instance
@@ -341,12 +342,19 @@ module MixinBot
     include MixinBot::API::Rpc
     include MixinBot::API::Snapshot
     include MixinBot::API::Tip
+    include MixinBot::API::PinPayload
     include MixinBot::API::Transaction
     include MixinBot::API::Transfer
     include MixinBot::API::User
     include MixinBot::API::Withdraw
 
     private
+
+    def warn_legacy_mixin_api!(api_label)
+      MixinBot.deprecator.warn(
+        "MixinBot legacy API #{api_label} is deprecated; migrate to the Safe API. See CHANGELOG for 2.0.0."
+      )
+    end
 
     def ensure_mixin_command_exist
       return if command?('mixin')

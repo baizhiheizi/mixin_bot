@@ -20,7 +20,9 @@ require 'openssl'
 require 'rbnacl'
 require 'sha3'
 
+require_relative 'mixin_bot/errors'
 require_relative 'mixin_bot/address'
+require_relative 'mixin_bot/models'
 require_relative 'mixin_bot/api'
 require_relative 'mixin_bot/cli'
 require_relative 'mixin_bot/invoice'
@@ -63,11 +65,11 @@ require_relative 'mvm'
 # Configure your Mixin bot credentials:
 #
 #   MixinBot.configure do
-#     app_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
-#     client_secret = 'd9dc58107bacde671...'
-#     session_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
-#     server_public_key = 'b0pjBUKI0Vp9K+NspaL....'
-#     session_private_key = '...'
+#     self.app_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
+#     self.client_secret = 'd9dc58107bacde671...'
+#     self.session_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
+#     self.server_public_key = 'b0pjBUKI0Vp9K+NspaL....'
+#     self.session_private_key = '...'
 #   end
 #
 # === Basic Usage
@@ -188,10 +190,10 @@ module MixinBot
     # you can set your bot credentials and other settings.
     #
     #   MixinBot.configure do
-    #     app_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
-    #     session_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
-    #     session_private_key = '...'
-    #     server_public_key = '...'
+    #     self.app_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
+    #     self.session_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
+    #     self.session_private_key = '...'
+    #     self.server_public_key = '...'
     #   end
     #
     # @yield [Configuration] the configuration instance
@@ -211,90 +213,14 @@ module MixinBot
     def utils
       MixinBot::Utils
     end
+
+    ##
+    # ActiveSupport deprecation helper for legacy API surfaces.
+    #
+    # @return [ActiveSupport::Deprecation]
+    #
+    def deprecator
+      @deprecator ||= ActiveSupport::Deprecation.new('2.0', 'MixinBot')
+    end
   end
-
-  ##
-  # Base error class for all MixinBot errors.
-  #
-  class Error < StandardError; end
-
-  ##
-  # Raised when invalid arguments are provided.
-  #
-  class ArgumentError < StandardError; end
-
-  ##
-  # Raised when HTTP request fails.
-  #
-  class HttpError < Error; end
-
-  ##
-  # Raised when a request to Mixin API fails.
-  #
-  class RequestError < Error; end
-
-  ##
-  # Raised when Mixin API returns an error response.
-  #
-  class ResponseError < Error; end
-
-  ##
-  # Raised when a requested resource is not found (HTTP 404).
-  #
-  class NotFoundError < Error; end
-
-  ##
-  # Raised when a user is not found (error code 10404).
-  #
-  class UserNotFoundError < Error; end
-
-  ##
-  # Raised when authentication fails (HTTP 401).
-  #
-  class UnauthorizedError < Error; end
-
-  ##
-  # Raised when access is forbidden (HTTP 403).
-  #
-  class ForbiddenError < Error; end
-
-  ##
-  # Raised when there is insufficient balance for a transaction (error code 20117).
-  #
-  class InsufficientBalanceError < Error; end
-
-  ##
-  # Raised when there is insufficient pool for a transaction (error code 30103).
-  #
-  class InsufficientPoolError < Error; end
-
-  ##
-  # Raised when PIN verification fails (error codes 20118, 20119).
-  #
-  class PinError < Error; end
-
-  ##
-  # Raised when NFO memo format is invalid.
-  #
-  class InvalidNfoFormatError < Error; end
-
-  ##
-  # Raised when UUID format is invalid.
-  #
-  class InvalidUuidFormatError < Error; end
-
-  ##
-  # Raised when transaction format is invalid.
-  #
-  class InvalidTransactionFormatError < Error; end
-
-  ##
-  # Raised when configuration is not valid or incomplete.
-  #
-  class ConfigurationNotValidError < Error; end
-
-  ##
-  # Raised when invoice format is invalid.
-  #
-  class InvalidInvoiceFormatError < Error; end
 end

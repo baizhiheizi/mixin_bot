@@ -37,6 +37,19 @@ module MixinBot
         [int].pack('Q*').bytes.reverse
       end
 
+      ##
+      # Big-endian varint-style encoding for deposit amounts (integer or decimal string).
+      #
+      def bytes_of(amount)
+        int =
+          case amount
+          when Integer then amount
+          when String then Integer(amount, 10)
+          else amount.to_i
+          end
+        encode_int(int)
+      end
+
       def encode_int(int)
         raise ArgumentError, 'not integer' unless int.is_a?(Integer)
 
