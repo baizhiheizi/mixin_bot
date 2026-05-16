@@ -2,213 +2,246 @@
 
 [![CI](https://github.com/an-lee/mixin_bot/actions/workflows/ci.yml/badge.svg)](https://github.com/an-lee/mixin_bot/actions/workflows/ci.yml)
 
-An API wrapper for [Mixin Network](https://developers.mixin.one/docs/api-overview)
+Ruby SDK and CLI for [Mixin Network](https://developers.mixin.one/docs): authenticated REST calls, **Safe** UTXO transfers, Blaze messaging, invoices and mix addresses, transaction encoding, and optional **MVM** (Mixin Virtual Machine) helpers.
+
+Current gem version: **2.0.0** (see [CHANGELOG.md](CHANGELOG.md) for breaking changes and deprecations).
+
+## Requirements
+
+- **Ruby** ≥ 3.2 (CI runs 3.2, 3.3, and 4.0).
+- **Bundler** 2.5+ recommended, especially on Ruby 4.
+- Optional: the **`mixin`** CLI in `PATH` if you use `MixinBot::API#encode_raw_transaction_native` / `#decode_raw_transaction_native` or the experimental `MixinBot::NodeCLI` helpers.
 
 ## Installation
 
-Add to gemfile, and `bundle install`
+Add to your Gemfile:
 
 ```ruby
 gem 'mixin_bot'
 ```
 
-Or
+Then:
 
-```shell
+```bash
+bundle install
+```
+
+Or install the gem directly:
+
+```bash
 gem install mixin_bot
 ```
 
-## Usage
+The gem ships the `mixinbot` executable (see [CLI](#cli)).
 
-### CLI
+## Quick start
 
-```bash
-Commands:
-  mixinbot api PATH -k, --keystore=KEYSTORE                                   # request PATH of Mixin API
-  mixinbot decodetx TRANSACTION                                               # decode raw transaction
-  mixinbot encrypt PIN -k, --keystore=KEYSTORE                                # encrypt PIN using private key
-  mixinbot generatetrace HASH                                                 # generate trace ID from Tx hash
-  mixinbot help [COMMAND]                                                     # Describe available commands or one specific command
-  mixinbot nftmemo -c, --collection=COLLECTION -h, --hash=HASH -t, --token=N  # memo for mint NFT
-  mixinbot unique UUIDS                                                       # generate unique UUID for two or more UUIDs
-  mixinbot version                                                            # Distay MixinBot version
+### 1. Configure credentials
 
-Options:
-  -a, [--apihost=APIHOST]        # Specify mixin api host
-                                 # Default: api.mixin.one
-  -r, [--pretty], [--no-pretty]  # Print output in pretty
-                                 # Default: true
-```
-
-Example:
-
-```bash
-$ mixinbot api /me -k ~/.mixinbot/keystore.json
-```
-
-### Initialize params
-
-To use MixinBot api, you should set the keys first.
+Set the fields your flows need. **Safe** transfers and signing require a **spend key** (`spend_key`) in addition to session material.
 
 ```ruby
+require 'mixin_bot'
+
 MixinBot.configure do
-  self.app_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
-  self.client_secret = 'd9dc58107bacde671...'
-  self.session_id = '25696f85-b7b4-4509-8c3f-2684a8fc4a2a'
-  self.server_public_key = 'b0pjBUKI0Vp9K+NspaL....'
-  self.session_private_key = '...'
+  self.app_id = 'your-app-uuid'
+  self.client_secret = 'your-client-secret' # if you use OAuth-style flows that need it
+  self.session_id = 'your-session-uuid'
+  self.session_private_key = '...' # seed or full Ed25519 private key; Base64 or hex
+  self.server_public_key = '...'   # pin token / server public key
+  self.spend_key = '...'             # Ed25519 spend private key for Safe UTXO signing
+  # self.pin = self.spend_key        # optional; used where PIN material is required
+  # self.api_host = 'api.mixin.one'
+  # self.blaze_host = 'blaze.mixin.one'
+  # self.debug = true               # Faraday response logging
 end
 ```
 
-Supported Ruby: **3.2 through 4.x** (see the gemspec). Use **Bundler 2.5+** on Ruby 4. CI runs 3.2, 3.3, and 4.0.
+`MixinBot::Configuration` accepts common aliases: `client_id` → `app_id`, `private_key` → `session_private_key`, `pin_token` → `server_public_key`. Keys are normalized (e.g. 32-byte Ed25519 seeds expanded to 64-byte signing keys) where appropriate.
 
-### Call mixin apis
-
-Then you can use MixinBot by call `MixinBot.api`, for example
+### 2. Call the API
 
 ```ruby
-# get the bot profile
-MixinBot.api.me
+api = MixinBot.api # singleton using global config, or MixinBot::API.new(...)
 
-# get assets of the bot
-MixinBot.api.assets
+# Profile (returns inner fields via ApiEnvelope; see below)
+api.me['full_name']
 
-# transfer asset to somebody
-MixinBot.api
-  .create_transfer(
-    '123456', # pin_code
-    asset_id: '965e5c6e-434c-3fa9-b780-c50f43cd955c', # the asset uuid to transfer
-    opponent_id: '6ae1c7ae-1df1-498e-8f21-d48cb6d129b5', # receiver's mixin uuid
-    amount: 0.00000001, # amount
-    memo: 'test from MixinBot', # memo, 140 length at max
-    trace_id: '0798327a-d499-416e-9b26-5cdc5b7d841e' # a uuid to trace transfer
-)
-
-# etc
+# Assets
+api.assets
 ```
 
-### Connect Mixin Blaze
+### 3. Send assets (Safe API, recommended)
 
-Your bot can receive/send messages from/to any users in Mixin Network, including all users in Mixin Messenger by connecting to Mixin Blaze.
-
-With MixinBot, doing this is super easy.
+Use **`create_safe_transfer`** for the Safe pipeline (select UTXOs → build → verify → sign → submit). Configure **`spend_key`** first.
 
 ```ruby
-# run it in a EventMachine
-EM.run {
-  MixinBot.api.start_blaze_connect do
-    # do something when the websocket connected
-    def on_open(blaze, _event)
-      p [Time.now.to_s, :on_open]
+result = MixinBot.api.create_safe_transfer(
+  members: '6ae1c7ae-1df1-498e-8f21-d48cb6d129b5',
+  asset_id: '965e5c6e-434c-3fa9-b780-c50f43cd955c',
+  amount: '0.01',
+  memo: 'payment',
+  trace_id: SecureRandom.uuid # optional; defaults to a new UUID
+)
 
-      # send the list_pending_message to receive messages
+# Multisig example: 2-of-3
+MixinBot.api.create_safe_transfer(
+  members: %w[uuid-1 uuid-2 uuid-3],
+  threshold: 2,
+  asset_id: '965e5c6e-434c-3fa9-b780-c50f43cd955c',
+  amount: '0.01'
+)
+```
+
+Lower-level steps are available as `build_utxos`, `build_safe_transaction`, `create_safe_transaction_request`, `sign_safe_transaction`, and `send_safe_transaction` on `MixinBot::API`.
+
+### 4. Legacy `POST /transfers` (deprecated)
+
+`MixinBot::API#create_transfer` is an alias for **`create_legacy_transfer`** and emits a deprecation warning. Migrate to **`create_safe_transfer`** and related Safe APIs. See [CHANGELOG.md](CHANGELOG.md).
+
+## HTTP responses (`ApiEnvelope`)
+
+`MixinBot::Client` returns **`MixinBot::Models::ApiEnvelope`** for REST calls. It wraps the raw JSON so you can use either envelope or flattened shapes, for example:
+
+```ruby
+res = MixinBot.api.client.get('/me')
+res['data']['user_id'] # envelope
+res['user_id']          # delegated lookup into `data` when present
+res.to_h                # raw Hash
+```
+
+Many convenience methods on `MixinBot::API` still return the **inner `data` hash** where that was the historical contract (e.g. `#me`).
+
+## Library layout
+
+| Area | Description |
+|------|-------------|
+| **`MixinBot::API`** | Composed modules: profile (`Me`), assets, Safe and legacy transfers, payments, multisig, outputs, snapshots, Blaze, messages, PIN/TIP, withdrawals, RPC helpers, etc. |
+| **`MixinBot::Client`** | Faraday-based HTTP client (JSON, retries, optional debug logger). |
+| **`MixinBot::Configuration`** | Credentials and hosts. |
+| **`MixinBot::Utils`** | Crypto, JWT access tokens, encoding/decoding helpers used by the API and CLI. |
+| **`MixinBot::Transaction`** | Encode/decode raw transactions (version 5 Safe transactions, references, etc.). |
+| **`MixinBot::MixAddress`** | Parse/build `MIX…` multisig-style addresses (`MixinBot::MixAddress`). |
+| **`MixinBot::Invoice`** | Encode/decode `MIN…` invoices. |
+| **`MixinBot::UUID`**, **`MixinBot::Nfo`** | UUID and NFT memo helpers. |
+| **`MVM`** | Optional MVM namespace: `MVM.bridge`, `MVM.nft`, `MVM.scan`, `MVM.registry` (see `lib/mvm.rb`). |
+
+### Errors
+
+Custom errors live under `MixinBot::` (for example `ResponseError`, `UnauthorizedError`, `InsufficientBalanceError`, `UtxoInsufficientError`, `PinError`, `InvalidInvoiceFormatError`). See `lib/mixin_bot/errors.rb`.
+
+### Multiple bots
+
+```ruby
+bot_a = MixinBot::API.new(
+  app_id: '...',
+  session_id: '...',
+  session_private_key: '...',
+  server_public_key: '...',
+  spend_key: '...'
+)
+
+bot_b = MixinBot::API.new(app_id: '...', ...) # separate configuration instance
+
+bot_a.me
+bot_b.me
+```
+
+## Blaze (WebSocket)
+
+Mixin Messenger / Blaze uses a WebSocket after JWT auth. `MixinBot::API#start_blaze_connect` yields a `Faye::WebSocket::Client` and supports optional `on_open` / `on_message` / `on_error` / `on_close` methods on the receiver (see `examples/blaze.rb`). Run the reactor (for example **EventMachine**) in your app.
+
+```ruby
+require 'eventmachine'
+require 'mixin_bot'
+
+EM.run do
+  MixinBot.api.start_blaze_connect do
+    def on_open(blaze, _event)
       blaze.send list_pending_message
     end
 
-    # do something when receive message
     def on_message(blaze, event)
       raw = JSON.parse ws_message(event.data)
-      p [Time.now.to_s, :on_message, raw&.[]('action')]
-
-      blaze.send acknowledge_message_receipt(raw['data']['message_id']) unless raw&.[]('data')&.[]('message_id').nil?
-    end
-
-    # do something when websocket error
-    def on_error(blaze, event)
-      p [Time.now.to_s, :on_error]
-    end
-
-    # do something when websocket close
-    def on_close(blaze, event)
-      p [Time.now.to_s, :on_close, event.code, event.reason]
+      blaze.send acknowledge_message_receipt(raw['data']['message_id']) if raw.dig('data', 'message_id')
     end
   end
-}
+end
 ```
 
-### Multiple Bot management
+## CLI
 
-If you need to manage multiple mixin bot, you can config like this.
+Invoke **`mixinbot`** (global options: `-a` / `--apihost`, `-r` / `--pretty`).
 
-```ruby
-bot1_api = MixinBot::API.new(
-  app_id: '...',
-  client_secret: '...',
-  session_id: '...',
-  server_public_key: '...',
-  session_private_key: '...'
-)
+Subcommands that talk to the API accept **`-k`** / **`--keystore`**: path to a JSON file **or** inline JSON. Supported keystore keys include `app_id` / `client_id`, `session_id`, `session_private_key` / `private_key`, `server_public_key` / `pin_token`, and `pin` for PIN/TIP operations. If `-k` is omitted, the CLI uses **`MixinBot::API.new`** with the **global** `MixinBot.configure` credentials.
 
-bot2_api = MixinBot::API.new(
-  app_id: '...',
-  client_secret: '...',
-  session_id: '...',
-  server_public_key: '...',
-  session_private_key: '...'
-)
+| Command | Purpose |
+|---------|---------|
+| `mixinbot api PATH` | Signed `GET`/`POST` to a path (`-m`, `-d`, `-p`, `-t` for custom token). |
+| `mixinbot authcode` | OAuth-style authorize code (`-c` app id, `-s` scopes). |
+| `mixinbot encrypt PIN` | Encrypt PIN (`-i` iterator). |
+| `mixinbot verifypin PIN` | Verify PIN. |
+| `mixinbot updatetip PIN` | Rotate TIP PIN material. |
+| `mixinbot transfer USER_ID` | **Legacy** transfer (`--asset`, `--amount`, `--memo`). |
+| `mixinbot safetransfer USER_ID` | Safe transfer walkthrough (UTXO select → build → verify → sign → submit). |
+| `mixinbot saferegister` | Safe network registration (`--spend_key`). |
+| `mixinbot pay` | Print a Safe payment URL (`--members`, `--threshold`, `--asset`, `--amount`, …). |
+| `mixinbot unique UUID …` | Deterministic unique UUID from inputs. |
+| `mixinbot generatetrace HASH` | Trace UUID from transaction hash. |
+| `mixinbot decodetx HEX` | Decode raw transaction hex. |
+| `mixinbot nftmemo` | NFT mint memo (`-c` collection, `-t` token id, `-h` metadata hash). |
+| `mixinbot rsa` / `mixinbot ed25519` | Generate RSA / Ed25519 key material. |
+| `mixinbot version` | Print gem version. |
 
-bot1_api.me
-bot2_api.me
-```
+Run `mixinbot help` and `mixinbot help COMMAND` for details.
 
 ## Documentation
 
-Comprehensive RDoc documentation is available for the entire gem.
+- **RDoc** — generate HTML docs:
 
-### Generate Documentation
+  ```bash
+  rake rdoc
+  # open doc/index.html
+  ```
+
+- **Online** — [RubyDoc.info](https://www.rubydoc.info/gems/mixin_bot) for published releases.
+
+- **Changelog** — [CHANGELOG.md](CHANGELOG.md) (2.0 deprecations, `ApiEnvelope`, Safe vs legacy).
+
+## Development & tests
 
 ```bash
-# Using Rake
-rake rdoc
-
-# Or using RDoc directly
-rdoc
-```
-
-Then open `doc/index.html` in your browser.
-
-### Online Documentation
-
-Documentation is also available online at [RubyDoc.info](https://www.rubydoc.info/gems/mixin_bot).
-
-### Documentation Guides
-
-- [DOCUMENTATION.md](DOCUMENTATION.md) - Complete documentation guide
-- [RDOC_GUIDE.md](RDOC_GUIDE.md) - RDoc formatting and style guide
-
-## More Example
-
-See in the `Spec` files.
-
-For WebSocket use case, see in `examples/blaze.rb`.
-
-## Test
-
-Clone the project:
-
-```shell
-git clone https://github.com/an-lee/mixin_bot
-```
-
-Update the spec config.yml to your own Mixin App(create in [developers.mixin.one](https://developers.mixin.one/dashboard)).
-
-```shell
+git clone https://github.com/an-lee/mixin_bot.git
 cd mixin_bot
-mv spec/config.yml.example spec/config.yml
+bundle install
 ```
 
-Run the test.
+- **Default suite** — offline stubs, no real network:
 
-```shell
-rake
-```
+  ```bash
+  rake test
+  ```
+
+- **RuboCop** — `rake` runs **tests + RuboCop** by default.
+
+- **Live API** (optional, uses real credentials):
+
+  ```bash
+  cp test/config.yml.example test/config.yml
+  # edit test/config.yml with your app (dashboard: https://developers.mixin.one/dashboard)
+  LIVE=1 rake test
+  # or: rake test_live
+  ```
+
+Examples under `examples/` (for example `examples/blaze.rb`) expect `examples/config.yml` — copy from `examples/config.yml.example`.
 
 ## References
 
-- [Mixin Network Document](https://developers.mixin.one/api)
-- [mixin_client_demo (python)](https://github.com/myrual/mixin_client_demo)
-- [mixin-node (nodejs)](https://github.com/virushuo/mixin-node)
+- [Mixin developers documentation](https://developers.mixin.one/docs)
+- [Mixin API overview](https://developers.mixin.one/api)
+- [mixin_client_demo (Python)](https://github.com/myrual/mixin_client_demo)
+- [mixin-node (Node.js)](https://github.com/virushuo/mixin-node)
 
 ## License
 
-This project rocks and uses MIT-LICENSE.
+MIT — see [MIT-LICENSE](MIT-LICENSE).
