@@ -1,0 +1,9 @@
+{
+  "description": "Vectors for Safe bare registration: SHA3-256(app_id) matches Go crypto.Sha256Hash on UTF-8 app_id; TIP body for SEQUENCER:REGISTER uses SHA256 (see bot-api-go-client safe_user.go + tip.go).",
+  "spend_key_seed_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+  "app_id": "8291d1bb-440c-4557-b69f-91dda17876d1",
+  "expected_public_key_hex": "3b6a27bcceb6a42d62a3a8d02a6f0d73653215771de243a63ac048a18b59da29",
+  "expected_app_id_sha3_hex": "aa0d8ddd9ee5eb5c020eff5db8d28118de9b2717caebd364e18e631f875832cc",
+  "expected_sha256_of_app_id_hex": "333bf3dd38e1c5384ffdd6a3f82b2f94fe002b5cbf0e46c1339c9b3548919bdf",
+  "expected_sequencer_register_tip_sha256_hex": "5605bdef38de97ea82895d9d085da48d4d1792843653671fb5bb1f93fdd3e646"
+}

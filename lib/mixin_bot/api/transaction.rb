@@ -36,7 +36,7 @@ module MixinBot
         recipients.each_with_index do |recipient, index|
           next if recipient[:mix_address].blank?
 
-          if recipient[:members].all?(&->(m) { m.start_with? MixinBot::Utils::Address::MAIN_ADDRESS_PREFIX })
+          if recipient[:members].all?(&->(m) { m.start_with? MixinBot::MAIN_ADDRESS_PREFIX })
             key = JOSE::JWA::Ed25519.keypair
             gk = {
               mask: key[0].unpack1('H*'),
@@ -54,7 +54,7 @@ module MixinBot
 
             ghost_keys[index] = gk.with_indifferent_access
 
-          elsif recipient[:members].none?(&->(m) { m.start_with? MixinBot::Utils::Address::MAIN_ADDRESS_PREFIX })
+          elsif recipient[:members].none?(&->(m) { m.start_with? MixinBot::MAIN_ADDRESS_PREFIX })
             uuid_recipients.push(
               {
                 receivers: recipient[:members],

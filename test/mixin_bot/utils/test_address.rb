@@ -21,7 +21,7 @@ module MixinBot::Utils
       )
       address = MixinBot.utils.parse_mix_address mix_address
 
-      assert address[:members] = [user_id]
+      assert_equal [user_id], address[:members]
       assert address[:threshold] == 1
 
       user_id2 = 'b847a455-aa41-4f7d-8038-0aefbe40dcaa'
