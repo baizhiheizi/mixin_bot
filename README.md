@@ -2,11 +2,11 @@
 
 [![CI](https://github.com/an-lee/mixin_bot/actions/workflows/ci.yml/badge.svg)](https://github.com/an-lee/mixin_bot/actions/workflows/ci.yml)
 
-Ruby SDK and CLI for [Mixin Network](https://developers.mixin.one/docs): authenticated REST calls, **Safe** UTXO transfers, Blaze messaging, invoices and mix addresses, transaction encoding, and optional **MVM** (Mixin Virtual Machine) helpers.
+Ruby SDK and CLI for [Mixin Network](https://developers.mixin.one/docs): authenticated REST calls, **Safe** UTXO transfers, Blaze messaging, network asset catalog, inscriptions, invoices and mix addresses, transaction encoding, and optional **MVM** (Mixin Virtual Machine) helpers.
+
+The gem aims for **parity with the official [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client)** Go SDK. See [API_COVERAGE.md](API_COVERAGE.md) for the full mapping; run `rake mixin_bot:api_coverage` to confirm no gaps are marked missing.
 
 Current gem version: **2.0.0** (see [CHANGELOG.md](CHANGELOG.md) for breaking changes and deprecations).
-
-API parity with the official [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client) is tracked in [API_COVERAGE.md](API_COVERAGE.md). Run `rake mixin_bot:api_coverage` to verify the coverage table has no missing entries.
 
 ## Requirements
 
@@ -47,11 +47,11 @@ require 'mixin_bot'
 
 MixinBot.configure do
   self.app_id = 'your-app-uuid'
-  self.client_secret = 'your-client-secret' # if you use OAuth-style flows that need it
+  self.client_secret = 'your-client-secret' # OAuth flows
   self.session_id = 'your-session-uuid'
   self.session_private_key = '...' # seed or full Ed25519 private key; Base64 or hex
   self.server_public_key = '...'   # pin token / server public key
-  self.spend_key = '...'             # Ed25519 spend private key for Safe UTXO signing
+  self.spend_key = '...'           # Ed25519 spend private key for Safe UTXO signing
   # self.pin = self.spend_key        # optional; used where PIN material is required
   # self.api_host = 'api.mixin.one'
   # self.blaze_host = 'blaze.mixin.one'
@@ -66,27 +66,26 @@ end
 ```ruby
 api = MixinBot.api # singleton using global config, or MixinBot::API.new(...)
 
-# Profile (returns inner fields via ApiEnvelope; see below)
 api.me['full_name']
-
-# Assets
 api.assets
+api.network_asset('c6d0c728-2624-429b-8e0d-d9d19b6592fa') # public network catalog
+api.fetch_user_sessions(['user-uuid'])
 ```
 
 ### 3. Send assets (Safe API, recommended)
 
-Use **`create_safe_transfer`** for the Safe pipeline (select UTXOs → build → verify → sign → submit). Configure **`spend_key`** first.
+`create_transfer` with keyword arguments runs the **Safe** pipeline (UTXO select → build → verify → sign → submit). You can also call `create_safe_transfer` explicitly. Configure **`spend_key`** first.
 
 ```ruby
-result = MixinBot.api.create_safe_transfer(
+result = MixinBot.api.create_transfer(
   members: '6ae1c7ae-1df1-498e-8f21-d48cb6d129b5',
   asset_id: '965e5c6e-434c-3fa9-b780-c50f43cd955c',
   amount: '0.01',
   memo: 'payment',
-  trace_id: SecureRandom.uuid # optional; defaults to a new UUID
+  trace_id: SecureRandom.uuid
 )
 
-# Multisig example: 2-of-3
+# Multisig: 2-of-3
 MixinBot.api.create_safe_transfer(
   members: %w[uuid-1 uuid-2 uuid-3],
   threshold: 2,
@@ -95,15 +94,28 @@ MixinBot.api.create_safe_transfer(
 )
 ```
 
-Lower-level steps are available as `build_utxos`, `build_safe_transaction`, `create_safe_transaction_request`, `sign_safe_transaction`, and `send_safe_transaction` on `MixinBot::API`.
+Lower-level steps: `build_utxos`, `build_safe_transaction`, `verify_raw_transaction` / `create_safe_transaction_request`, `sign_safe_transaction`, `send_safe_transaction` (batch via `requests:`).
 
-### 4. Legacy `POST /transfers` (deprecated)
+Aliases aligned with the Go SDK include `send_transaction`, `send_transfer_transaction`, and `get_transaction_by_id` (→ `safe_transaction`).
 
-`MixinBot::API#create_transfer` is an alias for **`create_legacy_transfer`** and emits a deprecation warning. Migrate to **`create_safe_transfer`** and related Safe APIs. See [CHANGELOG.md](CHANGELOG.md).
+### 4. Legacy `POST /transfers`
+
+If the first argument is a **PIN string** and you pass `opponent_id:` (old Messenger transfer shape), `create_transfer` delegates to **`create_legacy_transfer`** (deprecated, warns once). Prefer Safe transfers for new code.
+
+```ruby
+# Legacy only — deprecated
+MixinBot.api.create_legacy_transfer(
+  pin,
+  asset_id: '...',
+  opponent_id: '...',
+  amount: 0.00000001,
+  trace_id: SecureRandom.uuid
+)
+```
 
 ## HTTP responses (`ApiEnvelope`)
 
-`MixinBot::Client` returns **`MixinBot::Models::ApiEnvelope`** for REST calls. It wraps the raw JSON so you can use either envelope or flattened shapes, for example:
+`MixinBot::Client` returns **`MixinBot::Models::ApiEnvelope`** for REST calls. It wraps the raw JSON so you can use either envelope or flattened shapes:
 
 ```ruby
 res = MixinBot.api.client.get('/me')
@@ -116,21 +128,73 @@ Many convenience methods on `MixinBot::API` still return the **inner `data` hash
 
 ## Library layout
 
+### `MixinBot::API` modules
+
+`MixinBot::API` composes one module per API area (all methods are available on `MixinBot.api`):
+
+| Module | Examples |
+|--------|----------|
+| **Me** | `me`, `safe_me`, `update_me`, `friends`, `update_preferences`, `relationship` |
+| **User** | `user`, `fetch_users`, `search_user`, `create_user`, `safe_register`, `migrate_to_safe` |
+| **Session** | `fetch_user_sessions` |
+| **LegacyUser** | `upgrade_legacy_user` |
+| **Asset** | `assets`, `asset`, `ticker`, `fetch_assets`, `asset_fee`, `asset_balance` |
+| **NetworkAsset** | `network_asset`, `network_ticker`, `network_asset_search` |
+| **Network** | `network_assets`, `network_assets_top` |
+| **Fiat** | `fiats` |
+| **Chain** | `network_chain`, `network_chains`, `chain_name`, `chain_id?` |
+| **Transfer** | `create_transfer`, `create_safe_transfer`, `build_utxos`, `send_transaction`, … |
+| **Transaction** | `create_safe_keys`, `build_safe_transaction`, `verify_raw_transaction`, `sign_safe_transaction`, `build_object_transaction`, `create_object_storage_transaction`, … |
+| **Output** | `safe_outputs`, `safe_output`, `build_threshold_script` |
+| **Deposit** | `pending_safe_deposits` |
+| **Address** (deposit entries) | `safe_deposit_entries` |
+| **Snapshot** | `safe_snapshots`, `safe_snapshot`, `create_safe_snapshot_notification` |
+| **LegacySnapshot** | `snapshots`, `snapshot`, `snapshot_by_trace_id`, `network_snapshots`, … |
+| **Payment** | `safe_pay_url` |
+| **LegacyPayment** | `pay_url`, `verify_payment` (deprecated) |
+| **Multisig** | `create_safe_multisig_request`, `safe_multisig_request`, `create_multisig_raw_tx` |
+| **LegacyMultisig** | `create_multisig_request`, `cancel_multisig_request`, … |
+| **LegacyOutput** | `legacy_outputs`, `read_multisigs`, `create_output`, … |
+| **LegacyTransfer** | `create_legacy_transfer`, `legacy_transfer` |
+| **LegacyTransaction** | `build_raw_transaction`, `create_multisig_transaction`, … |
+| **Inscription** | `collection`, `collectible`, `build_inscribe_transaction`, … |
+| **LegacyCollectible** | legacy collectible requests (deprecated) |
+| **Withdraw** | `withdrawals`, `create_withdraw_address`, `check_address`, `withdraw_addresses` |
+| **Conversation** | `conversation`, `create_group_conversation`, `join_conversation`, … |
+| **Message** | `send_message`, `send_plain_messages`, Blaze helpers |
+| **EncryptedMessage** | `send_encrypted_*`, `encrypt_message`, `decrypt_message` |
+| **Blaze** | `blaze`, `start_blaze_connect`, `blaze_send_plain_text`, … |
+| **Attachment** | `create_attachment`, `upload_attachment` |
+| **Auth** | `oauth_token`, `authorize_code`, `access_token`, `sign_oauth_access_token` |
+| **Pin** / **Tip** | `verify_pin`, `update_pin`, `update_tip_pin`, `encrypt_tip_pin`, `get_tip_node`, `tip_body_for_*` |
+| **App** | `favorite_apps`, `transfer_app_ownership` (`migrate`) |
+| **Code** | `read_code`, `read_multisig_by_code` |
+| **Turn** | `turn_servers` |
+| **Rpc** | `rpc_proxy`, `send_raw_transaction`, `get_transaction`, … |
+| **ComputerApi** | delegates to `MixinBot::Computer` (`get_computer_info`, `register_computer`, …) |
+
+Top-level helpers on **`MixinBot::API`**: `access_token`, `encode_raw_transaction`, `decode_raw_transaction`, native variants via `mixin` CLI.
+
+### Other libraries
+
 | Area | Description |
 |------|-------------|
-| **`MixinBot::API`** | Composed modules: profile (`Me`), assets, Safe and legacy transfers, payments, multisig, outputs, snapshots, Blaze, messages, PIN/TIP, withdrawals, RPC helpers, etc. |
-| **`MixinBot::Client`** | Faraday-based HTTP client (JSON, retries, optional debug logger). |
+| **`MixinBot::Client`** | Faraday HTTP client (JSON, retries, optional debug). |
 | **`MixinBot::Configuration`** | Credentials and hosts. |
-| **`MixinBot::Utils`** | Crypto, JWT access tokens, encoding/decoding helpers used by the API and CLI. |
-| **`MixinBot::Transaction`** | Encode/decode raw transactions (version 5 Safe transactions, references, etc.). |
-| **`MixinBot::MixAddress`** | Parse/build `MIX…` multisig-style addresses (`MixinBot::MixAddress`). |
-| **`MixinBot::Invoice`** | Encode/decode `MIN…` invoices. |
+| **`MixinBot::Utils`** | Crypto, JWT, encoding, `unique_object_id`, `generate_user_checksum`, … |
+| **`MixinBot::Transaction`** | Encode/decode raw Safe transactions. |
+| **`MixinBot::MixAddress`** | Parse/build `MIX…` addresses; `request_or_generate_ghost_keys`. |
+| **`MixinBot::Invoice`** | `MIN…` payment invoices. |
+| **`MixinBot::UrlScheme`** | `mixin://` deep links (`scheme_users`, `scheme_pay`, …). |
+| **`MixinBot::Computer`** | [Mixin Computer](https://computer.mixin.one) HTTP API (separate host). |
+| **`MixinBot::BotAuth`** | Sign bot-platform requests (`BotAuth::Client#sign_request`). |
+| **`MixinBot::Monitor`** | YAML monitor messages, `report_to_monitor`, `check_retryable_error`. |
 | **`MixinBot::UUID`**, **`MixinBot::Nfo`** | UUID and NFT memo helpers. |
-| **`MVM`** | Optional MVM namespace: `MVM.bridge`, `MVM.nft`, `MVM.scan`, `MVM.registry` (see `lib/mvm.rb`). |
+| **`MVM`** | Optional MVM namespace: `MVM::Bridge`, `MVM::Nft`, `MVM::Scan`, `MVM::Registry`. |
 
 ### Errors
 
-Custom errors live under `MixinBot::` (for example `ResponseError`, `UnauthorizedError`, `InsufficientBalanceError`, `UtxoInsufficientError`, `PinError`, `InvalidInvoiceFormatError`). See `lib/mixin_bot/errors.rb`.
+Custom errors under `MixinBot::` include `ResponseError`, `UnauthorizedError`, `InsufficientBalanceError`, `UtxoInsufficientError`, `PinError`, and `InvalidInvoiceFormatError`. See `lib/mixin_bot/errors.rb`.
 
 ### Multiple bots
 
@@ -143,7 +207,7 @@ bot_a = MixinBot::API.new(
   spend_key: '...'
 )
 
-bot_b = MixinBot::API.new(app_id: '...', ...) # separate configuration instance
+bot_b = MixinBot::API.new(...) # separate configuration
 
 bot_a.me
 bot_b.me
@@ -151,7 +215,7 @@ bot_b.me
 
 ## Blaze (WebSocket)
 
-Mixin Messenger / Blaze uses a WebSocket after JWT auth. `MixinBot::API#start_blaze_connect` yields a `Faye::WebSocket::Client` and supports optional `on_open` / `on_message` / `on_error` / `on_close` methods on the receiver (see `examples/blaze.rb`). Run the reactor (for example **EventMachine**) in your app.
+Blaze uses a WebSocket after JWT auth. `start_blaze_connect` yields a `Faye::WebSocket::Client`; define `on_open` / `on_message` / `on_error` / `on_close` on the receiver (see `examples/blaze.rb`). Run an event loop (e.g. **EventMachine**) in your app.
 
 ```ruby
 require 'eventmachine'
@@ -171,44 +235,53 @@ EM.run do
 end
 ```
 
+For outbound messages over an open socket, use `blaze_send_plain_text`, `blaze_send_contact`, `blaze_send_app_card`, and related helpers (parity with Go `BlazeClient`).
+
+## Deep links and bot auth
+
+```ruby
+MixinBot::UrlScheme.scheme_pay(
+  asset_id: '...',
+  trace_id: SecureRandom.uuid,
+  recipient_id: '...',
+  memo: 'hello',
+  amount: '0.01'
+)
+
+client = MixinBot::BotAuth.new_client(MixinBot.api)
+token = client.sign_request(Time.now.to_i, bot_user_id, 'GET', '/some/path')
+```
+
 ## CLI
 
 Invoke **`mixinbot`** (global options: `-a` / `--apihost`, `-r` / `--pretty`).
 
-Subcommands that talk to the API accept **`-k`** / **`--keystore`**: path to a JSON file **or** inline JSON. Supported keystore keys include `app_id` / `client_id`, `session_id`, `session_private_key` / `private_key`, `server_public_key` / `pin_token`, and `pin` for PIN/TIP operations. If `-k` is omitted, the CLI uses **`MixinBot::API.new`** with the **global** `MixinBot.configure` credentials.
+Subcommands that talk to the API accept **`-k`** / **`--keystore`**: path to a JSON file **or** inline JSON (`app_id`, `session_id`, `session_private_key`, `server_public_key`, `pin`, etc.). Without `-k`, the CLI uses global `MixinBot.configure` credentials.
 
 | Command | Purpose |
 |---------|---------|
-| `mixinbot api PATH` | Signed `GET`/`POST` to a path (`-m`, `-d`, `-p`, `-t` for custom token). |
-| `mixinbot authcode` | OAuth-style authorize code (`-c` app id, `-s` scopes). |
-| `mixinbot encrypt PIN` | Encrypt PIN (`-i` iterator). |
-| `mixinbot verifypin PIN` | Verify PIN. |
-| `mixinbot updatetip PIN` | Rotate TIP PIN material. |
-| `mixinbot transfer USER_ID` | **Legacy** transfer (`--asset`, `--amount`, `--memo`). |
-| `mixinbot safetransfer USER_ID` | Safe transfer walkthrough (UTXO select → build → verify → sign → submit). |
-| `mixinbot saferegister` | Safe network registration (`--spend_key`). |
-| `mixinbot pay` | Print a Safe payment URL (`--members`, `--threshold`, `--asset`, `--amount`, …). |
-| `mixinbot unique UUID …` | Deterministic unique UUID from inputs. |
-| `mixinbot generatetrace HASH` | Trace UUID from transaction hash. |
-| `mixinbot decodetx HEX` | Decode raw transaction hex. |
-| `mixinbot nftmemo` | NFT mint memo (`-c` collection, `-t` token id, `-h` metadata hash). |
-| `mixinbot rsa` / `mixinbot ed25519` | Generate RSA / Ed25519 key material. |
-| `mixinbot version` | Print gem version. |
+| `mixinbot api PATH` | Signed `GET`/`POST` (`-m`, `-d`, `-p`, `-t`). |
+| `mixinbot authcode` | OAuth authorize code (`-c`, `-s`). |
+| `mixinbot encrypt PIN` / `verifypin` / `updatetip` | PIN/TIP helpers. |
+| `mixinbot transfer USER_ID` | Legacy transfer (`--asset`, `--amount`, …). |
+| `mixinbot safetransfer USER_ID` | Safe transfer walkthrough. |
+| `mixinbot saferegister` | Safe registration (`--spend_key`). |
+| `mixinbot pay` | Safe payment URL. |
+| `mixinbot unique UUID …` | Deterministic UUID. |
+| `mixinbot generatetrace HASH` | Trace UUID from tx hash. |
+| `mixinbot decodetx HEX` | Decode raw transaction. |
+| `mixinbot nftmemo` | NFT mint memo. |
+| `mixinbot rsa` / `ed25519` | Key generation. |
+| `mixinbot version` | Gem version. |
 
 Run `mixinbot help` and `mixinbot help COMMAND` for details.
 
 ## Documentation
 
-- **RDoc** — generate HTML docs:
-
-  ```bash
-  rake rdoc
-  # open doc/index.html
-  ```
-
-- **Online** — [RubyDoc.info](https://www.rubydoc.info/gems/mixin_bot) for published releases.
-
-- **Changelog** — [CHANGELOG.md](CHANGELOG.md) (2.0 deprecations, `ApiEnvelope`, Safe vs legacy).
+- **API coverage** — [API_COVERAGE.md](API_COVERAGE.md) vs [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client).
+- **RDoc** — `rake rdoc` → `doc/index.html`.
+- **Online** — [RubyDoc.info](https://www.rubydoc.info/gems/mixin_bot).
+- **Changelog** — [CHANGELOG.md](CHANGELOG.md).
 
 ## Development & tests
 
@@ -218,29 +291,35 @@ cd mixin_bot
 bundle install
 ```
 
-- **Default suite** — offline stubs, no real network:
+- **Default suite** (offline WebMock stubs):
 
   ```bash
   rake test
   ```
 
-- **RuboCop** — `rake` runs **tests + RuboCop** by default.
+- **API coverage check**:
 
-- **Live API** (optional, uses real credentials):
+  ```bash
+  rake mixin_bot:api_coverage
+  ```
+
+- **RuboCop** — `rake` runs tests + RuboCop.
+
+- **Live API** (optional):
 
   ```bash
   cp test/config.yml.example test/config.yml
-  # edit test/config.yml with your app (dashboard: https://developers.mixin.one/dashboard)
   LIVE=1 rake test
   # or: rake test_live
   ```
 
-Examples under `examples/` (for example `examples/blaze.rb`) expect `examples/config.yml` — copy from `examples/config.yml.example`.
+Examples under `examples/` expect `examples/config.yml` (copy from `examples/config.yml.example`).
 
 ## References
 
 - [Mixin developers documentation](https://developers.mixin.one/docs)
 - [Mixin API overview](https://developers.mixin.one/api)
+- [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client) (official Go SDK; parity reference)
 - [mixin_client_demo (Python)](https://github.com/myrual/mixin_client_demo)
 - [mixin-node (Node.js)](https://github.com/virushuo/mixin-node)
 
