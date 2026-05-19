@@ -186,6 +186,17 @@ module MixinBot
         }
       end
 
+      def verify_raw_transaction(requests)
+        requests = Array(requests).map do |r|
+          r = r.with_indifferent_access
+          { request_id: r[:request_id], raw: r[:raw] }
+        end
+        create_safe_transaction_request(requests.first[:request_id], requests.first[:raw]) if requests.one?
+
+        path = '/safe/transaction/requests'
+        client.post path, *requests
+      end
+
       def create_safe_transaction_request(request_id, raw)
         path = '/safe/transaction/requests'
         payload = [{
@@ -196,20 +207,63 @@ module MixinBot
         client.post path, *payload
       end
 
-      def send_safe_transaction(request_id, raw)
+      def send_safe_transaction(request_id, raw = nil, requests: nil)
         path = '/safe/transactions'
-        payload = [{
-          request_id:,
-          raw:
-        }]
+        payload =
+          if requests.present?
+            Array(requests).map { |r| r.with_indifferent_access.slice(:request_id, :raw) }
+          else
+            [{ request_id:, raw: }]
+          end
 
         client.post path, *payload
       end
+      alias send_raw_transaction send_safe_transaction
 
       def safe_transaction(request_id, access_token: nil)
         path = format('/safe/transactions/%<request_id>s', request_id:)
 
         client.get path, access_token:
+      end
+      alias get_transaction_by_id safe_transaction
+      alias get_transaction_by_id_with_safe_user safe_transaction
+
+      def estimate_storage_cost(extra)
+        step = BigDecimal(EXTRA_STORAGE_PRICE_STEP)
+        len = extra.to_s.bytesize
+        steps = (len / 1024) + 1
+        step * steps
+      end
+
+      def storage_recipient
+        MixinBot::MixAddress.from_members(
+          members: [MixinBot.utils.burning_address],
+          threshold: 64
+        )
+      end
+
+      def create_object_storage_transaction(extra:, trace_id:, references: nil, limit: nil, utxos: nil, **transfer_opts)
+        amount = estimate_storage_cost(extra)
+        amount = [amount, BigDecimal(limit.to_s)].max if limit.present?
+        kwargs = {
+          asset_id: XIN_ASSET_ID,
+          amount: amount.to_s('F'),
+          trace_id:,
+          memo: extra.to_s,
+          **transfer_opts
+        }
+        kwargs[:utxos] = utxos if utxos.present?
+        kwargs[:members] = [config.app_id] unless kwargs.key?(:members)
+        create_safe_transfer(**kwargs)
+      end
+
+      def request_ghost_recipients_with_trace_id(recipients, trace_id)
+        generate_safe_keys(
+          recipients.map do |r|
+            r = r.with_indifferent_access
+            { members: r[:members], threshold: r[:threshold], mix_address: r[:mix_address] }
+          end
+        )
       end
 
       SIGN_SAFE_TRANSACTION_ARGUMENTS = %i[raw utxos request spend_key].freeze
@@ -308,7 +362,7 @@ module MixinBot
         MixinBot.api.build_object_transaction data.to_json, references: [collection_hash]
       end
 
-      OCCUPY_INSCRIPTION_TRANSACTION_ARGUMENTS = %i[amount inscription_hash utxos].freeze
+      OCCUPY_INSCRIPTION_TRANSACTION_ARGUMENTS = %i[amount inscription_hash sequence utxos].freeze
       def build_occupy_transaction(**kwargs)
         unless OCCUPY_INSCRIPTION_TRANSACTION_ARGUMENTS.all? do |param|
                  kwargs.keys.include? param
@@ -321,6 +375,7 @@ module MixinBot
         threshold = kwargs[:threshold] || members.length
         amount = kwargs[:amount]
         inscription_hash = kwargs[:inscription_hash]
+        sequence = kwargs[:sequence]
 
         receivers = [
           {
@@ -332,11 +387,15 @@ module MixinBot
 
         extra = {
           operation: 'occupy',
-          recipient:,
-          content:
+          sequence:
         }.to_json
 
-        MixinBot.api.build_safe_transaction(utxos:, receivers:, extra:, references: [inscription_hash])
+        build_safe_transaction(utxos: kwargs[:utxos], receivers:, extra:, references: [inscription_hash])
+      end
+
+      def send_kernel_transaction_from_account(**_kwargs)
+        raise NotImplementedError,
+              'send_kernel_transaction_from_account requires kernel UTXO signing; use native mixin CLI or build manually'
       end
     end
   end

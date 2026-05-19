@@ -58,6 +58,87 @@ module MixinBot
           start_blaze_connect(&_block) if reconnect
         end
       end
+
+      def blaze_send_plain_text(ws, conversation_id:, recipient_id:, content:)
+        ws.send write_ws_message(
+          params: {
+            conversation_id:,
+            recipient_id:,
+            message_id: SecureRandom.uuid,
+            category: 'PLAIN_TEXT',
+            data_base64: Base64.urlsafe_encode64(content.to_s, padding: false)
+          }
+        )
+      end
+
+      def blaze_send_recall_message(ws, conversation_id:, recipient_id:, message_id:)
+        data = { message_id: }.to_json
+        ws.send write_ws_message(
+          params: {
+            conversation_id:,
+            recipient_id:,
+            message_id: SecureRandom.uuid,
+            category: 'MESSAGE_RECALL',
+            data_base64: Base64.urlsafe_encode64(data, padding: false)
+          }
+        )
+      end
+
+      def blaze_send_post(ws, conversation_id:, recipient_id:, content:)
+        blaze_send_plain_text(ws, conversation_id:, recipient_id:, content:)
+      end
+
+      def blaze_send_contact(ws, conversation_id:, recipient_id:, contact_id:)
+        data = { user_id: contact_id }.to_json
+        ws.send write_ws_message(
+          params: {
+            conversation_id:,
+            recipient_id:,
+            message_id: SecureRandom.uuid,
+            category: 'PLAIN_CONTACT',
+            data_base64: Base64.urlsafe_encode64(data, padding: false)
+          }
+        )
+      end
+
+      def blaze_send_app_card(ws, conversation_id:, recipient_id:, title:, description:, action:, icon_url:)
+        data = { title:, description:, action:, icon_url: }.to_json
+        ws.send write_ws_message(
+          params: {
+            conversation_id:,
+            recipient_id:,
+            message_id: SecureRandom.uuid,
+            category: 'APP_CARD',
+            data_base64: Base64.urlsafe_encode64(data, padding: false)
+          }
+        )
+      end
+
+      def blaze_send_app_button(ws, conversation_id:, recipient_id:, label:, action:, color:)
+        data = [{ label:, action:, color: }].to_json
+        ws.send write_ws_message(
+          params: {
+            conversation_id:,
+            recipient_id:,
+            message_id: SecureRandom.uuid,
+            category: 'APP_BUTTON_GROUP',
+            data_base64: Base64.urlsafe_encode64(data, padding: false)
+          }
+        )
+      end
+
+      def blaze_send_group_app_button(ws, conversation_id:, recipient_id:, buttons:)
+        data = buttons.to_json
+        ws.send write_ws_message(
+          params: {
+            conversation_id:,
+            recipient_id:,
+            message_id: SecureRandom.uuid,
+            category: 'APP_BUTTON_GROUP',
+            data_base64: Base64.urlsafe_encode64(data, padding: false)
+          }
+        )
+      end
     end
   end
 end

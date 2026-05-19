@@ -37,6 +37,19 @@ module MixinBot
 
         client.get path, access_token: kwargs[:access_token]
       end
+
+      def snapshot(snapshot_id, access_token: nil)
+        warn_legacy_mixin_api!('LegacySnapshot#snapshot')
+        path = format('/snapshots/%<snapshot_id>s', snapshot_id:)
+        client.get path, access_token:
+      end
+      alias snapshot_by_id snapshot
+
+      def snapshot_by_trace_id(trace_id, access_token: nil)
+        warn_legacy_mixin_api!('LegacySnapshot#snapshot_by_trace_id')
+        path = format('/snapshots/trace/%<trace_id>s', trace_id:)
+        client.get path, access_token:
+      end
     end
   end
 end

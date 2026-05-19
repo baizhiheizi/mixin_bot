@@ -27,6 +27,7 @@ module MixinBot
 
         client.post path, **payload
       end
+      alias verify_pin_tip verify_pin
 
       # https://developers.mixin.one/api/alpha-mixin-network/create-pin/
       def update_pin(pin:, old_pin: nil)
@@ -43,6 +44,17 @@ module MixinBot
         }
 
         client.post path, **payload
+      end
+
+      def update_tip_pin(pin, pub_tip)
+        old_encrypted = encrypt_pin(pin, iterator: (Time.now.utc.to_f * 1e9).to_i)
+        pub_buf = [pub_tip].pack('H*')
+        raise ArgumentError, 'invalid public key' unless pub_buf.bytesize == 32
+
+        pub_tip_buf = pub_buf + [1].pack('Q>')
+        encrypted_pin = encrypt_pin(pub_tip_buf.unpack1('H*'), iterator: (Time.now.utc.to_f * 1e9).to_i + 1)
+        path = '/pin/update'
+        client.post path, old_pin_base64: old_encrypted, pin_base64: encrypted_pin
       end
 
       def prepare_tip_key(counter = 0)

@@ -95,6 +95,11 @@ module MixinBot
         client.post path, access_token:
       end
 
+      def join_conversation(conversation_id, access_token: nil)
+        path = format('/conversations/%<conversation_id>s/join', conversation_id:)
+        client.post path, access_token:
+      end
+
       def rotate_conversation(conversation_id, access_token: nil)
         path = format('/conversations/%<id>s/rotate', id: conversation_id)
 

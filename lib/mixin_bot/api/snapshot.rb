@@ -17,6 +17,12 @@ module MixinBot
         client.get path, **params
       end
 
+      def safe_snapshot(snapshot_id, access_token: nil)
+        path = format('/safe/snapshots/%<snapshot_id>s', snapshot_id:)
+        client.get path, access_token:
+      end
+      alias safe_snapshot_by_id safe_snapshot
+
       def create_safe_snapshot_notification(**kwargs)
         path = '/safe/snapshots/notifications'
 

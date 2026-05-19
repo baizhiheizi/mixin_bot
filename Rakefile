@@ -26,6 +26,8 @@ end
 
 task default: %i[test rubocop]
 
+Dir.glob('lib/tasks/**/*.rake').each { |r| load r }
+
 GEM_NAME = 'mixin_bot'
 GEM_VERSION = MixinBot::VERSION
 

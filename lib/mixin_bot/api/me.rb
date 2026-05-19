@@ -107,6 +107,25 @@ module MixinBot
         path = '/safe/me'
         client.get path, access_token:
       end
+      alias request_user_me safe_me
+
+      def update_preferences(message_source: nil, conversation_source: nil, currency: nil, threshold: nil,
+                             access_token: nil)
+        path = '/me/preferences'
+        payload = {
+          receive_message_source: message_source,
+          accept_conversation_source: conversation_source,
+          fiat_currency: currency,
+          transfer_notification_threshold: threshold
+        }.compact
+        client.post path, **payload, access_token:
+      end
+      alias update_preference update_preferences
+
+      def relationship(user_id:, action:, access_token: nil)
+        path = '/relationships'
+        client.post path, user_id:, action:, access_token:
+      end
     end
   end
 end

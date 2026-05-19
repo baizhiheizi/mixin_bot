@@ -421,6 +421,24 @@ module MixinApiStubs
       return { 'data' => JSON.parse(JSON.generate(g)), 'error' => nil }
     end
     return { 'data' => nil, 'error' => nil } if method == :post && path =~ %r{/conversations/[^/]+/exit\z}
+    return { 'data' => nil, 'error' => nil } if method == :post && path =~ %r{/conversations/[^/]+/join\z}
+    return { 'data' => [], 'error' => nil } if method == :post && path == '/sessions/fetch'
+    return { 'data' => [], 'error' => nil } if method == :get && path == '/safe/deposits'
+    return { 'data' => [{ 'url' => 'turn:test' }], 'error' => nil } if method == :get && path == '/turn'
+    return { 'data' => { 'assets' => [] }, 'error' => nil } if method == :get && path == '/network'
+    return { 'data' => [], 'error' => nil } if method == :get && path == '/network/assets/top'
+    return { 'data' => [], 'error' => nil } if method == :get && path == '/network/chains'
+    return { 'data' => { 'chain_id' => path.split('/').last }, 'error' => nil } if method == :get && path.start_with?('/network/chains/')
+    return { 'data' => [], 'error' => nil } if method == :get && path == '/external/fiats'
+    return { 'data' => { 'snapshot_id' => path.split('/').last }, 'error' => nil } if method == :get && path.start_with?('/safe/snapshots/')
+    return { 'data' => { 'snapshot_id' => 'snap' }, 'error' => nil } if method == :get && path.start_with?('/snapshots/trace/')
+    return { 'data' => { 'code_id' => path.split('/').last }, 'error' => nil } if method == :get && path.start_with?('/codes/')
+    return { 'data' => { 'destination' => 'ok' }, 'error' => nil } if method == :get && path.start_with?('/external/addresses/check')
+    return { 'data' => [], 'error' => nil } if method == :get && path =~ %r{\A/assets/[^/]+/addresses\z}
+    return { 'data' => { 'commitments' => [] }, 'error' => nil } if method == :get && path.start_with?('/external/tip/')
+    return { 'data' => true, 'error' => nil } if method == :post && path == '/me/preferences'
+    return { 'data' => { 'user_id' => TEST_UID }, 'error' => nil } if method == :post && path == '/relationships'
+    return { 'data' => [], 'error' => nil } if method == :post && path == '/safe/assets/fetch'
 
     { 'data' => {}, 'error' => nil }
   end

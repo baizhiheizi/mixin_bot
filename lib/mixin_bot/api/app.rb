@@ -20,6 +20,13 @@ module MixinBot
 
         client.get path, access_token:
       end
+
+      def transfer_app_ownership(receiver_user_id:, pin:, access_token: nil)
+        path = format('/apps/%<app_id>s/transfer', app_id: config.app_id)
+        tip = tip_or_legacy_pin_payload(pin, 'TIP:APP:OWNERSHIP:TRANSFER:', receiver_user_id)
+        client.post path, user_id: receiver_user_id, pin_base64: tip[:pin_base64] || tip[:pin], access_token:
+      end
+      alias migrate transfer_app_ownership
     end
   end
 end

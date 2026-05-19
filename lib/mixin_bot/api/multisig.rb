@@ -34,6 +34,25 @@ module MixinBot
 
         client.get path, access_token:
       end
+      alias fetch_safe_multisig_request safe_multisig_request
+
+      def create_multisig_raw_tx(asset_id:, senders:, receivers:, threshold:, inputs:, amount:, trace_id:,
+                                 extra: '')
+        out_hint = MixinBot.utils.unique_object_id(trace_id, 'OUTPUT', '0')
+        change_hint = MixinBot.utils.unique_object_id(trace_id, 'OUTPUT', '1')
+        keys = create_safe_keys(
+          { receivers:, index: 0, hint: out_hint },
+          { receivers: senders, index: 1, hint: change_hint }
+        )['data']
+
+        receivers_list = [
+          { members: receivers, threshold: 1, amount: amount.to_s, ghosts: [keys[0]] },
+          { members: senders, threshold:, amount: nil, ghosts: [keys[1]] }
+        ].compact
+
+        tx = build_safe_transaction(utxos: inputs, receivers: receivers_list, extra:)
+        MixinBot.utils.encode_raw_transaction(tx)
+      end
     end
   end
 end

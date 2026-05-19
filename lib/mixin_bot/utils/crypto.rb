@@ -273,6 +273,33 @@ module MixinBot
         gid
       end
 
+      def generate_user_checksum(sessions)
+        list = Array(sessions).map do |s|
+          s.is_a?(Hash) ? s['session_id'] || s[:session_id] : s.session_id
+        end.compact.sort
+        return '' if list.empty?
+
+        Digest::MD5.hexdigest(list.join)
+      end
+
+      def chunked(source, size)
+        source.each_slice(size).to_a
+      end
+
+      def make_unique_string_slice(strings)
+        strings.uniq
+      end
+
+      def unique_object_id(*args)
+        md5 = Digest::MD5.new
+        args.flatten.compact.each { |s| md5 << s.to_s }
+        digest = md5.digest
+        digest = digest.dup
+        digest[6] = ((digest[6].ord & 0x0f) | 0x30).chr
+        digest[8] = ((digest[8].ord & 0x3f) | 0x80).chr
+        MixinBot::UUID.new(raw: digest).unpacked
+      end
+
       def generate_trace_from_hash(hash, output_index = 0)
         md5 = Digest::MD5.new
         md5 << hash

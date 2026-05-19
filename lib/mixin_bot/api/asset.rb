@@ -105,6 +105,30 @@ module MixinBot
         path = '/ticker'
         client.get path, asset_id:, offset:, access_token: kwargs[:access_token]
       end
+
+      def fetch_assets(asset_ids, access_token: nil)
+        client.fetch_post_array '/safe/assets/fetch', Array(asset_ids), access_token:
+      end
+
+      def asset_fee(asset_id, destination:, access_token: nil)
+        path = format('/safe/assets/%<asset_id>s/fees', asset_id:)
+        client.get path, destination:, access_token:
+      end
+      alias read_asset_fee asset_fee
+
+      def asset_balance(asset_id)
+        outputs = safe_outputs(asset: asset_id, state: 'unspent')
+        Array(outputs['data']).sum { |o| o['amount'].to_d }
+      end
+      alias asset_balance_with_safe_user asset_balance
+
+      def user_asset_balance(user_id, asset_id, access_token:)
+        members_hash = MixinBot.utils.hash_members([user_id])
+        path = '/safe/outputs'
+        res = client.get path, members: members_hash, threshold: 1, asset: asset_id, state: 'unspent',
+                         access_token:
+        Array(res['data']).sum { |o| o['amount'].to_d }
+      end
     end
   end
 end

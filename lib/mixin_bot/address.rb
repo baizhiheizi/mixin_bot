@@ -61,6 +61,26 @@ module MixinBot
       }
     end
 
+    def request_or_generate_ghost_keys(output_index = 0, api: MixinBot.api)
+      if xin_members.present?
+        key = JOSE::JWA::Ed25519.keypair
+        gk = { 'mask' => key[0].unpack1('H*'), 'keys' => [] }
+        xin_members.each do |member|
+          payload = MixinBot.utils.parse_main_address(member)
+          spend_key = payload[0...32]
+          view_key = payload[-32..]
+          ghost = MixinBot.utils.derive_ghost_public_key(key[1], view_key, spend_key, output_index)
+          gk['keys'] << ghost.unpack1('H*')
+        end
+        gk
+      else
+        hint = SecureRandom.uuid
+        api.create_safe_keys(
+          { receivers: (uuid_members + xin_members).sort, index: output_index, hint: }
+        )['data'].first
+      end
+    end
+
     def encode
       raise ArgumentError, 'members should be an array' unless uuid_members.is_a?(Array) || xin_members.is_a?(Array)
       raise ArgumentError, 'members should not be empty' if uuid_members.empty? && xin_members.empty?

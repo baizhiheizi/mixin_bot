@@ -41,6 +41,13 @@ module MixinBot
         client.post path, **payload
       end
 
+      def cancel_multisig_request(request_id, access_token: nil)
+        warn_legacy_mixin_api!('LegacyMultisig#cancel_multisig_request')
+        path = format('/multisigs/requests/%<request_id>s/cancel', request_id:)
+        client.post path, access_token:
+      end
+      alias cancel_multisig cancel_multisig_request
+
       def unlock_multisig_request(request_id, pin = nil)
         warn_legacy_mixin_api!('LegacyMultisig#unlock_multisig_request')
         pin ||= config.pin

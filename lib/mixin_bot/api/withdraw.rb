@@ -20,12 +20,14 @@ module MixinBot
 
         client.post path, **payload
       end
+      alias create_address create_withdraw_address
 
       def get_withdraw_address(address, access_token: nil)
         path = format('/addresses/%<address>s', address:)
 
         client.get path, access_token:
       end
+      alias read_address get_withdraw_address
 
       def delete_withdraw_address(address, **kwargs)
         pin = kwargs[:pin]
@@ -35,6 +37,7 @@ module MixinBot
 
         client.post path, **payload
       end
+      alias delete_address delete_withdraw_address
 
       def withdrawals(**kwargs)
         address_id = kwargs[:address_id]
@@ -54,10 +57,21 @@ module MixinBot
 
         fee = '0'
         payload.update(
-          tip_or_legacy_pin_payload(pin, 'TIP:WITHDRAW:', address_id, amount, fee, trace_id, memo)
+          tip_or_legacy_pin_payload(pin, 'TIP:WITHDRAWAL:CREATE:', address_id, amount, fee, trace_id, memo)
         )
 
         client.post path, **payload, access_token:
+      end
+      alias send_withdrawal withdrawals
+
+      def withdraw_addresses(asset_id, access_token: nil)
+        path = format('/assets/%<asset_id>s/addresses', asset_id:)
+        client.get path, access_token:
+      end
+      alias get_addresses_by_asset_id withdraw_addresses
+
+      def check_address(asset:, destination:, tag: nil)
+        client.get '/external/addresses/check', asset:, destination:, tag:, access_token: ''
       end
     end
   end

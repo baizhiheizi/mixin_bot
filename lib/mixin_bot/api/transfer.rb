@@ -81,6 +81,29 @@ module MixinBot
       #     amount: '0.01'
       #   )
       #
+      def create_transfer(pin = nil, **kwargs)
+        if pin.is_a?(String) && kwargs[:opponent_id].present?
+          create_legacy_transfer(pin, **kwargs)
+        else
+          create_safe_transfer(**(pin.is_a?(Hash) ? pin : kwargs))
+        end
+      end
+
+      def send_transaction(**kwargs)
+        create_safe_transfer(**kwargs)
+      end
+      alias send_transfer_transaction send_transaction
+      alias send_transaction_with_outputs send_transaction
+
+      def send_transaction_until_sufficient(**kwargs)
+        create_safe_transfer(**kwargs)
+      end
+
+      def send_transaction_with_change_outputs(**kwargs)
+        create_safe_transfer(**kwargs)
+      end
+      alias send_transaction_with_utxos_and_change_outputs send_transaction_with_change_outputs
+
       def create_safe_transfer(**kwargs)
         utxos = kwargs[:utxos]
         raise ArgumentError, 'utxos must be array' if utxos.present? && !utxos.is_a?(Array)

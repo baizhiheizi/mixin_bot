@@ -8,10 +8,16 @@ require_relative 'api/asset'
 require_relative 'api/attachment'
 require_relative 'api/auth'
 require_relative 'api/blaze'
+require_relative 'api/chain'
+require_relative 'api/code'
+require_relative 'api/computer_api'
 require_relative 'api/conversation'
+require_relative 'api/deposit'
 require_relative 'api/encrypted_message'
+require_relative 'api/fiat'
 require_relative 'api/inscription'
 require_relative 'api/legacy_collectible'
+require_relative 'api/legacy_user'
 require_relative 'api/legacy_multisig'
 require_relative 'api/legacy_output'
 require_relative 'api/legacy_payment'
@@ -21,15 +27,19 @@ require_relative 'api/legacy_transfer'
 require_relative 'api/me'
 require_relative 'api/message'
 require_relative 'api/multisig'
+require_relative 'api/network'
+require_relative 'api/network_asset'
 require_relative 'api/output'
 require_relative 'api/payment'
 require_relative 'api/pin_payload'
 require_relative 'api/pin'
 require_relative 'api/rpc'
+require_relative 'api/session'
 require_relative 'api/snapshot'
 require_relative 'api/tip'
 require_relative 'api/transaction'
 require_relative 'api/transfer'
+require_relative 'api/turn'
 require_relative 'api/user'
 require_relative 'api/withdraw'
 
@@ -225,6 +235,9 @@ module MixinBot
         private_key: config.session_private_key
       )
     end
+    alias sign_authentication_token access_token
+    alias sign_authentication_token_without_body access_token
+    alias sign_authentication_token_with_request_id access_token
 
     ##
     # Encodes a transaction hash to raw transaction format.
@@ -323,10 +336,16 @@ module MixinBot
     include MixinBot::API::Attachment
     include MixinBot::API::Auth
     include MixinBot::API::Blaze
+    include MixinBot::API::Chain
+    include MixinBot::API::Code
+    include MixinBot::API::ComputerApi
     include MixinBot::API::Conversation
+    include MixinBot::API::Deposit
     include MixinBot::API::EncryptedMessage
+    include MixinBot::API::Fiat
     include MixinBot::API::Inscription
     include MixinBot::API::LegacyCollectible
+    include MixinBot::API::LegacyUser
     include MixinBot::API::LegacyMultisig
     include MixinBot::API::LegacyOutput
     include MixinBot::API::LegacyPayment
@@ -336,15 +355,19 @@ module MixinBot
     include MixinBot::API::Me
     include MixinBot::API::Message
     include MixinBot::API::Multisig
+    include MixinBot::API::Network
+    include MixinBot::API::NetworkAsset
     include MixinBot::API::Output
     include MixinBot::API::Payment
     include MixinBot::API::Pin
     include MixinBot::API::Rpc
+    include MixinBot::API::Session
     include MixinBot::API::Snapshot
     include MixinBot::API::Tip
     include MixinBot::API::PinPayload
     include MixinBot::API::Transaction
     include MixinBot::API::Transfer
+    include MixinBot::API::Turn
     include MixinBot::API::User
     include MixinBot::API::Withdraw
 

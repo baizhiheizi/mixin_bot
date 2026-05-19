@@ -3,8 +3,22 @@
 module MixinBot
   class API
     module Auth
+      def sign_oauth_access_token(authorization_id:, method:, uri:, body:, scope:, request_id: nil, **kwargs)
+        MixinBot.utils.access_token(
+          method,
+          uri,
+          body,
+          exp_in: kwargs[:exp_in] || 600,
+          scp: scope,
+          app_id: kwargs[:app_id] || config.app_id,
+          session_id: kwargs[:session_id] || config.session_id,
+          private_key: kwargs[:private_key] || config.session_private_key,
+          request_id:
+        )
+      end
+
       def oauth_token(code)
-        path = 'oauth/token'
+        path = '/oauth/token'
         payload = {
           client_id: config.app_id,
           client_secret: config.client_secret,
