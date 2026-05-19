@@ -138,6 +138,6 @@ Status values: `done` | `alias` | `n/a` (CLI-only / config)
 | **HTTP config** |
 | Request / SetBaseUri / SetBlazeUri | `MixinBot::Configuration`, `Client` | config | n/a |
 | NewSafeUser | `MixinBot::Configuration` | config | n/a |
-| cli/*, examples/*, mixin/rpc main | — | — | n/a |
+| cli/*, examples/*, mixin/rpc main | `mixinbot call` / `mixinbot list` | CLI dispatch to `MixinBot::API` | done |
 
 Update this file when adding or changing API surfaces. Run `rake mixin_bot:api_coverage` to ensure no `missing` rows remain.

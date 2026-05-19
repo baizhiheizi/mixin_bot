@@ -34,7 +34,7 @@ module MixinBot
           '-c',
           c.to_s
         )
-        distributions = eval o
+        distributions = parse_mixin_cli_output(o)
         spinner.update_title "#{distributions.size} mint distributions listed"
       end
 
@@ -54,7 +54,7 @@ module MixinBot
           '-x',
           tx
         )
-        tx = eval o
+        tx = parse_mixin_cli_output(o)
         spinner.update_title "#{tx[:outputs].size} transaction outputs found"
       end
 
@@ -90,6 +90,13 @@ module MixinBot
     def command?(name)
       `which #{name}`
       $CHILD_STATUS.success?
+    end
+
+    def parse_mixin_cli_output(output)
+      JSON.parse(output, symbolize_names: true)
+    rescue JSON::ParserError
+      # Mixin node CLI historically prints Ruby hash literals.
+      eval(output) # rubocop:disable Security/Eval
     end
 
     def log(obj)

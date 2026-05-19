@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`mixinbot call METHOD`** and **`mixinbot list`** — invoke any public `MixinBot::API` method from the CLI with JSON keyword arguments (`-d`).
+- **`mixinbot utils call`** / **`mixinbot utils list`** — same for `MixinBot.utils` helpers.
+
+### Changed
+
+- **`mixinbot transfer`** — uses Safe API (`create_safe_transfer`) instead of legacy `POST /transfers`.
+- **`mixinbot api`** — routes through `MixinBot::Client` (supports JSON array POST bodies); keystore loading includes `spend_key` and `client_secret`.
+- **`mixinbot updatetip`** — uses `update_tip_pin` instead of misusing `update_pin`.
+- **`mixinbot safetransfer`** — delegates to `transfer` (no duplicated signing pipeline).
+
+### Deprecated
+
+- **`mixinbot legacy-transfer`** — explicit legacy transfer command (replaces old default `transfer` behavior).
+- **`mixinbot safetransfer`** — use `transfer` instead.
+
+### Fixed
+
+- **`mixinbot nftmemo`** — calls `MixinBot.utils.nft_memo` (was a broken `nft` alias).
+
 ## [2.0.0] - 2026-05-16
 
 ### Added

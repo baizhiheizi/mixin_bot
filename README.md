@@ -256,23 +256,36 @@ token = client.sign_request(Time.now.to_i, bot_user_id, 'GET', '/some/path')
 
 Invoke **`mixinbot`** (global options: `-a` / `--apihost`, `-r` / `--pretty`).
 
-Subcommands that talk to the API accept **`-k`** / **`--keystore`**: path to a JSON file **or** inline JSON (`app_id`, `session_id`, `session_private_key`, `server_public_key`, `pin`, etc.). Without `-k`, the CLI uses global `MixinBot.configure` credentials.
+Subcommands that talk to the API accept **`-k`** / **`--keystore`**: path to a JSON file **or** inline JSON (`app_id`, `session_id`, `session_private_key`, `server_public_key`, `spend_key`, `client_secret`, `pin`, etc.). Without `-k`, the CLI uses global `MixinBot.configure` credentials.
 
 | Command | Purpose |
 |---------|---------|
-| `mixinbot api PATH` | Signed `GET`/`POST` (`-m`, `-d`, `-p`, `-t`). |
+| `mixinbot call METHOD` | Invoke any `MixinBot::API` method (`-d` JSON kwargs, optional positional args). |
+| `mixinbot list [FILTER]` | List callable API methods (grouped by module). |
+| `mixinbot api PATH` | Signed `GET`/`POST` via `MixinBot::Client` (`-m`, `-d`, `-p`, `-t`). |
+| `mixinbot transfer USER_ID` | Safe transfer (`create_safe_transfer`; `--asset`, `--amount`, …). |
+| `mixinbot legacy-transfer USER_ID` | Deprecated `POST /transfers`. |
+| `mixinbot safetransfer USER_ID` | Alias for `transfer` (deprecated name). |
 | `mixinbot authcode` | OAuth authorize code (`-c`, `-s`). |
 | `mixinbot encrypt PIN` / `verifypin` / `updatetip` | PIN/TIP helpers. |
-| `mixinbot transfer USER_ID` | Legacy transfer (`--asset`, `--amount`, …). |
-| `mixinbot safetransfer USER_ID` | Safe transfer walkthrough. |
 | `mixinbot saferegister` | Safe registration (`--spend_key`). |
 | `mixinbot pay` | Safe payment URL. |
+| `mixinbot utils call METHOD` | Invoke any `MixinBot.utils` method (`-d` JSON kwargs). |
+| `mixinbot utils list [FILTER]` | List utils methods. |
 | `mixinbot unique UUID …` | Deterministic UUID. |
 | `mixinbot generatetrace HASH` | Trace UUID from tx hash. |
 | `mixinbot decodetx HEX` | Decode raw transaction. |
 | `mixinbot nftmemo` | NFT mint memo. |
 | `mixinbot rsa` / `ed25519` | Key generation. |
 | `mixinbot version` | Gem version. |
+
+Examples:
+
+```bash
+mixinbot call me -k ~/.mixinbot/keystore.json
+mixinbot call safe_outputs -k keystore.json -d '{"asset":"965e5c6e-434c-3fa9-b780-c50f43cd955c","state":"unspent"}'
+mixinbot transfer USER_ID -k keystore.json --asset ASSET_ID --amount 0.01
+```
 
 Run `mixinbot help` and `mixinbot help COMMAND` for details.
 

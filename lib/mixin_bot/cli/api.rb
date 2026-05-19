@@ -1,76 +1,78 @@
 # frozen_string_literal: true
 
 module MixinBot
-  class CLI < Thor
-    desc 'api PATH', 'request PATH of Mixin API'
+  class CLI
+    desc 'api PATH', 'Signed GET/POST request to a Mixin API path'
     long_desc <<-LONGDESC
-      use `mixinbot api PATH` to request any Mixin API
+      Use `mixinbot api PATH` to call any Mixin REST endpoint via MixinBot::Client.
 
-      Get user infomation:
+      Get user information:
 
       $ mixinbot api /me -k ~/.mixinbot/keystore.json
 
-      Search user infomation:
+      Search user:
 
       $ mixinbot api /search/1051445 -k ~/.mixinbot/keystore.json
 
-      Generate a multisig payment:
+      POST with JSON body:
 
-      $ mixinbot api /payments -k ~/.mixinbot/keystore.json -m POST -d '{"asset_id":"965e5c6e-434c-3fa9-b780-c50f43cd955c", "amount":"1", "trace_id": "37f16abb-0640-4d01-9423-a06121732d35", "memo":"test", "opponent_multisig":{"receivers":["0508a116-1239-4e28-b150-85a8e3e6b400", "7ed9292d-7c95-4333-aa48-a8c640064186", "a67c6e87-1c9e-4a1c-b81c-47a9f4f1bff1"], "threshold":2}}'
+      $ mixinbot api /payments -k keystore.json -m POST -d '{"asset_id":"..."}'
     LONGDESC
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
-    option :method, type: :string, aliases: '-m', default: 'GET', desc: 'HTTP method, GET or POST'
-    option :params, type: :hash, aliases: '-p', desc: 'HTTP GET params'
-    option :data, type: :string, aliases: '-d', default: '{}', desc: 'HTTP POST data'
-    option :accesstoken, type: :string, aliases: '-t', desc: 'Specify a accesstoken, or will generate by keystore'
+    option :method, type: :string, aliases: '-m', default: 'GET', desc: 'HTTP method: GET or POST'
+    option :params, type: :hash, aliases: '-p', desc: 'HTTP GET query parameters'
+    option :data, type: :string, aliases: '-d', default: '{}', desc: 'HTTP POST JSON body (object or array)'
+    option :accesstoken, type: :string, aliases: '-t', desc: 'Override JWT access token'
+    option :data_only, type: :boolean, default: true, desc: 'Print only response data (default: true)'
     def api(path)
-      path = "#{path}?#{URI.encode_www_form(options[:params])}" if options[:params].present?
-      payload =
-        begin
-          JSON.parse options[:data]
-        rescue JSON::ParserError => e
-          log UI.fmt("{{x}} #{e.inspect}")
-          {}
-        end
-
-      access_token = options[:accesstoken] || api_instance.access_token(options[:method].upcase, path,
-                                                                        payload.blank? ? '' : payload.to_json)
-      authorization = format('Bearer %<access_token>s', access_token:)
-      res = {}
-
-      CLI::UI::Spinner.spin("#{options[:method]} #{path}, payload: #{payload}") do |_spinner|
-        res =
-          case options[:method].downcase.to_sym
-          when :post
-            api_instance.client.post(path, headers: { Authorization: authorization }, json: payload)
-          when :get
-            api_instance.client.get(path, headers: { Authorization: authorization })
-          end
+      setup_api_instance!
+      verb = options[:method].to_s.upcase
+      unless %w[GET POST].include?(verb)
+        abort_with_error("unsupported HTTP method #{verb} (use GET or POST)")
       end
 
-      log res['data']
-    end
+      path_with_query = path
+      path_with_query = "#{path}?#{URI.encode_www_form(options[:params])}" if options[:params].present?
 
-    desc 'authcode', 'code to authorize other mixin account'
-    option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
-    option :app_id, type: :string, required: true, aliases: '-c', desc: 'app_id of bot to authorize'
-    option :scope, type: :array, default: ['PROFILE:READ'], aliases: '-s', desc: 'scope to authorize'
-    def authcode
-      res = {}
-      CLI::UI::Spinner.spin('POST /oauth/authorize') do |_spinner|
-        res =
-          api_instance.authorize_code(
-            user_id: options[:app_id],
-            scope: options[:scope],
-            pin: keystore['pin']
+      payload = parse_api_body(options[:data])
+      res = nil
+
+      res = with_spinner("#{verb} #{path_with_query}") do
+        case verb
+        when 'GET'
+          api_instance.client.get(
+            path_with_query,
+            access_token: options[:accesstoken]
           )
+        when 'POST'
+          post_via_client(path, payload, access_token: options[:accesstoken])
+        end
       end
-      log res['data']
+
+      print_result(res, data_only: options[:data_only])
     end
 
-    desc 'updatetip PIN', 'update TIP pin'
+    desc 'authcode', 'OAuth authorization code for another Mixin account'
+    option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
+    option :app_id, type: :string, required: true, aliases: '-c', desc: 'client_id of the app to authorize'
+    option :scope, type: :array, default: ['PROFILE:READ'], aliases: '-s', desc: 'OAuth scopes'
+    def authcode
+      setup_api_instance!
+      res = nil
+      res = with_spinner('POST /oauth/authorize') do
+        api_instance.authorize_code(
+          user_id: options[:app_id],
+          scope: options[:scope],
+          pin: keystore['pin']
+        )
+      end
+      print_result(res, data_only: true)
+    end
+
+    desc 'updatetip PIN', 'Update TIP PIN'
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
     def updatetip(pin)
+      setup_api_instance!
       profile = api_instance.me
       log UI.fmt "{{v}} #{profile['full_name']}, TIP counter: #{profile['tip_counter']}"
 
@@ -78,67 +80,95 @@ module MixinBot
       key = api_instance.prepare_tip_key counter
       log UI.fmt "{{v}} Generated key: #{key[:private_key]}"
 
-      res = api_instance.update_pin old_pin: pin.to_s, pin: key[:public_key]
+      res = api_instance.update_tip_pin(pin.to_s, key[:public_key])
 
       log({
             pin: key[:private_key],
             tip_key_base64: res['tip_key_base64']
           })
     rescue StandardError => e
-      log UI.fmt "{{x}} #{e.inspect}"
+      abort_with_error(e.message)
     end
 
-    desc 'verifypin PIN', 'verify pin'
+    desc 'verifypin PIN', 'Verify PIN'
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
     def verifypin(pin)
+      setup_api_instance!
       res = api_instance.verify_pin pin.to_s
-
-      log res
+      print_result(res)
     rescue StandardError => e
-      log UI.fmt "{{x}} #{e.inspect}"
+      abort_with_error(e.message)
     end
 
-    desc 'transfer USER_ID', 'transfer asset to USER_ID'
+    desc 'transfer USER_ID', 'Safe transfer to USER_ID'
     option :asset, type: :string, required: true, desc: 'Asset ID'
-    option :amount, type: :numeric, required: true, desc: 'Amount'
-    option :memo, type: :string, required: false, desc: 'memo'
+    option :amount, type: :string, required: true, desc: 'Amount'
+    option :memo, type: :string, required: false, desc: 'Memo'
+    option :trace, type: :string, required: false, desc: 'Trace ID'
+    option :spend_key, type: :string, required: false, desc: 'Spend private key (hex); defaults to keystore spend_key'
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
     def transfer(user_id)
-      res = {}
+      setup_api_instance!
+      perform_safe_transfer(user_id)
+    end
 
-      CLI::UI::Spinner.spin "Try to transfer #{options[:amount]} #{options[:asset]} to #{user_id}" do |_spinner|
-        res = api_instance.create_transfer(
+    desc 'legacy-transfer USER_ID', 'Legacy POST /transfers (deprecated)'
+    option :asset, type: :string, required: true, desc: 'Asset ID'
+    option :amount, type: :numeric, required: true, desc: 'Amount'
+    option :memo, type: :string, required: false, desc: 'Memo'
+    option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
+    def legacy_transfer(user_id)
+      setup_api_instance!
+      warn_deprecated('legacy-transfer uses deprecated POST /transfers; use `transfer` (Safe API) instead')
+      res = nil
+      res = with_spinner("Legacy transfer #{options[:amount]} #{options[:asset]} to #{user_id}") do
+        api_instance.create_transfer(
           keystore['pin'],
-          {
-            asset_id: options[:asset],
-            opponent_id: user_id,
-            amount: options[:amount],
-            memo: options[:memo]
-          }
+          asset_id: options[:asset],
+          opponent_id: user_id,
+          amount: options[:amount],
+          memo: options[:memo]
         )
       end
 
-      return unless res['snapshot_id'].present?
-
-      log UI.fmt "{{v}} Finished: https://mixin.one/snapshots/#{res['snapshot_id']}"
+      snapshot_id = res['snapshot_id'] if res.respond_to?(:[])
+      if snapshot_id.present?
+        log UI.fmt "{{v}} Finished: https://mixin.one/snapshots/#{snapshot_id}"
+      else
+        print_result(res)
+      end
     end
 
-    desc 'saferegister', 'register SAFE network'
-    option :spend_key, type: :string, required: true, desc: 'spend_key'
+    desc 'safetransfer USER_ID', 'Alias for transfer (deprecated name)'
+    option :asset, type: :string, required: true, desc: 'Asset ID'
+    option :amount, type: :string, required: true, desc: 'Amount'
+    option :trace, type: :string, required: false, desc: 'Trace ID'
+    option :memo, type: :string, required: false, desc: 'Memo'
+    option :spend_key, type: :string, required: false, desc: 'Spend private key (hex)'
+    option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
+    def safetransfer(user_id)
+      warn_deprecated('safetransfer is deprecated; use `transfer` instead')
+      transfer(user_id)
+    end
+
+    desc 'saferegister', 'Register on SAFE network'
+    option :spend_key, type: :string, required: true, desc: 'Spend private key'
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
     def saferegister
+      setup_api_instance!
       res = api_instance.safe_register options[:spend_key]
-      log res
+      print_result(res)
     end
 
-    desc 'pay', 'generate payment url'
-    option :members, type: :array, required: true, desc: 'Reveivers, maybe multisig'
-    option :threshold, type: :numeric, required: false, default: 1, desc: 'Threshold of multisig'
+    desc 'pay', 'Generate Safe payment URL'
+    option :members, type: :array, required: true, desc: 'Receivers (supports multisig)'
+    option :threshold, type: :numeric, required: false, default: 1, desc: 'Multisig threshold'
     option :asset, type: :string, required: true, desc: 'Asset ID'
-    option :amount, type: :numeric, required: true, desc: 'Amount'
+    option :amount, type: :string, required: true, desc: 'Amount'
     option :trace, type: :string, required: false, desc: 'Trace ID'
-    option :memo, type: :string, required: false, desc: 'memo'
+    option :memo, type: :string, required: false, desc: 'Memo'
     def pay
+      setup_api_instance!
       url = api_instance.safe_pay_url(
         members: options[:members],
         threshold: options[:threshold],
@@ -151,65 +181,74 @@ module MixinBot
       log UI.fmt "{{v}} #{url}"
     end
 
-    desc 'safetransfer USER_ID', 'transfer asset to USER_ID with SAFE network'
-    option :asset, type: :string, required: true, desc: 'Asset ID'
-    option :amount, type: :numeric, required: true, desc: 'Amount'
-    option :trace, type: :string, required: false, desc: 'Trace ID'
-    option :memo, type: :string, required: false, desc: 'memo'
-    option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
-    def safetransfer(user_id)
-      amount = options[:amount].to_d
-      asset = options[:asset]
-      memo = options[:memo] || ''
+    private
 
-      # step 1: select inputs
-      outputs = api_instance.safe_outputs(state: 'unspent', asset_id: asset, limit: 500)['data'].sort_by { |o| o['amount'].to_d }
-      balance = outputs.sum(&->(output) { output['amount'].to_d })
+    def with_spinner(title)
+      if spinner_enabled?
+        CLI::UI::Spinner.spin(title) { |_spinner| yield }
+      else
+        yield
+      end
+    end
 
-      utxos = []
-      outputs.each do |output|
-        break if utxos.sum { |o| o['amount'].to_d } >= amount
+    def spinner_enabled?
+      ENV['MIXINBOT_NO_SPINNER'].to_s != '1' && $stdout.tty?
+    end
 
-        utxos.shift if utxos.size >= 255
-        utxos << output
+    def parse_api_body(json_string)
+      return nil if json_string.blank? || json_string == '{}'
+
+      JSON.parse(json_string)
+    rescue JSON::ParserError => e
+      abort_with_error("invalid JSON body: #{e.message}")
+    end
+
+    def post_via_client(path, payload, access_token: nil)
+      client = api_instance.client
+      token_opt = { access_token: access_token.presence }.compact
+
+      if payload.is_a?(Array)
+        client.fetch_post_array(path, payload, **token_opt)
+      elsif payload.is_a?(Hash)
+        client.fetch_post(path, body: payload, **token_opt)
+      elsif payload.nil?
+        client.post(path, **token_opt)
+      else
+        abort_with_error('POST body must be a JSON object or array')
+      end
+    end
+
+    def perform_safe_transfer(user_id)
+      transfer_opts = {
+        members: [user_id],
+        threshold: 1,
+        asset_id: options[:asset],
+        amount: options[:amount].to_s,
+        memo: options[:memo] || ''
+      }
+      transfer_opts[:trace_id] = options[:trace] if options[:trace].present?
+      spend = options[:spend_key] || keystore&.dig('spend_key')
+      transfer_opts[:spend_key] = spend if spend.present?
+
+      res = with_spinner(
+        "Safe transfer #{transfer_opts[:amount]} #{transfer_opts[:asset_id]} to #{user_id}"
+      ) do
+        api_instance.create_safe_transfer(**transfer_opts)
       end
 
-      log UI.fmt "Step 1/7: {{v}} Found #{outputs.count} unspent outputs, balance: #{balance}, selected #{utxos.count} outputs"
+      data = res['data'] if res.respond_to?(:[])
+      tx_hash = data.is_a?(Array) ? data.first&.dig('transaction_hash') : nil
+      snapshot_id = res['snapshot_id'] if res.respond_to?(:[])
 
-      # step 2: build transaction
-      tx = api_instance.build_safe_transaction(
-        utxos:,
-        receivers: [
-          members: [user_id],
-          threshold: 1,
-          amount:
-        ],
-        extra: memo
-      )
-      raw = MixinBot::Utils.encode_raw_transaction tx
-      log UI.fmt "Step 2/5: {{v}} Built raw: #{raw}"
-
-      # step 3: verify transaction
-      request_id = SecureRandom.uuid
-      request = api_instance.create_safe_transaction_request(request_id, raw)['data']
-      log UI.fmt "Step 3/5: {{v}} Verified transaction, request_id: #{request[0]['request_id']}"
-
-      # step 4: sign transaction
-      signed_raw = api_instance.sign_safe_transaction(
-        raw:,
-        utxos:,
-        request: request[0]
-      )
-      log UI.fmt "Step 4/5: {{v}} Signed transaction: #{signed_raw}"
-
-      # step 5: submit transaction
-      r = api_instance.send_safe_transaction(
-        request_id,
-        signed_raw
-      )
-      log UI.fmt "Step 5/5: {{v}} Submit transaction, hash: #{r['data'].first['transaction_hash']}"
+      if tx_hash.present?
+        log UI.fmt "{{v}} Submitted: transaction_hash=#{tx_hash}"
+      elsif snapshot_id.present?
+        log UI.fmt "{{v}} Finished: https://mixin.one/snapshots/#{snapshot_id}"
+      else
+        print_result(res)
+      end
     rescue StandardError => e
-      log UI.fmt "{{x}} #{e.inspect}"
+      abort_with_error(e.message)
     end
   end
 end
