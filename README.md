@@ -1,6 +1,6 @@
 # MixinBot
 
-[![CI](https://github.com/an-lee/mixin_bot/actions/workflows/ci.yml/badge.svg)](https://github.com/an-lee/mixin_bot/actions/workflows/ci.yml)
+[![CI](https://github.com/an-lee/mixin_bot/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/an-lee/mixin_bot/actions/workflows/ci.yml)
 
 Ruby SDK and CLI for [Mixin Network](https://developers.mixin.one/docs): authenticated REST calls, **Safe** UTXO transfers, Blaze messaging, network asset catalog, inscriptions, invoices and mix addresses, transaction encoding, and optional **MVM** (Mixin Virtual Machine) helpers.
 
@@ -338,6 +338,28 @@ bundle install
   ```
 
 Examples under `examples/` expect `examples/config.yml` (copy from `examples/config.yml.example`).
+
+### CI
+
+GitHub Actions runs on every pull request and on pushes to `main`:
+
+- **Test** — Ruby 3.2, 3.3, and 4.0: `bundle exec rake` (offline tests + RuboCop)
+- **API coverage** — `bundle exec rake mixin_bot:api_coverage`
+
+### Release
+
+Publishing to [RubyGems.org](https://rubygems.org/gems/mixin_bot) is automated when a version tag is pushed:
+
+1. Bump `MixinBot::VERSION` in `lib/mixin_bot/version.rb` and update `CHANGELOG.md`.
+2. Commit and push to `main`.
+3. Create and push a tag matching the gem version (e.g. `v2.0.1` for version `2.0.1`):
+
+   ```bash
+   git tag v2.0.1
+   git push origin v2.0.1
+   ```
+
+The [Release workflow](.github/workflows/release.yml) builds the gem and runs `gem push`. Repository secret **`RUBYGEMS_API_KEY`** must be set (RubyGems API key with push permission). To build without publishing, run the Release workflow manually with **dry run** enabled.
 
 ## References
 

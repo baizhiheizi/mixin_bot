@@ -32,6 +32,12 @@ test/                   # Minitest + WebMock (offline by default)
 docs/agent/             # LLM-oriented CLI and cookbook docs
 ```
 
+## CI and release
+
+- **CI** (`.github/workflows/ci.yml`): `pull_request` and `push` to `main` — matrix `rake` on Ruby 3.2/3.3/4.0, plus `rake mixin_bot:api_coverage`.
+- **Release** (`.github/workflows/release.yml`): push tag `v*` (must match `MixinBot::VERSION`, e.g. tag `v2.0.0` for `VERSION = '2.0.0'`) → `rake build` → RubyGems via secret `RUBYGEMS_API_KEY`.
+- **Dependabot** (`.github/dependabot.yml`): weekly Bundler and GitHub Actions updates; Dependabot PRs use the same CI workflow.
+
 ## Conventions
 
 - **Ruby** >= 3.2 (CI: 3.2, 3.3, 4.0)
