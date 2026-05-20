@@ -1,16 +1,20 @@
 # AGENTS.md — MixinBot
 
-Guidance for coding agents working in this repository. For curated documentation links, start with [llms.txt](llms.txt).
+Ruby gem (v2.0.0): Mixin Network REST SDK + `mixinbot` CLI. Parity target: [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client).
 
-## Project identity
+## Commands
 
-**MixinBot** is a Ruby gem (v2.0.0) providing:
+```bash
+bundle install
+rake                    # default: test + rubocop (in that order)
+rake test               # offline suite only
+rake test_live          # LIVE=1 rake test (requires test/config.yml)
+rake mixin_bot:api_coverage  # check API_COVERAGE.md has no missing entries
+rake build              # build .gem
+rake rdoc               # generate doc/
+```
 
-- **`MixinBot::API`** — Mixin Network REST SDK (Safe UTXO, messaging, assets, inscriptions, …)
-- **`mixinbot`** — Thor CLI for API exploration and operations
-- **`MVM`** — optional Mixin Virtual Machine helpers (`lib/mvm/`)
-
-Parity target: [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client) (Go SDK). See [API_COVERAGE.md](API_COVERAGE.md).
+**Single test**: `ruby -Itest -Ilib test/mixin_bot/some_test.rb`
 
 ## Repository layout
 
@@ -22,7 +26,7 @@ lib/mixin_bot/
   configuration.rb      # Credentials and hosts
   transaction/          # Raw transaction encode/decode
   utils.rb              # Crypto and encoding helpers
-lib/mvm/                # Bridge, NFT, Registry, Scan
+lib/mvm/                # MVM helpers (excluded from default rake test)
 bin/mixinbot            # CLI entrypoint
 test/                   # Minitest + WebMock (offline by default)
 docs/agent/             # LLM-oriented CLI and cookbook docs
@@ -33,36 +37,24 @@ docs/agent/             # LLM-oriented CLI and cookbook docs
 - **Ruby** >= 3.2 (CI: 3.2, 3.3, 4.0)
 - **HTTP responses**: `MixinBot::Models::ApiEnvelope` — use `res['data']` or delegated keys
 - **Safe transfers**: require `spend_key`; prefer `create_safe_transfer` / `create_transfer` (Safe pipeline)
-- **Legacy APIs**: `create_legacy_transfer`, `POST /transfers` — deprecated, warn once
+- **Legacy APIs**: `create_legacy_transfer`, `POST /transfers` — deprecated, warns once
 - **Tests**: offline WebMock stubs by default; `LIVE=1 rake test` for integration
-- **Lint**: RuboCop via `rake` (tests + rubocop)
+- **MVM tests**: excluded from `rake test`; run separately if needed
+- **Lint**: RuboCop via `rake` (runs after tests in default task)
 
 ## CLI boundaries
 
-Interactive API methods are **excluded** from `mixinbot call` (see `CLIHelpers::INTERACTIVE_API_METHODS` in `lib/mixin_bot/cli/base.rb`):
-
+Interactive API methods are **excluded** from `mixinbot call` (defined in `CLIHelpers::INTERACTIVE_API_METHODS` at `lib/mixin_bot/cli/base.rb:28`):
 - `start_blaze_connect`, `blaze`, `upload_attachment`
 
 Use the Ruby API + EventMachine for Blaze (see `examples/blaze.rb`).
 
-Agent-friendly CLI features (clispec-style):
-
+Agent-friendly CLI features:
 - `mixinbot schema -o json` — machine-readable command schema
 - `--output json|yaml|pretty` — structured stdout; auto JSON when piped
 - `mixinbot list --limit N --offset N -o json` — bounded method registry
 
 See [docs/agent/cli.md](docs/agent/cli.md).
-
-## Workflows
-
-```bash
-bundle install
-rake test                              # offline suite
-rake mixin_bot:api_coverage            # Go SDK parity check
-rake rdoc                              # generate doc/
-mixinbot schema -o json                # CLI introspection
-mixinbot list transfer -o json --limit 10
-```
 
 ## Error types
 
