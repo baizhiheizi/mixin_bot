@@ -343,7 +343,8 @@ Examples under `examples/` expect `examples/config.yml` (copy from `examples/con
 
 GitHub Actions runs on every pull request and on pushes to `main`:
 
-- **Test** — Ruby 3.2, 3.3, and 4.0: `bundle exec rake` (offline tests + RuboCop)
+- **Test** — Ruby 3.2, 3.3, and 4.0: `bundle exec rake test`
+- **RuboCop** — Ruby 3.3: `bundle exec rake rubocop`
 - **API coverage** — `bundle exec rake mixin_bot:api_coverage`
 
 ### Release
