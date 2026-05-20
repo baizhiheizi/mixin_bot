@@ -96,7 +96,7 @@ module MixinBot
       JSON.parse(output, symbolize_names: true)
     rescue JSON::ParserError
       # Mixin node CLI historically prints Ruby hash literals.
-      eval(output) # rubocop:disable Security/Eval
+      eval(output)
     end
 
     def log(obj)
