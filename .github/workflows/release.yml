@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build gem only (do not push to RubyGems)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches gem version
+        if: github.event_name == 'push'
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          version=$(ruby -r ./lib/mixin_bot/version -e 'puts MixinBot::VERSION')
+          expected="v${version}"
+          if [ "$tag" != "$expected" ]; then
+            echo "Tag ${tag} does not match gem version ${expected}"
+            exit 1
+          fi
+          echo "Tag ${tag} matches MixinBot::VERSION ${version}"
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Build gem
+        run: bundle exec rake build
+
+      - name: Publish to RubyGems
+        if: github.event_name == 'push' || inputs.dry_run != true
+        env:
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: |
+          mkdir -p "$HOME/.gem"
+          touch "$HOME/.gem/credentials"
+          chmod 0600 "$HOME/.gem/credentials"
+          printf -- "---\n:rubygems_api_key: %s\n" "$RUBYGEMS_API_KEY" > "$HOME/.gem/credentials"
+          gem push mixin_bot-*.gem

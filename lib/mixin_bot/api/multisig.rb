@@ -36,7 +36,7 @@ module MixinBot
       end
       alias fetch_safe_multisig_request safe_multisig_request
 
-      def create_multisig_raw_tx(asset_id:, senders:, receivers:, threshold:, inputs:, amount:, trace_id:,
+      def create_multisig_raw_tx(_asset_id:, senders:, receivers:, threshold:, inputs:, amount:, trace_id:,
                                  extra: '')
         out_hint = MixinBot.utils.unique_object_id(trace_id, 'OUTPUT', '0')
         change_hint = MixinBot.utils.unique_object_id(trace_id, 'OUTPUT', '1')

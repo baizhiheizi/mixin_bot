@@ -4,36 +4,71 @@ on:
   push:
     branches:
       - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
+    name: Test (Ruby ${{ matrix.ruby }})
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         ruby: ['3.2', '3.3', '4.0']
-    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Deps
+      - name: Install native dependencies
         run: |
-          sudo apt-get -y install build-essential automake pkg-config libtool libffi-dev libssl-dev libgmp-dev python3-dev
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential automake pkg-config libtool \
+            libffi-dev libssl-dev libgmp-dev python3-dev
 
-      - name: Setup Ruby
+      - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
-      - name: Update lockfile for path gems
-        run: |
-          bundle config set frozen false
-          bundle install
-          bundle config set frozen true
+      - name: Run tests
+        run: bundle exec rake test
 
-      - name: Build
-        run: bundle exec rake build
+  rubocop:
+    name: RuboCop
+    runs-on: ubuntu-latest
 
-      - name: Test
-        run: bundle exec rake
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Run RuboCop
+        run: bundle exec rake rubocop
+
+  api-coverage:
+    name: API coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Check API_COVERAGE.md
+        run: bundle exec rake mixin_bot:api_coverage

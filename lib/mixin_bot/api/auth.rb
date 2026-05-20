@@ -3,7 +3,7 @@
 module MixinBot
   class API
     module Auth
-      def sign_oauth_access_token(authorization_id:, method:, uri:, body:, scope:, request_id: nil, **kwargs)
+      def sign_oauth_access_token(_authorization_id:, method:, uri:, body:, scope:, request_id: nil, **kwargs)
         MixinBot.utils.access_token(
           method,
           uri,

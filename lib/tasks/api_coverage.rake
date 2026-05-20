@@ -9,7 +9,7 @@ namespace :mixin_bot do
       exit 1
     end
 
-    missing = File.read(coverage_path).scan(/\| missing \|/).length
+    missing = File.read(coverage_path).scan('| missing |').length
     if missing.positive?
       warn "API_COVERAGE: #{missing} entries still missing"
       exit 1

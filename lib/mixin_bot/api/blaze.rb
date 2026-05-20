@@ -59,8 +59,8 @@ module MixinBot
         end
       end
 
-      def blaze_send_plain_text(ws, conversation_id:, recipient_id:, content:)
-        ws.send write_ws_message(
+      def blaze_send_plain_text(socket, conversation_id:, recipient_id:, content:)
+        socket.send write_ws_message(
           params: {
             conversation_id:,
             recipient_id:,
@@ -71,9 +71,9 @@ module MixinBot
         )
       end
 
-      def blaze_send_recall_message(ws, conversation_id:, recipient_id:, message_id:)
+      def blaze_send_recall_message(socket, conversation_id:, recipient_id:, message_id:)
         data = { message_id: }.to_json
-        ws.send write_ws_message(
+        socket.send write_ws_message(
           params: {
             conversation_id:,
             recipient_id:,
@@ -84,13 +84,13 @@ module MixinBot
         )
       end
 
-      def blaze_send_post(ws, conversation_id:, recipient_id:, content:)
-        blaze_send_plain_text(ws, conversation_id:, recipient_id:, content:)
+      def blaze_send_post(socket, conversation_id:, recipient_id:, content:)
+        blaze_send_plain_text(socket, conversation_id:, recipient_id:, content:)
       end
 
-      def blaze_send_contact(ws, conversation_id:, recipient_id:, contact_id:)
+      def blaze_send_contact(socket, conversation_id:, recipient_id:, contact_id:)
         data = { user_id: contact_id }.to_json
-        ws.send write_ws_message(
+        socket.send write_ws_message(
           params: {
             conversation_id:,
             recipient_id:,
@@ -101,9 +101,9 @@ module MixinBot
         )
       end
 
-      def blaze_send_app_card(ws, conversation_id:, recipient_id:, title:, description:, action:, icon_url:)
+      def blaze_send_app_card(socket, conversation_id:, recipient_id:, title:, description:, action:, icon_url:)
         data = { title:, description:, action:, icon_url: }.to_json
-        ws.send write_ws_message(
+        socket.send write_ws_message(
           params: {
             conversation_id:,
             recipient_id:,
@@ -114,9 +114,9 @@ module MixinBot
         )
       end
 
-      def blaze_send_app_button(ws, conversation_id:, recipient_id:, label:, action:, color:)
+      def blaze_send_app_button(socket, conversation_id:, recipient_id:, label:, action:, color:)
         data = [{ label:, action:, color: }].to_json
-        ws.send write_ws_message(
+        socket.send write_ws_message(
           params: {
             conversation_id:,
             recipient_id:,
@@ -127,9 +127,9 @@ module MixinBot
         )
       end
 
-      def blaze_send_group_app_button(ws, conversation_id:, recipient_id:, buttons:)
+      def blaze_send_group_app_button(socket, conversation_id:, recipient_id:, buttons:)
         data = buttons.to_json
-        ws.send write_ws_message(
+        socket.send write_ws_message(
           params: {
             conversation_id:,
             recipient_id:,

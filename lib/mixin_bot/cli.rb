@@ -22,7 +22,7 @@ module MixinBot
     class_option :output, type: :string, aliases: '-o', enum: CLIOutput::OUTPUT_FORMATS,
                           desc: 'Output format: pretty, json, yaml (default: pretty in TTY, json when piped)'
     class_option :pretty, type: :boolean, aliases: '-r', default: true,
-                         desc: 'Pretty-print output (alias for --output pretty when set false → json)'
+                          desc: 'Pretty-print output (alias for --output pretty when set false → json)'
 
     attr_reader :keystore, :api_instance
 
@@ -90,9 +90,7 @@ module MixinBot
       return {} if json_string.blank?
 
       parsed = JSON.parse(json_string)
-      unless parsed.is_a?(Hash)
-        abort_with_error("#{label} must be a JSON object", kind: :invalid_args)
-      end
+      abort_with_error("#{label} must be a JSON object", kind: :invalid_args) unless parsed.is_a?(Hash)
 
       parsed.transform_keys(&:to_sym)
     rescue JSON::ParserError => e

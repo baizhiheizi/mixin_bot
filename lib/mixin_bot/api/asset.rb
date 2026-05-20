@@ -122,12 +122,18 @@ module MixinBot
       end
       alias asset_balance_with_safe_user asset_balance
 
-      def user_asset_balance(user_id, asset_id, access_token:)
+      def user_asset_balance(user_id, asset_id, access_token: nil)
         members_hash = MixinBot.utils.hash_members([user_id])
         path = '/safe/outputs'
-        res = client.get path, members: members_hash, threshold: 1, asset: asset_id, state: 'unspent',
-                         access_token:
-        Array(res['data']).sum { |o| o['amount'].to_d }
+        response = client.get(
+          path,
+          members: members_hash,
+          threshold: 1,
+          asset: asset_id,
+          state: 'unspent',
+          access_token:
+        )
+        Array(response['data']).sum { |o| o['amount'].to_d }
       end
     end
   end
