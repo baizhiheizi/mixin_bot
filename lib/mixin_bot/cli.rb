@@ -7,21 +7,30 @@ require 'yaml'
 require 'json'
 
 require_relative 'cli/base'
+require_relative 'cli/errors'
+require_relative 'cli/output'
+require_relative 'cli/schema'
 
 module MixinBot
   class CLI < Thor
     include CLIHelpers
+    include CLIOutput
 
     UI = ::CLI::UI
 
     class_option :apihost, type: :string, aliases: '-a', default: 'api.mixin.one', desc: 'Specify mixin api host'
-    class_option :pretty, type: :boolean, aliases: '-r', default: true, desc: 'Print output in pretty'
+    class_option :output, type: :string, aliases: '-o', enum: CLIOutput::OUTPUT_FORMATS,
+                          desc: 'Output format: pretty, json, yaml (default: pretty in TTY, json when piped)'
+    class_option :pretty, type: :boolean, aliases: '-r', default: true,
+                         desc: 'Pretty-print output (alias for --output pretty when set false → json)'
 
     attr_reader :keystore, :api_instance
 
     desc 'version', 'Display MixinBot version'
     def version
-      log MixinBot::VERSION
+      with_command_name('version') do
+        emit_success({ 'version' => MixinBot::VERSION }, command: 'version')
+      end
     end
 
     def self.exit_on_failure?
@@ -50,14 +59,18 @@ module MixinBot
           JSON.parse(raw)
         rescue JSON::ParserError
           abort_with_error(
-            format('failed to parse keystore JSON: %<path>s', path: options[:keystore])
+            format('failed to parse keystore JSON: %<path>s', path: options[:keystore]),
+            kind: :invalid_args,
+            hint: 'mixinbot call me -k keystore.json'
           )
         end
 
       @api_instance = build_api_from_keystore(@keystore)
     rescue StandardError => e
       abort_with_error(
-        format('failed to initialize API (check keystore): %<error>s', error: e.message)
+        format('failed to initialize API (check keystore): %<error>s', error: e.message),
+        kind: CLIErrors.kind_for_exception(e),
+        exception: e
       )
     end
 
@@ -78,83 +91,63 @@ module MixinBot
 
       parsed = JSON.parse(json_string)
       unless parsed.is_a?(Hash)
-        abort_with_error("#{label} must be a JSON object")
+        abort_with_error("#{label} must be a JSON object", kind: :invalid_args)
       end
 
       parsed.transform_keys(&:to_sym)
     rescue JSON::ParserError => e
-      abort_with_error("invalid JSON for #{label}: #{e.message}")
+      abort_with_error("invalid JSON for #{label}: #{e.message}", kind: :invalid_args)
     end
 
     def invoke_api(method_name, kwargs: {}, positional: [])
       sym = method_name.to_sym
       unless CLIHelpers.api_method_callable?(sym)
         abort_with_error(
-          format('unknown or unsupported API method: %<method>s (run `mixinbot list`)', method: method_name)
+          format('unknown or unsupported API method: %<method>s (run `mixinbot list`)', method: method_name),
+          kind: :unsupported,
+          hint: 'mixinbot list'
         )
       end
 
       if CLIHelpers::INTERACTIVE_API_METHODS.include?(sym)
         abort_with_error(
-          format('%<method>s is interactive and not supported from the CLI', method: method_name)
+          format('%<method>s is interactive and not supported from the CLI', method: method_name),
+          kind: :unsupported,
+          hint: 'Use the Ruby API for Blaze WebSocket (see examples/blaze.rb)'
         )
       end
 
       api_instance.public_send(sym, *positional, **kwargs)
-    rescue ArgumentError => e
+    rescue ::ArgumentError => e
       abort_with_error(
-        format('invalid arguments for %<method>s: %<error>s', method: method_name, error: e.message)
+        format('invalid arguments for %<method>s: %<error>s', method: method_name, error: e.message),
+        kind: :invalid_args,
+        hint: format('mixinbot list %<method>s', method: method_name)
       )
+    rescue MixinBot::Error => e
+      abort_with_error(e.message, exception: e)
     end
 
     def invoke_utils(method_name, kwargs: {}, positional: [])
       sym = method_name.to_sym
       unless CLIHelpers.utils_callable_methods.include?(sym)
         abort_with_error(
-          format('unknown utils method: %<method>s', method: method_name)
+          format('unknown utils method: %<method>s', method: method_name),
+          kind: :unsupported,
+          hint: 'mixinbot utils list'
         )
       end
 
       MixinBot.utils.public_send(sym, *positional, **kwargs)
-    rescue ArgumentError => e
+    rescue ::ArgumentError => e
       abort_with_error(
-        format('invalid arguments for utils.%<method>s: %<error>s', method: method_name, error: e.message)
+        format('invalid arguments for utils.%<method>s: %<error>s', method: method_name, error: e.message),
+        kind: :invalid_args
       )
     end
 
-    def print_result(obj, data_only: false)
-      out =
-        case obj
-        when MixinBot::Models::ApiEnvelope
-          data_only ? (obj['data'] || obj.to_h) : obj.to_h
-        when Hash
-          data_only ? (obj['data'] || obj) : obj
-        else
-          obj
-        end
-
-      log(out)
-    end
-
-    def abort_with_error(message)
-      $stderr.puts(UI.fmt("{{x}} #{message}"))
-      exit(1)
-    end
-
     def warn_deprecated(message)
-      $stderr.puts(UI.fmt("{{yellow}} warning: #{message}"))
-    end
-
-    def log(obj)
-      if options[:pretty]
-        if obj.is_a?(String)
-          puts obj
-        else
-          ap obj
-        end
-      else
-        puts obj.inspect
-      end
+      emit_info("warning: #{message}")
     end
   end
 end
@@ -163,6 +156,7 @@ require_relative 'cli/call'
 require_relative 'cli/api'
 require_relative 'cli/node'
 require_relative 'cli/utils'
+require_relative 'cli/schema_command'
 
 module MixinBot
   class CLI

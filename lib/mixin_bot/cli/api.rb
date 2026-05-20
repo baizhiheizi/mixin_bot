@@ -25,31 +25,31 @@ module MixinBot
     option :accesstoken, type: :string, aliases: '-t', desc: 'Override JWT access token'
     option :data_only, type: :boolean, default: true, desc: 'Print only response data (default: true)'
     def api(path)
-      setup_api_instance!
-      verb = options[:method].to_s.upcase
-      unless %w[GET POST].include?(verb)
-        abort_with_error("unsupported HTTP method #{verb} (use GET or POST)")
-      end
+      with_command_name('api') do
+        setup_api_instance!
+        verb = options[:method].to_s.upcase
+        abort_with_error("unsupported HTTP method #{verb} (use GET or POST)", kind: :unsupported) unless %w[GET POST].include?(verb)
 
-      path_with_query = path
-      path_with_query = "#{path}?#{URI.encode_www_form(options[:params])}" if options[:params].present?
+        path_with_query = path
+        path_with_query = "#{path}?#{URI.encode_www_form(options[:params])}" if options[:params].present?
 
-      payload = parse_api_body(options[:data])
-      res = nil
-
-      res = with_spinner("#{verb} #{path_with_query}") do
-        case verb
-        when 'GET'
-          api_instance.client.get(
-            path_with_query,
-            access_token: options[:accesstoken]
-          )
-        when 'POST'
-          post_via_client(path, payload, access_token: options[:accesstoken])
+        payload = parse_api_body(options[:data])
+        res = with_spinner("#{verb} #{path_with_query}") do
+          case verb
+          when 'GET'
+            api_instance.client.get(
+              path_with_query,
+              access_token: options[:accesstoken]
+            )
+          when 'POST'
+            post_via_client(path, payload, access_token: options[:accesstoken])
+          end
         end
-      end
 
-      print_result(res, data_only: options[:data_only])
+        print_result(res, data_only: options[:data_only], command: 'api')
+      end
+    rescue MixinBot::Error => e
+      abort_with_error(e.message, exception: e)
     end
 
     desc 'authcode', 'OAuth authorization code for another Mixin account'
@@ -57,47 +57,57 @@ module MixinBot
     option :app_id, type: :string, required: true, aliases: '-c', desc: 'client_id of the app to authorize'
     option :scope, type: :array, default: ['PROFILE:READ'], aliases: '-s', desc: 'OAuth scopes'
     def authcode
-      setup_api_instance!
-      res = nil
-      res = with_spinner('POST /oauth/authorize') do
-        api_instance.authorize_code(
-          user_id: options[:app_id],
-          scope: options[:scope],
-          pin: keystore['pin']
-        )
+      with_command_name('authcode') do
+        setup_api_instance!
+        res = with_spinner('POST /oauth/authorize') do
+          api_instance.authorize_code(
+            user_id: options[:app_id],
+            scope: options[:scope],
+            pin: keystore['pin']
+          )
+        end
+        print_result(res, data_only: true, command: 'authcode')
       end
-      print_result(res, data_only: true)
+    rescue MixinBot::Error => e
+      abort_with_error(e.message, exception: e)
     end
 
     desc 'updatetip PIN', 'Update TIP PIN'
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
     def updatetip(pin)
-      setup_api_instance!
-      profile = api_instance.me
-      log UI.fmt "{{v}} #{profile['full_name']}, TIP counter: #{profile['tip_counter']}"
+      with_command_name('updatetip') do
+        setup_api_instance!
+        profile = api_instance.me
+        emit_info("#{profile['full_name']}, TIP counter: #{profile['tip_counter']}")
 
-      counter = profile['tip_counter']
-      key = api_instance.prepare_tip_key counter
-      log UI.fmt "{{v}} Generated key: #{key[:private_key]}"
+        counter = profile['tip_counter']
+        key = api_instance.prepare_tip_key counter
+        emit_info("Generated key: #{key[:private_key]}")
 
-      res = api_instance.update_tip_pin(pin.to_s, key[:public_key])
+        res = api_instance.update_tip_pin(pin.to_s, key[:public_key])
 
-      log({
-            pin: key[:private_key],
-            tip_key_base64: res['tip_key_base64']
-          })
-    rescue StandardError => e
-      abort_with_error(e.message)
+        emit_success(
+          {
+            'pin' => key[:private_key],
+            'tip_key_base64' => res['tip_key_base64']
+          },
+          command: 'updatetip'
+        )
+      end
+    rescue MixinBot::Error => e
+      abort_with_error(e.message, exception: e)
     end
 
     desc 'verifypin PIN', 'Verify PIN'
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
     def verifypin(pin)
-      setup_api_instance!
-      res = api_instance.verify_pin pin.to_s
-      print_result(res)
-    rescue StandardError => e
-      abort_with_error(e.message)
+      with_command_name('verifypin') do
+        setup_api_instance!
+        res = api_instance.verify_pin pin.to_s
+        print_result(res, command: 'verifypin')
+      end
+    rescue MixinBot::Error => e
+      abort_with_error(e.message, exception: e)
     end
 
     desc 'transfer USER_ID', 'Safe transfer to USER_ID'
@@ -107,9 +117,12 @@ module MixinBot
     option :trace, type: :string, required: false, desc: 'Trace ID'
     option :spend_key, type: :string, required: false, desc: 'Spend private key (hex); defaults to keystore spend_key'
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
+    option :dry_run, type: :boolean, default: false, desc: 'Validate and print transfer kwargs without submitting'
     def transfer(user_id)
-      setup_api_instance!
-      perform_safe_transfer(user_id)
+      with_command_name('transfer') do
+        setup_api_instance!
+        perform_safe_transfer(user_id)
+      end
     end
 
     desc 'legacy-transfer USER_ID', 'Legacy POST /transfers (deprecated)'
@@ -118,25 +131,23 @@ module MixinBot
     option :memo, type: :string, required: false, desc: 'Memo'
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
     def legacy_transfer(user_id)
-      setup_api_instance!
-      warn_deprecated('legacy-transfer uses deprecated POST /transfers; use `transfer` (Safe API) instead')
-      res = nil
-      res = with_spinner("Legacy transfer #{options[:amount]} #{options[:asset]} to #{user_id}") do
-        api_instance.create_transfer(
-          keystore['pin'],
-          asset_id: options[:asset],
-          opponent_id: user_id,
-          amount: options[:amount],
-          memo: options[:memo]
-        )
-      end
+      with_command_name('legacy-transfer') do
+        setup_api_instance!
+        warn_deprecated('legacy-transfer uses deprecated POST /transfers; use `transfer` (Safe API) instead')
+        res = with_spinner("Legacy transfer #{options[:amount]} #{options[:asset]} to #{user_id}") do
+          api_instance.create_transfer(
+            keystore['pin'],
+            asset_id: options[:asset],
+            opponent_id: user_id,
+            amount: options[:amount],
+            memo: options[:memo]
+          )
+        end
 
-      snapshot_id = res['snapshot_id'] if res.respond_to?(:[])
-      if snapshot_id.present?
-        log UI.fmt "{{v}} Finished: https://mixin.one/snapshots/#{snapshot_id}"
-      else
-        print_result(res)
+        emit_transfer_result(res)
       end
+    rescue MixinBot::Error => e
+      abort_with_error(e.message, exception: e)
     end
 
     desc 'safetransfer USER_ID', 'Alias for transfer (deprecated name)'
@@ -146,6 +157,7 @@ module MixinBot
     option :memo, type: :string, required: false, desc: 'Memo'
     option :spend_key, type: :string, required: false, desc: 'Spend private key (hex)'
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
+    option :dry_run, type: :boolean, default: false, desc: 'Validate and print transfer kwargs without submitting'
     def safetransfer(user_id)
       warn_deprecated('safetransfer is deprecated; use `transfer` instead')
       transfer(user_id)
@@ -155,9 +167,13 @@ module MixinBot
     option :spend_key, type: :string, required: true, desc: 'Spend private key'
     option :keystore, type: :string, aliases: '-k', required: true, desc: 'keystore or keystore.json file path'
     def saferegister
-      setup_api_instance!
-      res = api_instance.safe_register options[:spend_key]
-      print_result(res)
+      with_command_name('saferegister') do
+        setup_api_instance!
+        res = api_instance.safe_register options[:spend_key]
+        print_result(res, command: 'saferegister')
+      end
+    rescue MixinBot::Error => e
+      abort_with_error(e.message, exception: e)
     end
 
     desc 'pay', 'Generate Safe payment URL'
@@ -168,17 +184,21 @@ module MixinBot
     option :trace, type: :string, required: false, desc: 'Trace ID'
     option :memo, type: :string, required: false, desc: 'Memo'
     def pay
-      setup_api_instance!
-      url = api_instance.safe_pay_url(
-        members: options[:members],
-        threshold: options[:threshold],
-        asset_id: options[:asset],
-        amount: options[:amount],
-        trace_id: options[:trace],
-        memo: options[:memo]
-      )
+      with_command_name('pay') do
+        setup_api_instance!
+        url = api_instance.safe_pay_url(
+          members: options[:members],
+          threshold: options[:threshold],
+          asset_id: options[:asset],
+          amount: options[:amount],
+          trace_id: options[:trace],
+          memo: options[:memo]
+        )
 
-      log UI.fmt "{{v}} #{url}"
+        emit_success({ 'url' => url }, command: 'pay')
+      end
+    rescue MixinBot::Error => e
+      abort_with_error(e.message, exception: e)
     end
 
     private
@@ -192,7 +212,7 @@ module MixinBot
     end
 
     def spinner_enabled?
-      ENV['MIXINBOT_NO_SPINNER'].to_s != '1' && $stdout.tty?
+      ENV['MIXINBOT_NO_SPINNER'].to_s != '1' && $stdout.tty? && !structured_output?
     end
 
     def parse_api_body(json_string)
@@ -200,7 +220,7 @@ module MixinBot
 
       JSON.parse(json_string)
     rescue JSON::ParserError => e
-      abort_with_error("invalid JSON body: #{e.message}")
+      abort_with_error("invalid JSON body: #{e.message}", kind: :invalid_args)
     end
 
     def post_via_client(path, payload, access_token: nil)
@@ -214,11 +234,11 @@ module MixinBot
       elsif payload.nil?
         client.post(path, **token_opt)
       else
-        abort_with_error('POST body must be a JSON object or array')
+        abort_with_error('POST body must be a JSON object or array', kind: :invalid_args)
       end
     end
 
-    def perform_safe_transfer(user_id)
+    def build_transfer_opts(user_id)
       transfer_opts = {
         members: [user_id],
         threshold: 1,
@@ -229,6 +249,19 @@ module MixinBot
       transfer_opts[:trace_id] = options[:trace] if options[:trace].present?
       spend = options[:spend_key] || keystore&.dig('spend_key')
       transfer_opts[:spend_key] = spend if spend.present?
+      transfer_opts
+    end
+
+    def perform_safe_transfer(user_id)
+      transfer_opts = build_transfer_opts(user_id)
+
+      if options[:dry_run]
+        emit_success(
+          { 'dry_run' => true, 'method' => 'create_safe_transfer', 'kwargs' => transfer_opts.transform_keys(&:to_s) },
+          command: 'transfer'
+        )
+        return
+      end
 
       res = with_spinner(
         "Safe transfer #{transfer_opts[:amount]} #{transfer_opts[:asset_id]} to #{user_id}"
@@ -236,19 +269,27 @@ module MixinBot
         api_instance.create_safe_transfer(**transfer_opts)
       end
 
+      emit_transfer_result(res)
+    rescue MixinBot::Error => e
+      abort_with_error(e.message, exception: e)
+    end
+
+    def emit_transfer_result(res)
       data = res['data'] if res.respond_to?(:[])
       tx_hash = data.is_a?(Array) ? data.first&.dig('transaction_hash') : nil
       snapshot_id = res['snapshot_id'] if res.respond_to?(:[])
 
       if tx_hash.present?
-        log UI.fmt "{{v}} Submitted: transaction_hash=#{tx_hash}"
+        payload = { 'transaction_hash' => tx_hash }
+        emit_info("Submitted: transaction_hash=#{tx_hash}")
+        emit_success(payload, command: current_command_name)
       elsif snapshot_id.present?
-        log UI.fmt "{{v}} Finished: https://mixin.one/snapshots/#{snapshot_id}"
+        url = "https://mixin.one/snapshots/#{snapshot_id}"
+        emit_info("Finished: #{url}")
+        emit_success({ 'snapshot_id' => snapshot_id, 'url' => url }, command: current_command_name)
       else
-        print_result(res)
+        print_result(res, command: current_command_name)
       end
-    rescue StandardError => e
-      abort_with_error(e.message)
     end
   end
 end

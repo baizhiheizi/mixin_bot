@@ -254,7 +254,9 @@ token = client.sign_request(Time.now.to_i, bot_user_id, 'GET', '/some/path')
 
 ## CLI
 
-Invoke **`mixinbot`** (global options: `-a` / `--apihost`, `-r` / `--pretty`).
+Invoke **`mixinbot`** (global options: `-a` / `--apihost`, `-o` / `--output pretty|json|yaml`, `-r` / `--pretty`).
+
+When stdout is piped, output defaults to JSON. Use `mixinbot schema -o json` for machine-readable command discovery. See [docs/agent/cli.md](docs/agent/cli.md).
 
 Subcommands that talk to the API accept **`-k`** / **`--keystore`**: path to a JSON file **or** inline JSON (`app_id`, `session_id`, `session_private_key`, `server_public_key`, `spend_key`, `client_secret`, `pin`, etc.). Without `-k`, the CLI uses global `MixinBot.configure` credentials.
 
@@ -288,6 +290,15 @@ mixinbot transfer USER_ID -k keystore.json --asset ASSET_ID --amount 0.01
 ```
 
 Run `mixinbot help` and `mixinbot help COMMAND` for details.
+
+## For AI agents / LLMs
+
+- **[llms.txt](llms.txt)** — curated documentation index ([llmstxt.org](https://llmstxt.org/) format)
+- **[AGENTS.md](AGENTS.md)** — repository layout, conventions, and workflows for coding agents
+- **[docs/agent/cli.md](docs/agent/cli.md)** — structured `mixinbot` output, schema introspection, JSON examples
+- **[docs/agent/cookbook.md](docs/agent/cookbook.md)** — task recipes (transfers, auth, messaging)
+
+Run `mixinbot schema -o json` to discover CLI commands programmatically.
 
 ## Documentation
 

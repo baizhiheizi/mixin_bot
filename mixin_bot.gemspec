@@ -12,10 +12,20 @@ Gem::Specification.new do |s|
   s.authors       = ['an-lee']
   s.email         = ['an.lee.work@gmail.com']
   s.homepage      = 'https://github.com/an-lee/mixin_bot'
-  s.summary       = 'A Ruby SDK for Mixin Nexwork'
-  s.description   = 'An API wrapper for Mixin Nexwork'
+  s.summary       = 'A Ruby SDK for Mixin Network'
+  s.description   = 'An API wrapper for Mixin Network'
   s.license       = 'MIT'
-  s.files         = Dir['{app,config,db,lib}/**/*', 'MIT-LICENSE']
+  s.files         = Dir[
+    '{app,config,db,lib}/**/*',
+    'docs/agent/**/*',
+    'examples/*',
+    'llms.txt',
+    'AGENTS.md',
+    'README.md',
+    'CHANGELOG.md',
+    'API_COVERAGE.md',
+    'MIT-LICENSE'
+  ]
   s.require_paths = ['lib']
   s.executables   = ['mixinbot']
 

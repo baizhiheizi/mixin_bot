@@ -17,28 +17,55 @@ module MixinBot
     option :data, type: :string, aliases: '-d', default: '{}', desc: 'JSON object of keyword arguments'
     option :data_only, type: :boolean, default: false, desc: 'Print only the data field of API responses'
     def call(method_name, *positional)
-      setup_api_instance!
-      kwargs = parse_json_data(options[:data])
-      result = invoke_api(method_name, kwargs:, positional:)
-      print_result(result, data_only: options[:data_only])
+      with_command_name('call') do
+        setup_api_instance!
+        kwargs = parse_json_data(options[:data])
+        result = invoke_api(method_name, kwargs:, positional:)
+        print_result(result, data_only: options[:data_only], command: 'call')
+      end
     end
 
     desc 'list [FILTER]', 'List callable MixinBot::API methods (optional substring filter)'
+    option :limit, type: :numeric, default: 100, desc: 'Maximum items to return'
+    option :offset, type: :numeric, default: 0, desc: 'Number of items to skip'
+    option :fields, type: :string, desc: 'Comma-separated fields for JSON output (name,owner)'
     def list(filter = nil)
-      methods = CLIHelpers.api_callable_methods
-      if filter.present?
-        needle = filter.downcase
-        methods = methods.select { |m| m.to_s.downcase.include?(needle) }
+      with_command_name('list') do
+        methods = CLIHelpers.api_callable_methods
+        if filter.present?
+          needle = filter.downcase
+          methods = methods.select { |m| m.to_s.downcase.include?(needle) }
+        end
+
+        items = methods.map do |name|
+          { 'name' => name.to_s, 'owner' => CLIHelpers.api_method_owner(name) }
+        end
+        items = items.sort_by { |item| [item['owner'], item['name']] }
+
+        page, total, limit, offset = paginate_items(items, limit: options[:limit], offset: options[:offset])
+        page = select_fields(page, options[:fields])
+
+        if structured_output?
+          emit_list(items: page, total:, limit:, offset:, command: 'list')
+        else
+          print_pretty_list(page, total, limit, offset)
+        end
       end
+    end
 
-      CLIHelpers.grouped_api_methods.each do |owner, names|
-        filtered = names & methods
-        next if filtered.empty?
+    private
 
+    def print_pretty_list(items, total, limit, offset)
+      grouped = items.group_by { |item| item['owner'] }
+      grouped.sort_by { |owner, _| owner }.each do |owner, names|
         puts "#{owner}:"
-        filtered.each { |m| puts "  #{m}" }
+        names.sort_by { |n| n['name'] }.each { |n| puts "  #{n['name']}" }
         puts
       end
+
+      return unless total > limit || offset.positive?
+
+      emit_info("Showing #{items.size} of #{total} (limit=#{limit}, offset=#{offset})")
     end
   end
 end

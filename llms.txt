@@ -1,0 +1,29 @@
+# MixinBot
+
+> Ruby SDK and CLI for Mixin Network: Safe UTXO transfers, REST API, Blaze messaging, transaction crypto, optional MVM helpers. Ruby >= 3.2. Gem version 2.0.0.
+
+Important notes:
+
+- Prefer Safe API (`create_safe_transfer`) over legacy `POST /transfers`
+- Safe transfers require `spend_key` in config/keystore
+- Blaze WebSocket is interactive — use Ruby API, not CLI
+
+## Docs
+
+- [README](README.md): Install, config, API overview, CLI summary
+- [API coverage vs Go SDK](API_COVERAGE.md): Method parity matrix
+- [CLI for agents](docs/agent/cli.md): Structured output, schema, examples
+- [Agent cookbook](docs/agent/cookbook.md): Common tasks (auth, transfer, messaging)
+- [Changelog](CHANGELOG.md): Breaking changes
+- [AGENTS.md](AGENTS.md): Repository layout and development workflows for coding agents
+
+## Examples
+
+- [Blaze WebSocket example](examples/blaze.rb): EventMachine + Blaze handlers
+- [Config template](examples/config.yml.example): Keystore fields
+
+## Optional
+
+- [Mixin official docs](https://developers.mixin.one/docs): External API reference
+- [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client): Parity reference
+- [Generated RDoc](doc/index.html): Full API reference (local)

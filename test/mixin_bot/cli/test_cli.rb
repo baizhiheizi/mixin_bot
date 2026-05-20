@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'test_helper'
+require 'json'
 
 module MixinBot
   class TestCLI < Minitest::Test
@@ -20,29 +21,35 @@ module MixinBot
     end
 
     def test_list_includes_me
-      out = capture_cli_output(%w[list me])
+      out = capture_cli_output(%w[list me -o pretty])
       assert_includes out, 'me'
     end
 
     def test_call_me_with_keystore
-      out = capture_cli_output(['call', 'me', '-k', @keystore_json, '--data-only'])
-      assert_includes out, OfflineConfig.app_id
+      body = capture_cli_json(['call', 'me', '-k', @keystore_json, '--data-only'])
+      assert_equal 'ok', body['status']
+      assert_includes body.dig('data', 'user_id') || body['data'].to_s, OfflineConfig.app_id
     end
 
     def test_call_user_positional
-      out = capture_cli_output(['call', 'user', TEST_UID, '-k', @keystore_json, '--data-only'])
-      assert_match(/user_id|error/, out)
+      body = capture_cli_json(['call', 'user', TEST_UID, '-k', @keystore_json, '--data-only'])
+      assert_equal 'ok', body['status']
+      data = body['data']
+      assert(data.key?('user_id') || data.key?('error'))
     end
 
     def test_invalid_json_exits_nonzero
-      _out, err, status = capture_cli_exit(['call', 'me', '-k', @keystore_json, '-d', '{bad'])
+      _out, err, status = capture_cli_exit(['call', 'me', '-k', @keystore_json, '-d', '{bad', '-o', 'json'])
       assert_equal 1, status
-      assert_match(/invalid JSON/i, err)
+      err_body = JSON.parse(err)
+      assert_equal 'error', err_body['status']
+      assert_match(/invalid JSON/i, err_body.dig('error', 'message'))
     end
 
     def test_api_me_command
-      out = capture_cli_output(['api', '/me', '-k', @keystore_json])
-      assert_includes out, OfflineConfig.app_id
+      body = capture_cli_json(['api', '/me', '-k', @keystore_json])
+      assert_equal 'ok', body['status']
+      assert_includes body['data'].to_s, OfflineConfig.app_id
     end
 
     def test_build_api_from_keystore_includes_spend_key
@@ -50,7 +57,8 @@ module MixinBot
       cli.instance_variable_set(:@options, {
                                   keystore: @keystore_json,
                                   apihost: 'api.mixin.one',
-                                  pretty: false
+                                  pretty: false,
+                                  output: 'json'
                                 })
       cli.send(:setup_api_instance!)
       spend = cli.api_instance.config.spend_key
@@ -60,33 +68,39 @@ module MixinBot
 
     def test_nftmemo
       collection = SecureRandom.uuid
-      out = capture_cli_output([
-                                 'nftmemo',
-                                 '-c', collection,
-                                 '-t', '1',
-                                 '-h', 'ab' * 32
-                               ])
-      refute_empty out.strip
+      body = capture_cli_json([
+                                'nftmemo',
+                                '-c', collection,
+                                '-t', '1',
+                                '-h', 'ab' * 32,
+                                '-o', 'json'
+                              ])
+      refute_empty body['data'].to_s.strip
     end
 
     def test_utils_unique_uuid
-      out = capture_cli_output(['unique', TEST_UID, TEST_UID_2])
-      uuid = out.strip
+      body = capture_cli_json(['unique', TEST_UID, TEST_UID_2, '-o', 'json'])
+      uuid = body['data']
       assert_match(/\A[0-9a-f-]{36}\z/i, uuid)
     end
 
     def test_transfer_safe_pipeline
-      out = capture_cli_output([
-                                 'transfer', TEST_UID,
-                                 '-k', @keystore_json,
-                                 '--asset', CNB_ASSET_ID,
-                                 '--amount', '0.001',
-                                 '--memo', 'cli test'
-                               ])
-      assert_match(/transaction_hash|Submitted/i, out)
+      body = capture_cli_json([
+                                'transfer', TEST_UID,
+                                '-k', @keystore_json,
+                                '--asset', CNB_ASSET_ID,
+                                '--amount', '0.001',
+                                '--memo', 'cli test',
+                                '-o', 'json'
+                              ])
+      data = body['data']
+      assert(
+        data.key?('transaction_hash') ||
+        data.to_s.match?(/transaction_hash|snapshot_id/i)
+      )
     end
 
-  private
+    private
 
     def keystore_inline_json
       {
@@ -100,13 +114,17 @@ module MixinBot
       }.to_json
     end
 
+    def capture_cli_json(argv)
+      out = capture_cli_output(argv)
+      JSON.parse(out)
+    end
+
     def capture_cli_output(argv)
       out, = capture_cli_exit(argv)
       out
     end
 
     def capture_cli_exit(argv)
-      out = err = ''
       status = 0
       capture_io do
         CLI::UI::StdoutRouter.enable
