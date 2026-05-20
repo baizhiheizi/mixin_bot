@@ -1,4 +1,4 @@
-require:
+plugins:
   - rubocop-rake
 
 AllCops:
@@ -69,6 +69,18 @@ Style/ClassAndModuleChildren:
 
 Style/Documentation:
   Enabled: false
+
+Style/OneClassPerFile:
+  Exclude:
+    - lib/mixin_bot/cli.rb
+
+Naming/PredicateMethod:
+  Exclude:
+    - lib/mixin_bot/monitor.rb
+
+Style/FileOpen:
+  Exclude:
+    - test/**/*
 
 Style/EmptyMethod:
   Enabled: false

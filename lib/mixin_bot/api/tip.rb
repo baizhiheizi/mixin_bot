@@ -31,7 +31,7 @@ module MixinBot
 
         pin_key = MixinBot.utils.decode_key pin
 
-        msg = action + params.flatten.map(&:to_s).join
+        msg = action + params.join
 
         msg = Digest::SHA256.digest(msg) unless action == 'TIP:VERIFY:'
 

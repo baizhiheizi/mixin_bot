@@ -53,7 +53,7 @@ module MixinBot
       return false if API_EXCLUDED_METHODS.include?(sym)
       return false if INTERACTIVE_API_METHODS.include?(sym)
 
-      MixinBot::API.instance_methods.include?(sym) &&
+      MixinBot::API.method_defined?(sym) &&
         !sym.to_s.start_with?('_')
     end
 
@@ -63,10 +63,10 @@ module MixinBot
 
     def api_method_owner(method_name)
       sym = method_name.to_sym
-      return 'MixinBot::API' if MixinBot::API.instance_methods(false).include?(sym)
+      return 'MixinBot::API' if MixinBot::API.method_defined?(sym, false)
 
       MixinBot::API.included_modules.find do |mod|
-        mod.name&.start_with?('MixinBot::API::') && mod.instance_methods(false).include?(sym)
+        mod.name&.start_with?('MixinBot::API::') && mod.method_defined?(sym, false)
       end&.name || 'MixinBot::API'
     end
 

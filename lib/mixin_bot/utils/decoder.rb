@@ -6,7 +6,7 @@ module MixinBot
       def decode_key(key)
         return if key.blank?
 
-        if key.match?(/\A[\h]{64,}\z/i)
+        if key.match?(/\A\h{64,}\z/i)
           [key].pack('H*')
         elsif key.match?(/^-----BEGIN RSA PRIVATE KEY-----/)
           key.gsub('\\r\\n', "\n").gsub("\r\n", "\n")
