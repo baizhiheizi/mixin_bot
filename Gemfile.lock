@@ -107,6 +107,7 @@ GEM
     immutable-ruby (0.2.0)
       concurrent-ruby (~> 1.1)
       sorted_set (~> 1.0)
+    io-console (0.8.2)
     jose (1.2.0)
       base64
       immutable-ruby
@@ -137,9 +138,10 @@ GEM
       racc
     pkg-config (1.6.5)
     prism (1.9.0)
-    pry (0.14.2)
+    pry (0.16.0)
       coderay (~> 1.1)
       method_source (~> 1.0)
+      reline (>= 0.6.0)
     psych (5.3.1)
       date
       stringio
@@ -162,6 +164,8 @@ GEM
       psych (>= 4.0.0)
       tsort
     regexp_parser (2.9.2)
+    reline (0.6.3)
+      io-console (~> 0.5)
     rexml (3.3.5)
       strscan
     rubocop (1.65.1)
