@@ -35,7 +35,7 @@ docs/agent/             # LLM-oriented CLI and cookbook docs
 ## CI and release
 
 - **CI** (`.github/workflows/ci.yml`): `pull_request` and `push` to `main` — `rake test` on Ruby 3.2/3.3/4.0, `rake rubocop` (3.3), `rake mixin_bot:api_coverage`.
-- **Release** (`.github/workflows/release.yml`): push tag `v*` (must match `MixinBot::VERSION`, e.g. tag `v2.0.0` for `VERSION = '2.0.0'`) → `rake build` → RubyGems via secret `RUBYGEMS_API_KEY`.
+- **Release** (`.github/workflows/release.yml`): push tag `v*` (must match `MixinBot::VERSION`, e.g. tag `v2.0.0` for `VERSION = '2.0.0'`) → `rake build` → RubyGems via [trusted publishing](https://guides.rubygems.org/trusted-publishing/) (OIDC; workflow `release.yml`, no repo secret).
 - **Dependabot** (`.github/dependabot.yml`): weekly Bundler and GitHub Actions updates; Dependabot PRs use the same CI workflow.
 
 ## Conventions

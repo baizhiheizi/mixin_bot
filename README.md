@@ -360,7 +360,7 @@ Publishing to [RubyGems.org](https://rubygems.org/gems/mixin_bot) is automated w
    git push origin v2.0.1
    ```
 
-The [Release workflow](.github/workflows/release.yml) builds the gem and runs `gem push`. Repository secret **`RUBYGEMS_API_KEY`** must be set (RubyGems API key with push permission). To build without publishing, run the Release workflow manually with **dry run** enabled.
+The [Release workflow](.github/workflows/release.yml) builds the gem and publishes to RubyGems.org via [trusted publishing](https://guides.rubygems.org/trusted-publishing/) (GitHub OIDC; trusted publisher for workflow `release.yml` on `an-lee/mixin_bot`). To build without publishing, run the Release workflow manually with **dry run** enabled.
 
 ## References
 

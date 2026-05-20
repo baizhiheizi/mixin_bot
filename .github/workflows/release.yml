@@ -11,13 +11,13 @@ on:
         type: boolean
         default: false
 
-permissions:
-  contents: read
-
 jobs:
   publish:
     name: Build and publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - uses: actions/checkout@v6
@@ -43,13 +43,10 @@ jobs:
       - name: Build gem
         run: bundle exec rake build
 
+      - name: Configure RubyGems credentials
+        if: github.event_name == 'push' || inputs.dry_run != true
+        uses: rubygems/configure-rubygems-credentials@v2.0.0
+
       - name: Publish to RubyGems
         if: github.event_name == 'push' || inputs.dry_run != true
-        env:
-          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
-        run: |
-          mkdir -p "$HOME/.gem"
-          touch "$HOME/.gem/credentials"
-          chmod 0600 "$HOME/.gem/credentials"
-          printf -- "---\n:rubygems_api_key: %s\n" "$RUBYGEMS_API_KEY" > "$HOME/.gem/credentials"
-          gem push mixin_bot-*.gem
+        run: gem push mixin_bot-*.gem
