@@ -35,9 +35,7 @@ module MixinBot
     def scheme_snapshots(snapshot_id: nil, trace_id: nil)
       u = URI("#{SCHEME}://snapshots")
       u.path = "/#{snapshot_id}" if snapshot_id.present?
-      if trace_id.present?
-        u.query = URI.encode_www_form(trace: trace_id)
-      end
+      u.query = URI.encode_www_form(trace: trace_id) if trace_id.present?
       u.to_s
     end
 
@@ -57,9 +55,7 @@ module MixinBot
 
     def scheme_send(category:, data: nil, conversation_id: nil)
       q = { category: category.to_s }
-      if data.present?
-        q[:data] = URI.encode_www_form_component(Base64.strict_encode64(data))
-      end
+      q[:data] = URI.encode_www_form_component(Base64.strict_encode64(data)) if data.present?
       q[:conversation] = conversation_id if conversation_id.present?
       "#{SCHEME}://send?#{URI.encode_www_form(q)}"
     end

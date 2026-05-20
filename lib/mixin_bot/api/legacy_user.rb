@@ -43,9 +43,7 @@ module MixinBot
 
         result = client.post '/legacy/users', **payload, access_token: ''
         data = result['data'] || result.data
-        if data.is_a?(Hash)
-          data = data.merge('session_private_key' => seed.unpack1('H*'))
-        end
+        result['data'] = data.merge('session_private_key' => seed.unpack1('H*')) if data.is_a?(Hash)
         result
       end
     end

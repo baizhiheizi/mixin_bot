@@ -57,16 +57,14 @@ module MixinBot
 
       def deploy_external_assets(assets)
         assets = Array(assets)
-        if assets.include?(SOLANA_CHAIN_ID)
-          raise ArgumentError, "cannot deploy asset from Solana: #{SOLANA_CHAIN_ID}"
-        end
+        raise ArgumentError, "cannot deploy asset from Solana: #{SOLANA_CHAIN_ID}" if assets.include?(SOLANA_CHAIN_ID)
 
         request 'POST', '/deployed_assets', assets
       end
       alias computer_deploy_external_asset deploy_external_assets
 
       def lock_nonce_account(mix)
-        request 'POST', '/nonce_accounts', { mix: mix }
+        request 'POST', '/nonce_accounts', { mix: }
       end
       alias lock_computer_nonce_account lock_nonce_account
 

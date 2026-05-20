@@ -89,18 +89,18 @@ module MixinBot
         end
       end
 
-      def send_transaction(**kwargs)
-        create_safe_transfer(**kwargs)
+      def send_transaction(**)
+        create_safe_transfer(**)
       end
       alias send_transfer_transaction send_transaction
       alias send_transaction_with_outputs send_transaction
 
-      def send_transaction_until_sufficient(**kwargs)
-        create_safe_transfer(**kwargs)
+      def send_transaction_until_sufficient(**)
+        create_safe_transfer(**)
       end
 
-      def send_transaction_with_change_outputs(**kwargs)
-        create_safe_transfer(**kwargs)
+      def send_transaction_with_change_outputs(**)
+        create_safe_transfer(**)
       end
       alias send_transaction_with_utxos_and_change_outputs send_transaction_with_change_outputs
 

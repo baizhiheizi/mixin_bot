@@ -242,7 +242,7 @@ module MixinBot
         )
       end
 
-      def create_object_storage_transaction(extra:, trace_id:, references: nil, limit: nil, utxos: nil, **transfer_opts)
+      def create_object_storage_transaction(extra:, trace_id:, _references: nil, limit: nil, utxos: nil, **transfer_opts)
         amount = estimate_storage_cost(extra)
         amount = [amount, BigDecimal(limit.to_s)].max if limit.present?
         kwargs = {
@@ -257,7 +257,7 @@ module MixinBot
         create_safe_transfer(**kwargs)
       end
 
-      def request_ghost_recipients_with_trace_id(recipients, trace_id)
+      def request_ghost_recipients_with_trace_id(recipients, _trace_id)
         generate_safe_keys(
           recipients.map do |r|
             r = r.with_indifferent_access

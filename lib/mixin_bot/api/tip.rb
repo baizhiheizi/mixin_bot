@@ -61,40 +61,51 @@ module MixinBot
       def tip_body_for_raw_transaction_create(asset_id, opponent_key, opponent_receivers, opponent_threshold, amount,
                                               trace_id, memo)
         receivers = Array(opponent_receivers).join
-        format('TIP:TRANSACTION:CREATE:%s%s%s%s%s%s%s', asset_id, opponent_key, receivers, opponent_threshold, amount,
-               trace_id, memo)
+        format(
+          'TIP:TRANSACTION:CREATE:%<asset_id>s%<opponent_key>s%<receivers>s%<opponent_threshold>s%<amount>s%<trace_id>s%<memo>s',
+          asset_id:, opponent_key:, receivers:, opponent_threshold:, amount:, trace_id:, memo:
+        )
       end
 
       def tip_body_for_withdrawal_create(address_id, amount, fee, trace_id, memo)
-        format('TIP:WITHDRAWAL:CREATE:%s%s%s%s%s', address_id, amount, fee, trace_id, memo)
+        format(
+          'TIP:WITHDRAWAL:CREATE:%<address_id>s%<amount>s%<fee>s%<trace_id>s%<memo>s',
+          address_id:, amount:, fee:, trace_id:, memo:
+        )
       end
 
       def tip_body_for_transfer(asset_id, counter_user_id, amount, trace_id, memo)
-        format('TIP:TRANSFER:CREATE:%s%s%s%s%s', asset_id, counter_user_id, amount, trace_id, memo)
+        format(
+          'TIP:TRANSFER:CREATE:%<asset_id>s%<counter_user_id>s%<amount>s%<trace_id>s%<memo>s',
+          asset_id:, counter_user_id:, amount:, trace_id:, memo:
+        )
       end
 
       def tip_body_for_phone_number_update(verification_id, code)
-        format('TIP:PHONE:NUMBER:UPDATE:%s%s', verification_id, code)
+        format('TIP:PHONE:NUMBER:UPDATE:%<verification_id>s%<code>s', verification_id:, code:)
       end
 
       def tip_body_for_emergency_contact_create(verification_id, code)
-        format('TIP:EMERGENCY:CONTACT:CREATE:%s%s', verification_id, code)
+        format('TIP:EMERGENCY:CONTACT:CREATE:%<verification_id>s%<code>s', verification_id:, code:)
       end
 
       def tip_body_for_address_add(asset_id, public_key, key_tag, name)
-        format('TIP:ADDRESS:ADD:%s%s%s%s', asset_id, public_key, key_tag, name)
+        format(
+          'TIP:ADDRESS:ADD:%<asset_id>s%<public_key>s%<key_tag>s%<name>s',
+          asset_id:, public_key:, key_tag:, name:
+        )
       end
 
       def tip_body_for_provisioning_update(device_id, secret)
-        format('TIP:PROVISIONING:UPDATE:%s%s', device_id, secret)
+        format('TIP:PROVISIONING:UPDATE:%<device_id>s%<secret>s', device_id:, secret:)
       end
 
       def tip_body_for_ownership_transfer(user_id)
-        format('TIP:APP:OWNERSHIP:TRANSFER:%s', user_id)
+        format('TIP:APP:OWNERSHIP:TRANSFER:%<user_id>s', user_id:)
       end
 
       def tip_body_for_sequencer_register(user_id, public_key)
-        format('SEQUENCER:REGISTER:%s%s', user_id, public_key)
+        format('SEQUENCER:REGISTER:%<user_id>s%<public_key>s', user_id:, public_key:)
       end
 
       def tip_body(str)

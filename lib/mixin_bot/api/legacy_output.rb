@@ -3,9 +3,9 @@
 module MixinBot
   class API
     module LegacyOutput
-      def read_multisigs(**kwargs)
+      def read_multisigs(**)
         warn_legacy_mixin_api!('LegacyOutput#read_multisigs')
-        legacy_outputs(**kwargs)
+        legacy_outputs(**)
       end
 
       def legacy_outputs(**kwargs)
