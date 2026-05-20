@@ -16,7 +16,7 @@ jobs:
     name: Build and publish
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
 
     steps:
@@ -43,6 +43,23 @@ jobs:
       - name: Build gem
         run: bundle exec rake build
 
+      - name: Extract release notes from CHANGELOG
+        if: github.event_name == 'push'
+        run: |
+          export VERSION
+          VERSION=$(ruby -r ./lib/mixin_bot/version -e 'puts MixinBot::VERSION')
+          ruby -e '
+            version = ENV.fetch("VERSION")
+            content = File.read("CHANGELOG.md")
+            pattern = /^## \[#{Regexp.escape(version)}\][^\n]*\n(.*?)(?=^## \[|\z)/m
+            section = content.match(pattern)
+            if section.nil?
+              warn "No CHANGELOG section for version #{version}"
+              exit 1
+            end
+            File.write("release-notes.md", section[1].strip + "\n")
+          '
+
       - name: Configure RubyGems credentials
         if: github.event_name == 'push' || inputs.dry_run != true
         uses: rubygems/configure-rubygems-credentials@v2.0.0
@@ -50,3 +67,11 @@ jobs:
       - name: Publish to RubyGems
         if: github.event_name == 'push' || inputs.dry_run != true
         run: gem push mixin_bot-*.gem
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: mixin_bot-*.gem
+          body_path: release-notes.md
+          generate_release_notes: false
