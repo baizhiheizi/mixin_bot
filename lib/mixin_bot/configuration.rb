@@ -149,7 +149,7 @@ module MixinBot
       @server_public_key = decode_key key
       # HEX encoded
       @server_public_key_curve25519 =
-        if key.match?(/\A[\h]{32,}\z/i)
+        if key.match?(/\A\h{32,}\z/i)
           JOSE::JWA::Ed25519.pk_to_curve25519 @server_public_key
         else
           server_public_key

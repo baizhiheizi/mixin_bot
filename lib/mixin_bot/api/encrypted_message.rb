@@ -194,7 +194,7 @@ module MixinBot
         decrypter.key = key
         decrypter.iv = bytes[prefix_size...(prefix_size + 12)].pack('C*')
         decrypter.auth_tag = bytes.last(16).pack('C*')
-        decrypted = decrypter.update(bytes[(prefix_size + 12)...(bytes.size - 16)].pack('C*'))
+        decrypted = decrypter.update(bytes[(prefix_size + 12)...-16].pack('C*'))
         decrypter.final
 
         Base64.urlsafe_encode64 decrypted

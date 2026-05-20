@@ -31,8 +31,9 @@ module MixinBot
         @version = args[:version] || MIX_ADDRESS_VERSION
 
         if args[:members].present?
-          @uuid_members = args[:members].reject { |member| member.start_with?(MAIN_ADDRESS_PREFIX) }
-          @xin_members = args[:members].select { |member| member.start_with? MAIN_ADDRESS_PREFIX }
+          @xin_members, @uuid_members = args[:members].partition do |member|
+            member.start_with?(MAIN_ADDRESS_PREFIX)
+          end
         else
           @uuid_members = args[:uuid_members] || []
           @xin_members = args[:xin_members] || []
