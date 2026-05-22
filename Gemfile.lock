@@ -154,8 +154,8 @@ GEM
     rake-compiler-dock (1.12.0)
     rb_sys (0.9.128)
       rake-compiler-dock (= 1.12.0)
-    rbnacl (7.1.1)
-      ffi
+    rbnacl (7.1.2)
+      ffi (~> 1)
     rbsecp256k1 (6.0.0)
       mini_portile2 (~> 2.8)
       pkg-config (~> 1.5)
