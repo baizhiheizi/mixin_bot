@@ -105,7 +105,7 @@ module MixinBot
           params:
         }.to_json
 
-        io = StringIO.new 'wb'
+        io = StringIO.new
         gzip = Zlib::GzipWriter.new io
         gzip.write msg
         gzip.close
