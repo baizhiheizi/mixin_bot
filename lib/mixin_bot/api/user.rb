@@ -23,6 +23,10 @@ module MixinBot
       # the new TIP PIN has time to propagate on the server side.
       TIP_PIN_PROPAGATION_DELAY = 1
 
+      # Billed cost per network user created via {#create_user} (USD), after
+      # the free tier. Pass +increment: 0+ to skip headroom for the new user.
+      CREATE_USER_BILLING_INCREMENT = '0.5'
+
       def user(user_id, access_token: nil)
         path = format('/users/%<user_id>s', user_id:)
         client.get path, access_token:
@@ -39,11 +43,13 @@ module MixinBot
       # @param key [String, nil] optional 32-byte Ed25519 seed
       # @param force [Boolean] when false (default), verify app billing credit
       #   headroom before calling the API; when true, skip the preflight
+      # @param increment [Numeric, String] billing headroom for the new user
+      #   (defaults to {CREATE_USER_BILLING_INCREMENT}; use +0+ on free tier)
       # @return [Hash] Mixin response merged with the hex-encoded private key
       # @raise [InsufficientAppBillingError] when billing credit lacks headroom
       #
-      def create_user(full_name, key: nil, force: false)
-        ensure_app_billing_credit!(force:)
+      def create_user(full_name, key: nil, force: false, increment: CREATE_USER_BILLING_INCREMENT)
+        ensure_app_billing_credit!(force:, increment:)
 
         keypair = JOSE::JWA::Ed25519.keypair key
         session_secret = Base64.urlsafe_encode64 keypair[0], padding: false
@@ -92,6 +98,7 @@ module MixinBot
       # @param spend_key [String, nil] optional 32-byte spend Ed25519 seed
       # @param force [Boolean] forwarded to {#create_user}; see billing preflight
       #   there
+      # @param increment [Numeric, String] forwarded to {#create_user}
       # @return [Hash] keystore with +:app_id+, +:session_id+,
       #   +:session_private_key+, +:server_public_key+ and +:spend_key+
       # @raise [MixinBot::Error] when registration ultimately fails. Transient
@@ -100,13 +107,13 @@ module MixinBot
       # @raise [InsufficientAppBillingError] when {#create_user} billing
       #   preflight fails
       #
-      def create_safe_user(name, private_key: nil, spend_key: nil, force: false)
+      def create_safe_user(name, private_key: nil, spend_key: nil, force: false, increment: CREATE_USER_BILLING_INCREMENT)
         session_keypair = JOSE::JWA::Ed25519.keypair private_key
         spend_keypair = JOSE::JWA::Ed25519.keypair spend_key
 
         spend_key_hex = spend_keypair[1].unpack1('H*')
 
-        user = create_user name, key: session_keypair[1][...32], force: force
+        user = create_user name, key: session_keypair[1][...32], force: force, increment: increment
         data = user.fetch('data')
 
         keystore = {

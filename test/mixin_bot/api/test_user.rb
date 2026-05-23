@@ -53,10 +53,10 @@ module MixinBot
       assert_not_requested :post, %r{api\.mixin\.one/users\z}
     end
 
-    def test_create_user_free_tier_zero_price
-      AppBillingStubState.configure credit: '10', cost_users: '5', cost_resources: '4', price: '0'
+    def test_create_user_free_tier_zero_increment
+      AppBillingStubState.configure credit: '10', cost_users: '5', cost_resources: '4'
 
-      r = MixinBot.api.create_user 'Free Tier User'
+      r = MixinBot.api.create_user 'Free Tier User', increment: 0
 
       assert_equal 'Free Tier User', r['data']['full_name']
       assert_requested :post, %r{api\.mixin\.one/users\z}

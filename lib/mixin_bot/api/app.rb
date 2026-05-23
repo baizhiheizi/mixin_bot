@@ -29,21 +29,22 @@ module MixinBot
       # creating a network user). Skipped when +force+ is true.
       #
       # @param force [Boolean] skip the preflight and call the API anyway
+      # @param increment [Numeric, String] estimated cost added to total billing
+      #   cost for headroom (default +0+)
       # @raise [InsufficientAppBillingError] when +credit+ is not greater than
-      #   total cost plus the next user fee from {app_properties}
+      #   total cost plus +increment+
       #
-      def ensure_app_billing_credit!(force: false, access_token: nil)
+      def ensure_app_billing_credit!(force: false, access_token: nil, increment: 0)
         return if force
 
         app_id = config.app_id
         billing = app_billing(app_id, access_token:)['data']
-        properties = app_properties(access_token:)['data']
 
         credit = billing_decimal billing['credit']
         cost_users = billing_decimal billing.dig('cost', 'users')
         cost_resources = billing_decimal billing.dig('cost', 'resources')
         cost = cost_users + cost_resources
-        increment = billing_decimal properties['price']
+        increment = billing_decimal increment
 
         return if credit > cost + increment
 

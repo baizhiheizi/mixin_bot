@@ -47,16 +47,16 @@ module MixinBot
     end
 
     def test_ensure_app_billing_credit_passes
-      AppBillingStubState.configure credit: '100', cost_users: '40', cost_resources: '10', price: '0.5'
+      AppBillingStubState.configure credit: '100', cost_users: '40', cost_resources: '10'
 
-      assert_nil MixinBot.api.ensure_app_billing_credit!
+      assert_nil MixinBot.api.ensure_app_billing_credit!(increment: 0.5)
     end
 
     def test_ensure_app_billing_credit_raises
-      AppBillingStubState.configure credit: '50', cost_users: '40', cost_resources: '10', price: '0.5'
+      AppBillingStubState.configure credit: '50', cost_users: '40', cost_resources: '10'
 
       err = assert_raises InsufficientAppBillingError do
-        MixinBot.api.ensure_app_billing_credit!
+        MixinBot.api.ensure_app_billing_credit!(increment: 0.5)
       end
 
       assert_equal MixinBot.config.app_id, err.app_id
@@ -65,8 +65,14 @@ module MixinBot
       assert_equal BigDecimal('0.5'), BigDecimal(err.increment)
     end
 
+    def test_ensure_app_billing_credit_default_increment_zero
+      AppBillingStubState.configure credit: '50.01', cost_users: '40', cost_resources: '10'
+
+      assert_nil MixinBot.api.ensure_app_billing_credit!
+    end
+
     def test_ensure_app_billing_credit_force_skips
-      AppBillingStubState.configure credit: '0', cost_users: '100', cost_resources: '0', price: '1'
+      AppBillingStubState.configure credit: '0', cost_users: '100', cost_resources: '0'
 
       assert_nil MixinBot.api.ensure_app_billing_credit!(force: true)
     end

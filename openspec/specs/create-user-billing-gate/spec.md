@@ -7,11 +7,15 @@ TBD - created by archiving change create-user-billing-gate. Update Purpose after
 
 The SDK SHALL call `ensure_app_billing_credit!` at the start of `User#create_user` unless `force: true` is passed.
 
-The preflight SHALL fetch `app_billing` for `config.app_id` and `app_properties` for the next user fee.
+The preflight SHALL fetch `app_billing` for `config.app_id`.
 
-The preflight SHALL compute `cost = cost.users + cost.resources` and `increment = price` from app properties (default `0` if missing).
+The preflight SHALL accept an `increment` parameter (default `0`) for estimated additional billing cost.
+
+The preflight SHALL compute `cost = cost.users + cost.resources`.
 
 The preflight SHALL allow the request only when `credit > cost + increment` (strict inequality, using decimal comparison).
+
+`User#create_user` SHALL call the preflight with `increment` defaulting to `0.5` (billed per-user cost after the free tier).
 
 #### Scenario: Sufficient headroom
 
@@ -32,9 +36,15 @@ The preflight SHALL allow the request only when `credit > cost + increment` (str
 - **THEN** the SDK does not call billing/properties preflight
 - **AND** posts to `POST /users`
 
-#### Scenario: Free tier increment zero
+#### Scenario: Zero increment default
 
-- **WHEN** `app_properties` returns `price` of `"0"`
+- **WHEN** `ensure_app_billing_credit!` is called without `increment`
+- **AND** credit is greater than total cost
+- **THEN** the preflight passes
+
+#### Scenario: Free tier user creation
+
+- **WHEN** `create_user` is called with `increment: 0`
 - **AND** credit is greater than total cost
 - **THEN** the SDK allows `create_user`
 
