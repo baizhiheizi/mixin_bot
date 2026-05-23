@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-05-24
+
 ### Added
 
 - **`MixinBot::API#create_user` billing preflight** — verifies app billing headroom (`credit > cost + next user fee`) via `app_billing` and `app_properties` before `POST /users`. Raises `InsufficientAppBillingError` by default; pass `force: true` to skip. `create_safe_user` forwards `force:` to `create_user`.

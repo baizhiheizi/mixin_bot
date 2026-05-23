@@ -6,7 +6,7 @@ Ruby SDK and CLI for [Mixin Network](https://developers.mixin.one/docs): authent
 
 The gem aims for **parity with the official [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client)** Go SDK and **[bot-api-nodejs-client](https://github.com/MixinNetwork/bot-api-nodejs-client)** Node SDK. See [API_COVERAGE.md](API_COVERAGE.md) for the full mapping; run `rake mixin_bot:api_coverage` to confirm no gaps are marked missing.
 
-Current gem version: **2.1.0** (see [CHANGELOG.md](CHANGELOG.md) for breaking changes and deprecations).
+Current gem version: **2.2.0** (see [CHANGELOG.md](CHANGELOG.md) for breaking changes and deprecations).
 
 ## Requirements
 

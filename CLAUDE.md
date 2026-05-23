@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**MixinBot** is a Ruby gem (v2.1.0) providing a Ruby SDK and CLI for [Mixin Network](https://developers.mixin.one/docs). It mirrors the official [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client) Go SDK and [bot-api-nodejs-client](https://github.com/MixinNetwork/bot-api-nodejs-client) Node SDK.
+**MixinBot** is a Ruby gem (v2.2.0) providing a Ruby SDK and CLI for [Mixin Network](https://developers.mixin.one/docs). It mirrors the official [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client) Go SDK and [bot-api-nodejs-client](https://github.com/MixinNetwork/bot-api-nodejs-client) Node SDK.
 
 Key components:
 - **`MixinBot::API`** — REST SDK for Safe UTXO transfers, messaging, assets, inscriptions, etc.

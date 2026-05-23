@@ -1,6 +1,6 @@
 # AGENTS.md — MixinBot
 
-Ruby gem (v2.1.0): Mixin Network REST SDK + `mixinbot` CLI. Parity targets: [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client), [bot-api-nodejs-client](https://github.com/MixinNetwork/bot-api-nodejs-client).
+Ruby gem (v2.2.0): Mixin Network REST SDK + `mixinbot` CLI. Parity targets: [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client), [bot-api-nodejs-client](https://github.com/MixinNetwork/bot-api-nodejs-client).
 
 ## Commands
 
