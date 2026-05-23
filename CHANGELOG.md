@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-05-24
+
+### Changed
+
+- **Billing preflight `increment`** — `ensure_app_billing_credit!` accepts an `increment` parameter (default `0`) instead of reading `app_properties.price`. `create_user` / `create_safe_user` default to `0.5` per billed user; pass `increment: 0` for free-tier headroom.
+
 ## [2.2.0] - 2026-05-24
 
 ### Added
