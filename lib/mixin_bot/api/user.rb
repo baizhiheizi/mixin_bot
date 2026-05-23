@@ -37,9 +37,14 @@ module MixinBot
       #
       # @param full_name [String] display name for the new user
       # @param key [String, nil] optional 32-byte Ed25519 seed
+      # @param force [Boolean] when false (default), verify app billing credit
+      #   headroom before calling the API; when true, skip the preflight
       # @return [Hash] Mixin response merged with the hex-encoded private key
+      # @raise [InsufficientAppBillingError] when billing credit lacks headroom
       #
-      def create_user(full_name, key: nil)
+      def create_user(full_name, key: nil, force: false)
+        ensure_app_billing_credit!(force:)
+
         keypair = JOSE::JWA::Ed25519.keypair key
         session_secret = Base64.urlsafe_encode64 keypair[0], padding: false
         private_key = keypair[1].unpack1('H*')
@@ -85,19 +90,23 @@ module MixinBot
       # @param name [String] display name for the new user
       # @param private_key [String, nil] optional 32-byte session Ed25519 seed
       # @param spend_key [String, nil] optional 32-byte spend Ed25519 seed
+      # @param force [Boolean] forwarded to {#create_user}; see billing preflight
+      #   there
       # @return [Hash] keystore with +:app_id+, +:session_id+,
       #   +:session_private_key+, +:server_public_key+ and +:spend_key+
       # @raise [MixinBot::Error] when registration ultimately fails. Transient
       #   PIN/response errors are retried up to {SAFE_REGISTER_MAX_RETRIES}
       #   times; other errors bubble up immediately.
+      # @raise [InsufficientAppBillingError] when {#create_user} billing
+      #   preflight fails
       #
-      def create_safe_user(name, private_key: nil, spend_key: nil)
+      def create_safe_user(name, private_key: nil, spend_key: nil, force: false)
         session_keypair = JOSE::JWA::Ed25519.keypair private_key
         spend_keypair = JOSE::JWA::Ed25519.keypair spend_key
 
         spend_key_hex = spend_keypair[1].unpack1('H*')
 
-        user = create_user name, key: session_keypair[1][...32]
+        user = create_user name, key: session_keypair[1][...32], force: force
         data = user.fetch('data')
 
         keystore = {

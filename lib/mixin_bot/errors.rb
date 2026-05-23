@@ -52,6 +52,26 @@ module MixinBot
   class InsufficientBalanceError < Error; end
 
   ##
+  # Raised when app prepaid billing credit lacks headroom for a billed operation.
+  #
+  class InsufficientAppBillingError < Error
+    attr_reader :app_id, :credit, :cost, :increment
+
+    def initialize(app_id:, credit:, cost:, increment:)
+      @app_id = app_id
+      @credit = credit
+      @cost = cost
+      @increment = increment
+      super(
+        format(
+          'app billing insufficient: credit %<credit>s <= cost %<cost>s + increment %<increment>s (app_id=%<app_id>s)',
+          credit:, cost:, increment:, app_id:
+        )
+      )
+    end
+  end
+
+  ##
   # Raised when selected UTXOs cannot cover the requested amount (mirrors Go +UtxoInsufficientError+).
   #
   class UtxoInsufficientError < InsufficientBalanceError

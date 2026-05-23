@@ -4,7 +4,11 @@ require 'test_helper'
 
 module MixinBot
   class TestUser < Minitest::Test
+    include WebMock::API
+
     def setup
+      WebMock.reset!
+      MixinApiStubs.register!
     end
 
     def test_user
@@ -13,14 +17,8 @@ module MixinBot
       assert_equal r['data']['user_id'], TEST_UID
     end
 
-    # def test_create_user
-    #   r = MixinBot.api.create_user('Bot User')
-
-    #   assert_equal r['data']['full_name'], 'Bot User'
-    # end
-
     def test_search_user
-      r = MixinBot.api.search_user(TEST_MIXIN_ID)
+      r = MixinBot.api.search_user TEST_MIXIN_ID
 
       assert_equal r['data']['identity_number'], TEST_MIXIN_ID
     end
@@ -31,31 +29,55 @@ module MixinBot
       assert r['data'].is_a?(Array)
     end
 
-    # def test_create_safe_user
-    #   keystore = MixinBot.api.create_safe_user('Bot User')
+    def test_create_user_sufficient_headroom
+      AppBillingStubState.configure credit: '100', cost_users: '50', cost_resources: '10', price: '0.5'
 
-    #   # save keystore
-    #   File.write("./tmp/#{keystore[:app_id]}-keystore.json", keystore.to_json)
+      r = MixinBot.api.create_user 'Bot User'
 
-    #   assert keystore.key?(:spend_key)
-    # end
+      assert_equal 'Bot User', r['data']['full_name']
+      assert r[:private_key].present?
+      assert_requested :post, %r{api\.mixin\.one/users\z}
+    end
 
-    # def test_migrate_to_safe
-    #   user = MixinBot.api.create_user 'Test Bot User'
+    def test_create_user_insufficient_headroom
+      AppBillingStubState.configure credit: '60', cost_users: '50', cost_resources: '10', price: '0.5'
 
-    #   keystore = {
-    #     app_id: user['data']['user_id'],
-    #     session_id: user['data']['session_id'],
-    #     private_key: user[:private_key],
-    #     pin_token: user['data']['pin_token_base64']
-    #   }
+      err = assert_raises InsufficientAppBillingError do
+        MixinBot.api.create_user 'Bot User'
+      end
 
-    #   user_api = MixinBot::API.new(**keystore)
+      assert_equal MixinBot.config.app_id, err.app_id
+      assert_equal BigDecimal('60'), BigDecimal(err.credit)
+      assert_equal BigDecimal('60'), BigDecimal(err.cost)
+      assert_equal BigDecimal('0.5'), BigDecimal(err.increment)
+      assert_not_requested :post, %r{api\.mixin\.one/users\z}
+    end
 
-    #   spend_keypair = JOSE::JWA::Ed25519.keypair
-    #   r = user_api.migrate_to_safe spend_key: spend_keypair[1][0...32]
+    def test_create_user_free_tier_zero_price
+      AppBillingStubState.configure credit: '10', cost_users: '5', cost_resources: '4', price: '0'
 
-    #   refute_nil r[:spend_key] = spend_keypair[1].unpack1('H*')
-    # end
+      r = MixinBot.api.create_user 'Free Tier User'
+
+      assert_equal 'Free Tier User', r['data']['full_name']
+      assert_requested :post, %r{api\.mixin\.one/users\z}
+    end
+
+    def test_create_user_edge_equality_blocked
+      AppBillingStubState.configure credit: '60.5', cost_users: '50', cost_resources: '10', price: '0.5'
+
+      assert_raises InsufficientAppBillingError do
+        MixinBot.api.create_user 'Edge User'
+      end
+      assert_not_requested :post, %r{api\.mixin\.one/users\z}
+    end
+
+    def test_create_user_force_skips_preflight
+      AppBillingStubState.configure credit: '0', cost_users: '100', cost_resources: '0', price: '0.5'
+
+      r = MixinBot.api.create_user 'Forced User', force: true
+
+      assert_equal 'Forced User', r['data']['full_name']
+      assert_requested :post, %r{api\.mixin\.one/users\z}
+    end
   end
 end

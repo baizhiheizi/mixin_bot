@@ -72,7 +72,7 @@ Error (stderr, exit 1):
 }
 ```
 
-Error kinds: `invalid_args`, `auth`, `not_found`, `api_error`, `unsupported`, `conflict`, `internal`.
+Error kinds: `invalid_args`, `auth`, `not_found`, `api_error`, `billing`, `unsupported`, `conflict`, `internal`.
 
 ## Commands
 
@@ -106,7 +106,11 @@ List JSON shape:
 mixinbot call me -k keystore.json -o json
 mixinbot call safe_outputs -k keystore.json -d '{"asset":"965e5c6e-434c-3fa9-b780-c50f43cd955c","state":"unspent","limit":10}' -o json
 mixinbot call user USER_UUID -k keystore.json --data-only -o json
+mixinbot call create_user "Bot User" -k keystore.json -o json
+mixinbot call create_user "Bot User" -k keystore.json --force -o json
 ```
+
+`create_user` performs a client-side app billing preflight by default. When credit lacks headroom for the next billed user, the CLI returns `"kind": "billing"`. Use `--force` to skip the preflight (or pass `"force": true` in `-d`; `-d` wins when both are set).
 
 ### Raw HTTP
 

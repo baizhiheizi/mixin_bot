@@ -26,6 +26,7 @@ module MixinBot
       assert_includes kinds, 'invalid_args'
       assert_includes kinds, 'auth'
       assert_includes kinds, 'api_error'
+      assert_includes kinds, 'billing'
     end
 
     private

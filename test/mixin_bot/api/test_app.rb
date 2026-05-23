@@ -46,6 +46,31 @@ module MixinBot
       assert_equal MixinBot.config.app_id, r['data']['app_id']
     end
 
+    def test_ensure_app_billing_credit_passes
+      AppBillingStubState.configure credit: '100', cost_users: '40', cost_resources: '10', price: '0.5'
+
+      assert_nil MixinBot.api.ensure_app_billing_credit!
+    end
+
+    def test_ensure_app_billing_credit_raises
+      AppBillingStubState.configure credit: '50', cost_users: '40', cost_resources: '10', price: '0.5'
+
+      err = assert_raises InsufficientAppBillingError do
+        MixinBot.api.ensure_app_billing_credit!
+      end
+
+      assert_equal MixinBot.config.app_id, err.app_id
+      assert_equal BigDecimal('50'), BigDecimal(err.credit)
+      assert_equal BigDecimal('50'), BigDecimal(err.cost)
+      assert_equal BigDecimal('0.5'), BigDecimal(err.increment)
+    end
+
+    def test_ensure_app_billing_credit_force_skips
+      AppBillingStubState.configure credit: '0', cost_users: '100', cost_resources: '0', price: '1'
+
+      assert_nil MixinBot.api.ensure_app_billing_credit!(force: true)
+    end
+
     def test_create_and_update_app
       created = MixinBot.api.create_app(name: 'New App', redirect_uri: 'https://example.com', home_uri: 'https://example.com')
       app_id = created['data']['app_id']

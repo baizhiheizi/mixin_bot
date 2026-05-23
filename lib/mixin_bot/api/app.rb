@@ -24,6 +24,37 @@ module MixinBot
         client.get path, access_token:
       end
 
+      ##
+      # Verifies the app has billing headroom before a billed operation (e.g.
+      # creating a network user). Skipped when +force+ is true.
+      #
+      # @param force [Boolean] skip the preflight and call the API anyway
+      # @raise [InsufficientAppBillingError] when +credit+ is not greater than
+      #   total cost plus the next user fee from {app_properties}
+      #
+      def ensure_app_billing_credit!(force: false, access_token: nil)
+        return if force
+
+        app_id = config.app_id
+        billing = app_billing(app_id, access_token:)['data']
+        properties = app_properties(access_token:)['data']
+
+        credit = billing_decimal billing['credit']
+        cost_users = billing_decimal billing.dig('cost', 'users')
+        cost_resources = billing_decimal billing.dig('cost', 'resources')
+        cost = cost_users + cost_resources
+        increment = billing_decimal properties['price']
+
+        return if credit > cost + increment
+
+        raise InsufficientAppBillingError.new(
+          app_id:,
+          credit: credit.to_s('F'),
+          cost: cost.to_s('F'),
+          increment: increment.to_s('F')
+        )
+      end
+
       def create_app(**kwargs)
         payload = {
           redirect_uri: kwargs[:redirect_uri],
@@ -95,6 +126,12 @@ module MixinBot
         client.post path, user_id: receiver_user_id, pin_base64: tip[:pin_base64] || tip[:pin], access_token:
       end
       alias migrate transfer_app_ownership
+
+      private
+
+      def billing_decimal(value)
+        BigDecimal(value.to_s)
+      end
     end
   end
 end

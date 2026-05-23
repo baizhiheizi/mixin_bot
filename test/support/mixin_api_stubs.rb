@@ -7,6 +7,7 @@ require 'uri'
 require 'jose'
 
 require_relative 'conversation_stub_state'
+require_relative 'app_billing_stub_state'
 
 ##
 # Default WebMock responses for +https://api.mixin.one+ so default +rake test+ runs
@@ -67,6 +68,7 @@ module MixinApiStubs
     return { 'data' => { 'code_id' => SecureRandom.uuid }, 'error' => nil } if method == :get && path == '/me/code'
     return { 'data' => [], 'error' => nil } if method == :get && path == '/logs'
     return { 'data' => [], 'error' => nil } if method == :get && path == '/circles'
+
     if method == :get && path.start_with?('/circles/') && path.end_with?('/conversations')
       cid = path.split('/')[2]
       return { 'data' => [{ 'conversation_id' => SecureRandom.uuid, 'circle_id' => cid }], 'error' => nil }
@@ -75,7 +77,10 @@ module MixinApiStubs
       cid = path.delete_prefix('/circles/')
       return { 'data' => { 'circle_id' => cid, 'name' => 'Test Circle' }, 'error' => nil }
     end
-    return { 'data' => { 'circle_id' => SecureRandom.uuid, 'name' => parsed_body['name'] }, 'error' => nil } if method == :post && path == '/circles'
+    if method == :post && path == '/circles'
+      return { 'data' => { 'circle_id' => SecureRandom.uuid, 'name' => parsed_body['name'] }, 'error' => nil }
+    end
+
     if method == :post && path =~ %r{\A/circles/[^/]+\z} && !path.end_with?('/delete')
       cid = path.split('/')[2]
       return { 'data' => { 'circle_id' => cid, 'name' => parsed_body['name'] }, 'error' => nil }
@@ -87,19 +92,35 @@ module MixinApiStubs
     if method == :post && path =~ %r{\A/conversations/[^/]+/circles\z}
       return { 'data' => { 'circle_id' => parsed_body['circle_id'], 'action' => parsed_body['action'] }, 'error' => nil }
     end
+
     if method == :get && path.start_with?('/apps/') && !path.include?('/favorite') && path != '/apps/property'
       aid = path.delete_prefix('/apps/')
       return { 'data' => { 'app_id' => aid, 'name' => 'Test App' }, 'error' => nil }
     end
     return { 'data' => [], 'error' => nil } if method == :get && path == '/apps'
-    return { 'data' => { 'count' => 0, 'price' => '0' }, 'error' => nil } if method == :get && path == '/apps/property'
+    return { 'data' => AppBillingStubState.properties_payload, 'error' => nil } if method == :get && path == '/apps/property'
+
     if method == :get && path =~ %r{\A/safe/apps/[^/]+/billing\z}
       aid = path.split('/')[3]
-      return { 'data' => { 'app_id' => aid, 'credit' => '0', 'cost' => { 'users' => '0', 'resources' => '0' } }, 'error' => nil }
+
+      return { 'data' => AppBillingStubState.billing_payload(aid), 'error' => nil }
+    end
+    if method == :post && path == '/users'
+      return {
+        'data' => {
+          'user_id' => SecureRandom.uuid,
+          'session_id' => SecureRandom.uuid,
+          'full_name' => parsed_body['full_name'],
+          'pin_token_base64' => Base64.urlsafe_encode64('aa' * 32, padding: false),
+          'tip_counter' => 1
+        },
+        'error' => nil
+      }
     end
     if method == :post && path == '/apps'
       return { 'data' => { 'app_id' => SecureRandom.uuid, 'name' => parsed_body['name'] }, 'error' => nil }
     end
+
     if method == :post && path =~ %r{\A/apps/[^/]+\z} && !path.end_with?('/favorite', '/unfavorite', '/secret', '/transfer')
       aid = path.split('/')[2]
       return { 'data' => { 'app_id' => aid, 'name' => parsed_body['name'] || 'Test App' }, 'error' => nil }
@@ -115,6 +136,7 @@ module MixinApiStubs
     return { 'data' => { 'scheme' => parsed_body['target'] }, 'error' => nil } if method == :post && path == '/schemes'
     return { 'data' => true, 'error' => nil } if method == :post && path == '/acknowledgements'
     return { 'data' => [], 'error' => nil } if method == :get && path == '/safe/addresses'
+
     if method == :post && path == '/external/proxy'
       m = parsed_body['method']
       params = parsed_body['params'] || []
@@ -126,8 +148,12 @@ module MixinApiStubs
       end
       return { 'data' => {}, 'error' => nil }
     end
-    return { 'data' => { 'duration' => parsed_body['duration'] }, 'error' => nil } if method == :post && path =~ %r{/conversations/[^/]+/mute\z}
-    return { 'data' => { 'duration' => parsed_body['duration'] }, 'error' => nil } if method == :post && path =~ %r{/conversations/[^/]+/disappear\z}
+    if method == :post && path =~ %r{/conversations/[^/]+/mute\z}
+      return { 'data' => { 'duration' => parsed_body['duration'] }, 'error' => nil }
+    end
+    if method == :post && path =~ %r{/conversations/[^/]+/disappear\z}
+      return { 'data' => { 'duration' => parsed_body['duration'] }, 'error' => nil }
+    end
 
     if method == :post && path == '/me'
       return { 'data' => { 'full_name' => parsed_body['full_name'], 'user_id' => MixinBot.config.app_id },

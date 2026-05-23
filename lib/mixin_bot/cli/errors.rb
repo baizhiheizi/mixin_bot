@@ -12,6 +12,7 @@ module MixinBot
       api_error: { retryable: false, description: 'Mixin API returned an error' },
       unsupported: { retryable: false, description: 'Operation is not supported in this context' },
       conflict: { retryable: false, description: 'Resource exists with incompatible configuration' },
+      billing: { retryable: false, description: 'App billing credit insufficient for the operation' },
       internal: { retryable: false, description: 'Unexpected internal error' }
     }.freeze
 
@@ -35,6 +36,8 @@ module MixinBot
         :auth
       when NotFoundError, UserNotFoundError
         :not_found
+      when InsufficientAppBillingError
+        :billing
       when ResponseError, RequestError, HttpError,
            InsufficientBalanceError, UtxoInsufficientError, InsufficientPoolError
         :api_error

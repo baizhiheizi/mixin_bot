@@ -95,6 +95,7 @@ require 'securerandom'
 class Minitest::Test
   def setup
     ConversationStubState.reset! if defined?(ConversationStubState) && ENV['LIVE'].to_s != '1'
+    AppBillingStubState.reset! if defined?(AppBillingStubState) && ENV['LIVE'].to_s != '1'
     super
   end
 end

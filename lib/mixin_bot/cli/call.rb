@@ -15,11 +15,13 @@ module MixinBot
     LONGDESC
     option :keystore, type: :string, aliases: '-k', desc: 'keystore JSON file path or inline JSON'
     option :data, type: :string, aliases: '-d', default: '{}', desc: 'JSON object of keyword arguments'
+    option :force, type: :boolean, default: false, desc: 'Skip billing preflight for create_user (see -d force to override)'
     option :data_only, type: :boolean, default: false, desc: 'Print only the data field of API responses'
     def call(method_name, *positional)
       with_command_name('call') do
         setup_api_instance!
         kwargs = parse_json_data(options[:data])
+        kwargs = merge_call_force_kwargs(method_name, kwargs)
         result = invoke_api(method_name, kwargs:, positional:)
         print_result(result, data_only: options[:data_only], command: 'call')
       end
@@ -54,6 +56,14 @@ module MixinBot
     end
 
     private
+
+    def merge_call_force_kwargs(method_name, kwargs)
+      return kwargs unless method_name.to_sym == :create_user
+      return kwargs if kwargs.key?(:force)
+      return kwargs unless options[:force]
+
+      kwargs.merge(force: true)
+    end
 
     def print_pretty_list(items, total, limit, offset)
       grouped = items.group_by { |item| item['owner'] }
