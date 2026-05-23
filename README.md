@@ -4,9 +4,9 @@
 
 Ruby SDK and CLI for [Mixin Network](https://developers.mixin.one/docs): authenticated REST calls, **Safe** UTXO transfers, Blaze messaging, network asset catalog, inscriptions, invoices and mix addresses, transaction encoding, and optional **MVM** (Mixin Virtual Machine) helpers.
 
-The gem aims for **parity with the official [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client)** Go SDK. See [API_COVERAGE.md](API_COVERAGE.md) for the full mapping; run `rake mixin_bot:api_coverage` to confirm no gaps are marked missing.
+The gem aims for **parity with the official [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client)** Go SDK and **[bot-api-nodejs-client](https://github.com/MixinNetwork/bot-api-nodejs-client)** Node SDK. See [API_COVERAGE.md](API_COVERAGE.md) for the full mapping; run `rake mixin_bot:api_coverage` to confirm no gaps are marked missing.
 
-Current gem version: **2.0.0** (see [CHANGELOG.md](CHANGELOG.md) for breaking changes and deprecations).
+Current gem version: **2.1.0** (see [CHANGELOG.md](CHANGELOG.md) for breaking changes and deprecations).
 
 ## Requirements
 
@@ -353,11 +353,11 @@ Publishing to [RubyGems.org](https://rubygems.org/gems/mixin_bot) is automated w
 
 1. Bump `MixinBot::VERSION` in `lib/mixin_bot/version.rb` and update `CHANGELOG.md`.
 2. Commit and push to `main`.
-3. Create and push a tag matching the gem version (e.g. `v2.0.1` for version `2.0.1`):
+3. Create and push a tag matching the gem version (e.g. `v2.1.0` for version `2.1.0`):
 
    ```bash
-   git tag v2.0.1
-   git push origin v2.0.1
+   git tag v2.1.0
+   git push origin v2.1.0
    ```
 
 The [Release workflow](.github/workflows/release.yml) builds the gem, publishes to RubyGems.org via [trusted publishing](https://guides.rubygems.org/trusted-publishing/) (GitHub OIDC; trusted publisher for workflow `release.yml` on `an-lee/mixin_bot`), and creates a GitHub Release with notes from `CHANGELOG.md` and the `.gem` attached. To build without publishing, run the Release workflow manually with **dry run** enabled.

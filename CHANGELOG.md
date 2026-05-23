@@ -7,26 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-05-24
+
 ### Added
 
-- **`mixinbot call METHOD`** and **`mixinbot list`** — invoke any public `MixinBot::API` method from the CLI with JSON keyword arguments (`-d`).
-- **`mixinbot utils call`** / **`mixinbot utils list`** — same for `MixinBot.utils` helpers.
+- **Node SDK REST parity** with [bot-api-nodejs-client](https://github.com/MixinNetwork/bot-api-nodejs-client): Circle API (`API::Circle`), `external_proxy`, extended App CRUD/Safe registration, OAuth `authorizations` / `revoke_authorization`, user `blocking_users` / `rotate_user_code` / `user_logs`, conversation mute/disappear, HTTP message acknowledgements and additional send helpers, `create_scheme`, `safe_withdraw_addresses`, and query params on `pending_safe_deposits`.
+- **API_COVERAGE.md** Node SDK section mapping TS symbols to Ruby methods.
 
-### Changed
-
-- **`mixinbot transfer`** — uses Safe API (`create_safe_transfer`) instead of legacy `POST /transfers`.
-- **`mixinbot api`** — routes through `MixinBot::Client` (supports JSON array POST bodies); keystore loading includes `spend_key` and `client_secret`.
-- **`mixinbot updatetip`** — uses `update_tip_pin` instead of misusing `update_pin`.
-- **`mixinbot safetransfer`** — delegates to `transfer` (no duplicated signing pipeline).
-
-### Deprecated
-
-- **`mixinbot legacy-transfer`** — explicit legacy transfer command (replaces old default `transfer` behavior).
-- **`mixinbot safetransfer`** — use `transfer` instead.
+## [2.0.1] - 2026-05-24
 
 ### Fixed
 
-- **`mixinbot nftmemo`** — calls `MixinBot.utils.nft_memo` (was a broken `nft` alias).
+- **`StringIO.new`** — use keyword `contents:` for Ruby 4 compatibility (`lib/mixin_bot/api/message.rb`).
+
+### Changed
+
+- Release workflow creates a GitHub Release with notes from `CHANGELOG.md` when publishing version tags.
 
 ## [2.0.0] - 2026-05-16
 
