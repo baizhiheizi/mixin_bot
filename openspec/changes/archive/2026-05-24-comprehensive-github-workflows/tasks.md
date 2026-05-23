@@ -20,5 +20,5 @@
 ## 4. Validation and cleanup
 
 - [x] 4.1 Open a PR and confirm all CI jobs pass on the PR itself
-- [ ] 4.2 Confirm maintainer has added `RUBYGEMS_API_KEY` before next release tag
+- [x] 4.2 Confirm maintainer has added `RUBYGEMS_API_KEY` before next release tag
 - [x] 4.3 Update CI badge in `README.md` if present (branch/events wording)
