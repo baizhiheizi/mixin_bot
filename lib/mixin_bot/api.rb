@@ -10,10 +10,12 @@ require_relative 'api/auth'
 require_relative 'api/blaze'
 require_relative 'api/chain'
 require_relative 'api/code'
+require_relative 'api/circle'
 require_relative 'api/computer_api'
 require_relative 'api/conversation'
 require_relative 'api/deposit'
 require_relative 'api/encrypted_message'
+require_relative 'api/external'
 require_relative 'api/fiat'
 require_relative 'api/inscription'
 require_relative 'api/legacy_collectible'
@@ -338,10 +340,12 @@ module MixinBot
     include MixinBot::API::Blaze
     include MixinBot::API::Chain
     include MixinBot::API::Code
+    include MixinBot::API::Circle
     include MixinBot::API::ComputerApi
     include MixinBot::API::Conversation
     include MixinBot::API::Deposit
     include MixinBot::API::EncryptedMessage
+    include MixinBot::API::External
     include MixinBot::API::Fiat
     include MixinBot::API::Inscription
     include MixinBot::API::LegacyCollectible

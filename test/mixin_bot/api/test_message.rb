@@ -215,5 +215,87 @@ module MixinBot
 
       assert_equal res['message_id'], message_id
     end
+
+    def test_send_sticker_message
+      message_id = SecureRandom.uuid
+      res = MixinBot.api.send_sticker_message(
+        conversation_id: @conversation_id,
+        message_id:,
+        data: { asset_id: CNB_ASSET_ID, sticker_id: '1' }
+      )
+
+      assert_equal res['message_id'], message_id
+    end
+
+    def test_send_audio_message
+      message_id = SecureRandom.uuid
+      res = MixinBot.api.send_audio_message(
+        conversation_id: @conversation_id,
+        message_id:,
+        data: { attachment_id: SecureRandom.uuid, mime_type: 'audio/mp4', size: 1024, duration: 10 }
+      )
+
+      assert_equal res['message_id'], message_id
+    end
+
+    def test_send_video_message
+      message_id = SecureRandom.uuid
+      res = MixinBot.api.send_video_message(
+        conversation_id: @conversation_id,
+        message_id:,
+        data: { attachment_id: SecureRandom.uuid, mime_type: 'video/mp4', size: 2048, width: 640, height: 480, duration: 30 }
+      )
+
+      assert_equal res['message_id'], message_id
+    end
+
+    def test_send_live_message
+      message_id = SecureRandom.uuid
+      res = MixinBot.api.send_live_message(
+        conversation_id: @conversation_id,
+        message_id:,
+        data: { height: 720, width: 1280, size: 4096, mime_type: 'video/mp4', duration: 60 }
+      )
+
+      assert_equal res['message_id'], message_id
+    end
+
+    def test_send_location_message
+      message_id = SecureRandom.uuid
+      res = MixinBot.api.send_location_message(
+        conversation_id: @conversation_id,
+        message_id:,
+        data: { latitude: 37.7749, longitude: -122.4194, name: 'San Francisco' }
+      )
+
+      assert_equal res['message_id'], message_id
+    end
+
+    def test_send_transfer_message
+      message_id = SecureRandom.uuid
+      res = MixinBot.api.send_transfer_message(
+        conversation_id: @conversation_id,
+        message_id:,
+        data: { snapshot_id: SecureRandom.uuid, user_id: TEST_UID, opponent_id: MixinBot.config.app_id, asset_id: CNB_ASSET_ID, amount: '0.01' }
+      )
+
+      assert_equal res['message_id'], message_id
+    end
+
+    def test_acknowledge_message
+      message_id = SecureRandom.uuid
+      res = MixinBot.api.acknowledge_message(message_id)
+
+      assert res['data']
+    end
+
+    def test_acknowledge_messages
+      res = MixinBot.api.acknowledge_messages([
+                                                { message_id: SecureRandom.uuid, status: 'READ' },
+                                                { message_id: SecureRandom.uuid, status: 'DELIVERED' }
+                                              ])
+
+      assert res['data']
+    end
   end
 end

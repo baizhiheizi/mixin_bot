@@ -11,6 +11,11 @@ module MixinBot
       def read_multisig_by_code(code_id, access_token: nil)
         read_code(code_id, access_token:)
       end
+
+      def create_scheme(target, access_token: nil)
+        client.post '/schemes', target:, access_token:
+      end
+      alias schemes create_scheme
     end
   end
 end

@@ -27,5 +27,20 @@ module MixinBot
       r = MixinBot.api.safe_me
       assert r['data']['user_id'] == MixinBot.config.app_id
     end
+
+    def test_blocking_users
+      r = MixinBot.api.blocking_users
+      assert r['data'].is_a?(Array)
+    end
+
+    def test_rotate_user_code
+      r = MixinBot.api.rotate_user_code
+      refute_nil r['data']['code_id']
+    end
+
+    def test_user_logs
+      r = MixinBot.api.user_logs(limit: 10)
+      assert r['data'].is_a?(Array)
+    end
   end
 end

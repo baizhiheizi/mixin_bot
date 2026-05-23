@@ -56,6 +56,17 @@ module MixinBot
         client.post path, **payload, access_token: kwargs[:access_token]
       end
 
+      def authorizations(app_id: nil, access_token: nil)
+        params = {}
+        params[:app] = app_id if app_id
+        client.get '/authorizations', **params, access_token:
+      end
+
+      def revoke_authorization(client_id, access_token: nil)
+        client.post '/oauth/cancel', client_id:, access_token:
+      end
+      alias revoke_authorize revoke_authorization
+
       def authorization_data(app_id, scope = ['PROFILE:READ'])
         @_app_id = app_id
         @_scope = scope.join(' ')

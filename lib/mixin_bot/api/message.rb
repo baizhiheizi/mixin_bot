@@ -48,6 +48,18 @@ module MixinBot
         base_message_params(options.merge(category: 'PLAIN_VIDEO'))
       end
 
+      def plain_live(options)
+        base_message_params(options.merge(category: 'PLAIN_LIVE'))
+      end
+
+      def plain_location(options)
+        base_message_params(options.merge(category: 'PLAIN_LOCATION'))
+      end
+
+      def transfer_message(options)
+        base_message_params(options.merge(category: 'SYSTEM_ACCOUNT_SNAPSHOT'))
+      end
+
       def app_card(options)
         base_message_params(options.merge(category: 'APP_CARD'))
       end
@@ -141,6 +153,30 @@ module MixinBot
         send_message app_button_group(options)
       end
 
+      def send_sticker_message(options)
+        send_message plain_sticker(options)
+      end
+
+      def send_audio_message(options)
+        send_message plain_audio(options)
+      end
+
+      def send_video_message(options)
+        send_message plain_video(options)
+      end
+
+      def send_live_message(options)
+        send_message plain_live(options)
+      end
+
+      def send_location_message(options)
+        send_message plain_location(options)
+      end
+
+      def send_transfer_message(options)
+        send_message transfer_message(options)
+      end
+
       def recall_message(message_id, options)
         send_message [recall_message_params(message_id, options)]
       end
@@ -148,6 +184,17 @@ module MixinBot
       def send_plain_messages(messages)
         send_message messages
       end
+
+      def acknowledge_message(message_id, status: 'READ', access_token: nil)
+        payload = { message_id:, status: }
+        client.post '/acknowledgements', payload, access_token:
+      end
+      alias send_acknowledgement acknowledge_message
+
+      def acknowledge_messages(messages, access_token: nil)
+        client.post '/acknowledgements', *messages, access_token:
+      end
+      alias send_acknowledgements acknowledge_messages
 
       # http post request
       def send_message(payload)

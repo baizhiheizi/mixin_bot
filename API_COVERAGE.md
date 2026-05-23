@@ -1,8 +1,10 @@
-# Mixin Go SDK API Coverage
+# Mixin SDK API Coverage
 
-Reference: [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client) (`package bot`).
+Go reference: [bot-api-go-client](https://github.com/MixinNetwork/bot-api-go-client) (`package bot`).
 
-Status values: `done` | `alias` | `n/a` (CLI-only / config)
+Node reference: [bot-api-nodejs-client](https://github.com/MixinNetwork/bot-api-nodejs-client) (`@mixin.dev/mixin-node-sdk`).
+
+Status values: `done` | `alias` | `n/a` (CLI-only / config / platform-specific)
 
 | Go symbol | Ruby method | HTTP / notes | Status |
 |-----------|-------------|--------------|--------|
@@ -139,5 +141,80 @@ Status values: `done` | `alias` | `n/a` (CLI-only / config)
 | Request / SetBaseUri / SetBlazeUri | `MixinBot::Configuration`, `Client` | config | n/a |
 | NewSafeUser | `MixinBot::Configuration` | config | n/a |
 | cli/*, examples/*, mixin/rpc main | `mixinbot call` / `mixinbot list` | CLI dispatch to `MixinBot::API` | done |
+
+## Node SDK
+
+TS-only or Node-first REST surfaces. Ruby methods follow snake_case; aliases mirror TS names where helpful.
+
+| TS symbol | Ruby method | HTTP / notes | Status |
+|-----------|-------------|--------------|--------|
+| **Circle** |
+| circle.fetch | `API#circle` | GET `/circles/:id` | done |
+| circle.fetchList | `API#circles` | GET `/circles` | done |
+| circle.conversations | `API#circle_conversations` | GET `/circles/:id/conversations` | done |
+| circle.create | `API#create_circle` | POST `/circles` | done |
+| circle.update | `API#update_circle` | POST `/circles/:id` | done |
+| circle.delete | `API#delete_circle` | POST `/circles/:id/delete` | done |
+| circle.addUser | `API#add_user_to_circle` | POST `/users/:id/circles` | done |
+| circle.removeUser | `API#remove_user_from_circle` | POST `/users/:id/circles` | done |
+| circle.addConversation | `API#add_conversation_to_circle` | POST `/conversations/:id/circles` | done |
+| circle.removeConversation | `API#remove_conversation_from_circle` | POST `/conversations/:id/circles` | done |
+| **App** |
+| app.fetch | `API#app` | GET `/apps/:id` | done |
+| app.fetchList | `API#apps` | GET `/apps` | done |
+| app.properties | `API#app_properties` | GET `/apps/property` | done |
+| app.billing | `API#app_billing` | GET `/safe/apps/:id/billing` | done |
+| app.create | `API#create_app` | POST `/apps` | done |
+| app.update | `API#update_app` | POST `/apps/:id` | done |
+| app.updateSecret | `API#rotate_app_secret` | POST `/apps/:id/secret` | done |
+| app.updateSafeSession | `API#update_app_safe_session` | POST `/safe/apps/:id/session` | done |
+| app.registerSafe | `API#register_app_safe` | POST `/safe/apps/:id/register` | done |
+| app.favorite / unfavorite | `API#add_favorite_app` / `#remove_favorite_app` | POST `/apps/:id/favorite` | done |
+| app.favorites | `API#favorite_apps` | GET `/users/:id/apps/favorite` | done |
+| app.migrate | `API#transfer_app_ownership` | POST `/apps/:id/transfer` | done |
+| **OAuth** |
+| oauth.getToken | `API#oauth_token` | POST `/oauth/token` | done |
+| oauth.authorize | `API#authorize_code` | POST `/oauth/authorize` | done |
+| oauth.authorizations | `API#authorizations` | GET `/authorizations` | done |
+| oauth.revokeAuthorize | `API#revoke_authorization` | POST `/oauth/cancel` | done |
+| **User** |
+| user.profile | `API#me` | GET `/me` | done |
+| user.friends | `API#friends` | GET `/friends` | done |
+| user.blockings | `API#blocking_users` | GET `/blocking_users` | done |
+| user.rotateCode | `API#rotate_user_code` | GET `/me/code` | done |
+| user.search | `API#search_user` | GET `/search/:q` | done |
+| user.fetch | `API#user` | GET `/users/:id` | done |
+| user.fetchList | `API#fetch_users` | POST `/users/fetch` | done |
+| user.createBareUser | `API#create_user` | POST `/users` | done |
+| user.update | `API#update_me` | POST `/me` | done |
+| user.updatePreferences | `API#update_preferences` | POST `/me/preferences` | done |
+| user.updateRelationships | `API#relationship` | POST `/relationships` | done |
+| user.logs | `API#user_logs` | GET `/logs` | done |
+| **Conversation** |
+| conversation.mute / unmute | `API#mute_conversation` / `#unmute_conversation` | POST `/conversations/:id/mute` | done |
+| conversation.disappearDuration | `API#set_conversation_disappear_duration` | POST `/conversations/:id/disappear` | done |
+| conversation.updateGroupInfo | `API#update_conversation` | POST `/conversations/:id` | done |
+| conversation.* (CRUD/participants) | `API#conversation`, `#create_*`, `#join_*`, etc. | various | done |
+| **Message** |
+| message.sendAcknowledgement(s) | `API#acknowledge_message` / `#acknowledge_messages` | POST `/acknowledgements` | done |
+| message.sendSticker/Audio/Video/Live/Location/Transfer | `API#send_*_message` | POST `/messages` | done |
+| message.sendText/Image/File/Post/Contact/AppCard/AppButton/Recall | `API#send_*_message` | POST `/messages` | done |
+| **Code** |
+| code.fetch | `API#read_code` | GET `/codes/:id` | done |
+| code.schemes | `API#create_scheme` | POST `/schemes` | done |
+| **Address** |
+| address.fetchListOfChain | `API#safe_withdraw_addresses` | GET `/safe/addresses?chain=` | done |
+| address.fetch/create/delete | `API#get_withdraw_address`, `#create_withdraw_address`, `#delete_withdraw_address` | `/addresses` | done |
+| **External** |
+| external.proxy | `API#external_proxy` | POST `/external/proxy` | done |
+| external.deposits | `API#transactions` (legacy) | GET `/external/transactions` | done |
+| external.checkAddress | `API#check_address` | GET `/external/addresses/check` | done |
+| external.exchangeRates | `API#fiats` | GET `/external/fiats` | done |
+| **Safe / UTXO / Transfer / Network / etc.** |
+| safe.* / utxo.* / transfer.* / network.* | spread across existing `API` modules | same HTTP paths as TS | done |
+| **Blaze** |
+| blaze.loop | `API#blaze` | WebSocket | done |
+| **WebView** |
+| WebViewApi | — | browser bridge | n/a |
 
 Update this file when adding or changing API surfaces. Run `rake mixin_bot:api_coverage` to ensure no `missing` rows remain.

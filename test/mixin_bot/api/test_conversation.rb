@@ -105,5 +105,42 @@ module MixinBot
       r = MixinBot.api.exit_conversation group['data']['conversation_id']
       assert r['data'].nil?
     end
+
+    def test_mute_and_unmute_conversation
+      group = MixinBot.api.create_group_conversation(
+        user_ids: [TEST_UID, TEST_UID_2],
+        name: 'Mute Test Group'
+      )
+      cid = group['data']['conversation_id']
+
+      r = MixinBot.api.mute_conversation(cid, duration: 3600)
+      assert_equal 3600, r['data']['duration']
+
+      r = MixinBot.api.unmute_conversation(cid)
+      assert_equal 0, r['data']['duration']
+    end
+
+    def test_set_conversation_disappear_duration
+      group = MixinBot.api.create_group_conversation(
+        user_ids: [TEST_UID, TEST_UID_2],
+        name: 'Disappear Test Group'
+      )
+      cid = group['data']['conversation_id']
+
+      r = MixinBot.api.set_conversation_disappear_duration(cid, duration: 86_400)
+      assert_equal 86_400, r['data']['duration']
+    end
+
+    def test_update_conversation
+      group = MixinBot.api.create_group_conversation(
+        user_ids: [TEST_UID, TEST_UID_2],
+        name: 'Update Test Group'
+      )
+      cid = group['data']['conversation_id']
+
+      r = MixinBot.api.update_conversation(conversation_id: cid, name: 'Renamed', announcement: 'Hello')
+      assert_equal 'Renamed', r['data']['name']
+      assert_equal 'Hello', r['data']['announcement']
+    end
   end
 end

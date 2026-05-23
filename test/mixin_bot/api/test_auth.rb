@@ -25,5 +25,15 @@ module MixinBot
       )
       refute_nil r
     end
+
+    def test_authorizations
+      r = MixinBot.api.authorizations
+      refute_nil r['data']
+    end
+
+    def test_revoke_authorization
+      r = MixinBot.api.revoke_authorization(@opponent_app_id)
+      assert r['data']
+    end
   end
 end

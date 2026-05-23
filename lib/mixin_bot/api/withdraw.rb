@@ -70,6 +70,11 @@ module MixinBot
       end
       alias get_addresses_by_asset_id withdraw_addresses
 
+      def safe_withdraw_addresses(chain_id, access_token: nil)
+        client.get '/safe/addresses', chain: chain_id, access_token:
+      end
+      alias fetch_list_of_chain safe_withdraw_addresses
+
       def check_address(asset:, destination:, tag: nil)
         client.get '/external/addresses/check', asset:, destination:, tag:, access_token: ''
       end

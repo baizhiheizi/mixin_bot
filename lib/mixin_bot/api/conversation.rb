@@ -55,23 +55,40 @@ module MixinBot
         )
       end
 
-      def update_group_conversation_name(name:, conversation_id:, access_token: nil)
+      def update_conversation(conversation_id:, **kwargs)
         path = format('/conversations/%<id>s', id: conversation_id)
         payload = {
-          name:
-        }
+          name: kwargs[:name],
+          announcement: kwargs[:announcement]
+        }.compact
+        client.post path, **payload, access_token: kwargs[:access_token]
+      end
+      alias update_group_info update_conversation
 
-        client.post path, **payload, access_token:
+      def update_group_conversation_name(name:, conversation_id:, access_token: nil)
+        update_conversation(conversation_id:, name:, access_token:)
       end
 
       def update_group_conversation_announcement(announcement:, conversation_id:, access_token: nil)
-        path = format('/conversations/%<id>s', id: conversation_id)
-        payload = {
-          announcement:
-        }
-
-        client.post path, **payload, access_token:
+        update_conversation(conversation_id:, announcement:, access_token:)
       end
+
+      def mute_conversation(conversation_id, duration:, access_token: nil)
+        path = format('/conversations/%<id>s/mute', id: conversation_id)
+        client.post path, duration:, access_token:
+      end
+      alias mute mute_conversation
+
+      def unmute_conversation(conversation_id, access_token: nil)
+        mute_conversation conversation_id, duration: 0, access_token:
+      end
+      alias unmute unmute_conversation
+
+      def set_conversation_disappear_duration(conversation_id, duration:, access_token: nil)
+        path = format('/conversations/%<id>s/disappear', id: conversation_id)
+        client.post path, duration:, access_token:
+      end
+      alias disappear_duration set_conversation_disappear_duration
 
       # participants = [{ user_id: "" }]
       def add_conversation_participants(conversation_id:, user_ids:, access_token: nil)

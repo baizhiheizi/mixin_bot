@@ -126,6 +126,27 @@ module MixinBot
         path = '/relationships'
         client.post path, user_id:, action:, access_token:
       end
+      alias update_relationship relationship
+
+      def blocking_users(access_token: nil)
+        client.get '/blocking_users', access_token:
+      end
+      alias blockings blocking_users
+
+      def rotate_user_code(access_token: nil)
+        client.get '/me/code', access_token:
+      end
+      alias rotate_code rotate_user_code
+
+      def user_logs(**params)
+        query = {
+          limit: params[:limit],
+          offset: params[:offset],
+          category: params[:category]
+        }.compact
+        client.get '/logs', **query, access_token: params[:access_token]
+      end
+      alias logs user_logs
     end
   end
 end

@@ -57,5 +57,12 @@ module MixinBot
 
       assert_nil res['error']
     end
+
+    def test_safe_withdraw_addresses
+      chain_id = 'c6d0c728-2624-429b-8e0d-d9d19b6592fa'
+      res = MixinBot.api.safe_withdraw_addresses(chain_id)
+
+      assert res['data'].is_a?(Array)
+    end
   end
 end

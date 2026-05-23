@@ -63,6 +63,71 @@ module MixinApiStubs
       return { 'data' => { 'user_id' => MixinBot.config.app_id, 'full_name' => 'Offline Safe' }, 'error' => nil }
     end
     return { 'data' => [], 'error' => nil } if method == :get && path == '/friends'
+    return { 'data' => [], 'error' => nil } if method == :get && path == '/blocking_users'
+    return { 'data' => { 'code_id' => SecureRandom.uuid }, 'error' => nil } if method == :get && path == '/me/code'
+    return { 'data' => [], 'error' => nil } if method == :get && path == '/logs'
+    return { 'data' => [], 'error' => nil } if method == :get && path == '/circles'
+    if method == :get && path.start_with?('/circles/') && path.end_with?('/conversations')
+      cid = path.split('/')[2]
+      return { 'data' => [{ 'conversation_id' => SecureRandom.uuid, 'circle_id' => cid }], 'error' => nil }
+    end
+    if method == :get && path.start_with?('/circles/') && !path.include?('/conversations')
+      cid = path.delete_prefix('/circles/')
+      return { 'data' => { 'circle_id' => cid, 'name' => 'Test Circle' }, 'error' => nil }
+    end
+    return { 'data' => { 'circle_id' => SecureRandom.uuid, 'name' => parsed_body['name'] }, 'error' => nil } if method == :post && path == '/circles'
+    if method == :post && path =~ %r{\A/circles/[^/]+\z} && !path.end_with?('/delete')
+      cid = path.split('/')[2]
+      return { 'data' => { 'circle_id' => cid, 'name' => parsed_body['name'] }, 'error' => nil }
+    end
+    return { 'data' => true, 'error' => nil } if method == :post && path =~ %r{\A/circles/[^/]+/delete\z}
+    if method == :post && path =~ %r{\A/users/[^/]+/circles\z}
+      return { 'data' => { 'circle_id' => parsed_body['circle_id'], 'action' => parsed_body['action'] }, 'error' => nil }
+    end
+    if method == :post && path =~ %r{\A/conversations/[^/]+/circles\z}
+      return { 'data' => { 'circle_id' => parsed_body['circle_id'], 'action' => parsed_body['action'] }, 'error' => nil }
+    end
+    if method == :get && path.start_with?('/apps/') && !path.include?('/favorite') && path != '/apps/property'
+      aid = path.delete_prefix('/apps/')
+      return { 'data' => { 'app_id' => aid, 'name' => 'Test App' }, 'error' => nil }
+    end
+    return { 'data' => [], 'error' => nil } if method == :get && path == '/apps'
+    return { 'data' => { 'count' => 0, 'price' => '0' }, 'error' => nil } if method == :get && path == '/apps/property'
+    if method == :get && path =~ %r{\A/safe/apps/[^/]+/billing\z}
+      aid = path.split('/')[3]
+      return { 'data' => { 'app_id' => aid, 'credit' => '0', 'cost' => { 'users' => '0', 'resources' => '0' } }, 'error' => nil }
+    end
+    if method == :post && path == '/apps'
+      return { 'data' => { 'app_id' => SecureRandom.uuid, 'name' => parsed_body['name'] }, 'error' => nil }
+    end
+    if method == :post && path =~ %r{\A/apps/[^/]+\z} && !path.end_with?('/favorite', '/unfavorite', '/secret', '/transfer')
+      aid = path.split('/')[2]
+      return { 'data' => { 'app_id' => aid, 'name' => parsed_body['name'] || 'Test App' }, 'error' => nil }
+    end
+    return { 'data' => { 'app_secret' => SecureRandom.uuid }, 'error' => nil } if method == :post && path =~ %r{\A/apps/[^/]+/secret\z}
+    if method == :post && path =~ %r{\A/safe/apps/[^/]+/session\z}
+      return { 'data' => { 'session_id' => SecureRandom.uuid, 'server_public_key' => 'aa' * 32 }, 'error' => nil }
+    end
+    if method == :post && path =~ %r{\A/safe/apps/[^/]+/register\z}
+      return { 'data' => { 'spend_public_key' => parsed_body['spend_public_key'] }, 'error' => nil }
+    end
+    return { 'data' => true, 'error' => nil } if method == :post && path == '/oauth/cancel'
+    return { 'data' => { 'scheme' => parsed_body['target'] }, 'error' => nil } if method == :post && path == '/schemes'
+    return { 'data' => true, 'error' => nil } if method == :post && path == '/acknowledgements'
+    return { 'data' => [], 'error' => nil } if method == :get && path == '/safe/addresses'
+    if method == :post && path == '/external/proxy'
+      m = parsed_body['method']
+      params = parsed_body['params'] || []
+      case m
+      when 'sendrawtransaction'
+        return { 'data' => { 'hash' => 'deadbeef' }, 'error' => nil }
+      when 'gettransaction'
+        return { 'data' => { 'hash' => params[0] }, 'error' => nil }
+      end
+      return { 'data' => {}, 'error' => nil }
+    end
+    return { 'data' => { 'duration' => parsed_body['duration'] }, 'error' => nil } if method == :post && path =~ %r{/conversations/[^/]+/mute\z}
+    return { 'data' => { 'duration' => parsed_body['duration'] }, 'error' => nil } if method == :post && path =~ %r{/conversations/[^/]+/disappear\z}
 
     if method == :post && path == '/me'
       return { 'data' => { 'full_name' => parsed_body['full_name'], 'user_id' => MixinBot.config.app_id },
