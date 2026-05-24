@@ -23,7 +23,7 @@ module MixinBot
 
         bytes += encode_inputs
         bytes += encode_outputs
-        bytes += encode_references if @tx.version >= Transaction::REFERENCES_TX_VERSION && @tx.references.present?
+        bytes += encode_references if @tx.version >= Transaction::REFERENCES_TX_VERSION
 
         extra_bytes = @tx.extra.bytes
         raise InvalidTransactionFormatError, 'extra is too long' if extra_bytes.size > Transaction::MAX_EXTRA_SIZE
@@ -173,9 +173,10 @@ module MixinBot
       def encode_references
         bytes = []
 
-        bytes += MixinBot.utils.encode_uint16 @tx.references.size
+        references = Array(@tx.references)
+        bytes += MixinBot.utils.encode_uint16 references.size
 
-        @tx.references.each do |reference|
+        references.each do |reference|
           bytes += [reference].pack('H*').bytes
         end
 

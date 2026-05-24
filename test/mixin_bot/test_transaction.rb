@@ -63,5 +63,17 @@ module MixinBot
 
       assert(@tx.keys.all? { |k| tx.keys.include? k })
     end
+
+    def test_version5_encodes_empty_references_count
+      tx = @tx.merge(version: 5, references: [])
+      expected_raw = @raw.sub('77770003', '77770005').sub('00000028', '000000000028')
+
+      raw = MixinBot.api.encode_raw_transaction tx
+      decoded = MixinBot.api.decode_raw_transaction raw
+
+      assert_equal expected_raw, raw
+      assert_equal [], decoded[:references]
+      assert_equal @tx[:extra], decoded[:extra]
+    end
   end
 end

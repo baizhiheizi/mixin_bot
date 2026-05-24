@@ -26,7 +26,7 @@ module MixinBot
 
         decode_inputs
         decode_outputs
-        decode_references if @tx.version >= Transaction::REFERENCES_TX_VERSION && @tx.references.present?
+        decode_references if @tx.version >= Transaction::REFERENCES_TX_VERSION
 
         extra_size = MixinBot.utils.decode_uint32 @buf.shift(4)
         @tx.extra = @buf.shift(extra_size).pack('C*')
