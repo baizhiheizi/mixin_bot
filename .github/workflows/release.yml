@@ -22,17 +22,26 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Verify tag matches gem version
-        if: github.event_name == 'push'
+      - name: Verify release readiness
         run: |
-          tag="${GITHUB_REF#refs/tags/}"
           version=$(ruby -r ./lib/mixin_bot/version -e 'puts MixinBot::VERSION')
-          expected="v${version}"
-          if [ "$tag" != "$expected" ]; then
-            echo "Tag ${tag} does not match gem version ${expected}"
+          lock_version=$(grep -E '^\s+mixin_bot \(' Gemfile.lock | sed -E 's/.*\(([^)]+)\).*/\1/')
+          if [ "$lock_version" != "$version" ]; then
+            echo "Gemfile.lock pins mixin_bot (${lock_version}) but VERSION is ${version}"
+            echo "Run \`bundle install\` and commit Gemfile.lock before releasing."
             exit 1
           fi
-          echo "Tag ${tag} matches MixinBot::VERSION ${version}"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            tag="${GITHUB_REF#refs/tags/}"
+            expected="v${version}"
+            if [ "$tag" != "$expected" ]; then
+              echo "Tag ${tag} does not match gem version ${expected}"
+              exit 1
+            fi
+            echo "Tag ${tag} matches MixinBot::VERSION ${version}"
+          else
+            echo "Gemfile.lock matches MixinBot::VERSION ${version}"
+          fi
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
