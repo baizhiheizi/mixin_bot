@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-05-24
+
+### Fixed
+
+- **Safe transfer raw encoding** — version 5 transactions now always encode and decode the references count (including `0000` when empty), matching the Mixin kernel and official Go/TS SDKs. Fixes `/safe/transaction/requests` rejection after the v2 transaction encoder refactor.
+
 ## [2.2.1] - 2026-05-24
 
 ### Changed
