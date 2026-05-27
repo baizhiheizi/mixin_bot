@@ -61,16 +61,7 @@ module MixinBot
       end
 
       def check_retryable_error(error)
-        return false if error.nil?
-
-        reason = error.message.to_s.downcase
-        return true if reason.include?('timeout')
-        return true if reason.include?('internal server')
-        return true if reason.include?('insufficient')
-        return true if reason.include?('inputs locked by')
-        return true if reason.include?('by other transaction')
-
-        false
+        MixinBot.retryable?(error)
       end
     end
   end

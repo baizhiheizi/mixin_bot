@@ -125,9 +125,30 @@ module MixinBot
 
     def parse_response!(verb:, path:, body:, response:)
       result = response.body
-      return MixinBot::Models::ApiEnvelope.new(result) if result['error'].blank?
+      result = {} unless result.is_a?(Hash)
+
+      if result['error'].blank?
+        raise_http_status_error!(verb:, path:, body:, response:) if http_error_status?(response.status)
+        return MixinBot::Models::ApiEnvelope.new(result)
+      end
 
       ErrorMapper.raise_for!(verb:, path:, body:, response:, result:)
+    end
+
+    def http_error_status?(status)
+      [401, 403, 429].include?(status) || status >= 500
+    end
+
+    def raise_http_status_error!(verb:, path:, body:, response:)
+      klass =
+        case response.status
+        when 429 then RateLimitError
+        when 401 then UnauthorizedError
+        when 403 then ForbiddenError
+        else ServerError
+        end
+
+      raise ErrorMapper.build(klass, verb:, path:, body:, response:, result: {})
     end
   end
 end

@@ -57,6 +57,21 @@ module MixinBot
       assert_equal 'Bot User', body.dig('data', 'data', 'full_name')
     end
 
+    def test_cli_errors_kind_for_rate_limit
+      error = RateLimitError.new(code: 429, description: 'Too Many Requests', request_id: 'req-1')
+      assert_equal :rate_limit, CLIErrors.kind_for_exception(error)
+    end
+
+    def test_cli_errors_kind_for_validation
+      error = ValidationError.new(code: 10_002, description: 'Invalid field')
+      assert_equal :invalid_args, CLIErrors.kind_for_exception(error)
+    end
+
+    def test_schema_includes_rate_limit_kind
+      kinds = CLIErrors.schema_errors.map { |entry| entry['kind'] }
+      assert_includes kinds, 'rate_limit'
+    end
+
     def test_force_not_injected_for_me
       body = capture_cli_json(['call', 'me', '-k', @keystore_json, '--force', '-o', 'json'])
       assert_equal 'ok', body['status']

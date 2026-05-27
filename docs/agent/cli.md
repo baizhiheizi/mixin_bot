@@ -72,7 +72,24 @@ Error (stderr, exit 1):
 }
 ```
 
-Error kinds: `invalid_args`, `auth`, `not_found`, `api_error`, `billing`, `unsupported`, `conflict`, `internal`.
+API failures may also include `code`, `request_id`, and `throttle` (true for rate limits):
+
+```json
+{
+  "status": "error",
+  "error": {
+    "kind": "rate_limit",
+    "message": "GET | /me | {}, errcode: 429, ...",
+    "code": 429,
+    "request_id": "abc-123",
+    "throttle": true
+  }
+}
+```
+
+Error kinds: `invalid_args`, `auth`, `not_found`, `rate_limit`, `api_error`, `billing`, `unsupported`, `conflict`, `internal`.
+
+For retry logic in automation, prefer `MixinBot.retryable?(exception)` in Ruby; CLI kinds mark `rate_limit` as non-retryable (use global backoff when `throttle` is true).
 
 ## Commands
 

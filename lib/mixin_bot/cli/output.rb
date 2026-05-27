@@ -84,6 +84,11 @@ module MixinBot
           }
         }
         error_body['error']['hint'] = hint if hint.present?
+        if exception.is_a?(MixinBot::APIError)
+          error_body['error']['code'] = exception.code unless exception.code.nil?
+          error_body['error']['request_id'] = exception.request_id if exception.request_id.present?
+          error_body['error']['throttle'] = true if exception.respond_to?(:throttle?) && exception.throttle?
+        end
         warn(JSON.generate(error_body))
       else
         warn(format_error(message))

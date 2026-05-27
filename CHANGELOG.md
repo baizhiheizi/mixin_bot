@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-05-27
+
+### Added
+
+- **`MixinBot::APIError`** — structured base for API failures with `code`, `description`, `request_id`, `extra`, and helpers `retryable?`, `throttle?`, `client_error?`.
+- **Typed API errors** — `RateLimitError`, `ValidationError`, `ConflictError`, `TransferError`, `TransientError`, `AppUpdateRequiredError`, `InvalidAddressFormatError`, `ServerError`.
+- **`MixinBot.retryable?(error)`** — canonical retry policy for network timeouts, server errors (500+), and transient codes (10104, 10105).
+- **CLI** — structured error kind `rate_limit`; API errors in JSON output include `code`, `request_id`, and `throttle` when available.
+- **`test/mixin_bot/client/test_error_mapper.rb`** — unit tests for full official error-code catalog, legacy codes, HTTP fallbacks, and retry/throttle semantics.
+
+### Changed
+
+- **BREAKING: Error code mapping** — aligned to [Mixin API error codes](https://developers.mixin.one/docs/api/error-codes). Code `429` raises `RateLimitError` (not `ForbiddenError`). Codes `10002` and `20116` raise `ValidationError` and `ConflictError` respectively. `ForbiddenError` is reserved for code `403`.
+- **`Monitor.check_retryable_error`** — delegates to `MixinBot.retryable?` (no longer retries on `"insufficient"` message substrings).
+- **`Client#parse_response!`** — HTTP status fallback for 401/403/429/5xx when JSON `error` is absent (CDN/proxy edge cases).
+
+### Migration
+
+- Rescue rate limits explicitly: `rescue MixinBot::RateLimitError` (or check `error.throttle?`).
+- Replace string-based retry heuristics with `MixinBot.retryable?(error)`.
+- If you rescued `ForbiddenError` expecting throttling, update to handle `RateLimitError` separately.
+
 ## [2.2.2] - 2026-05-24
 
 ### Fixed

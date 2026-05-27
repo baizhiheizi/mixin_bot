@@ -6,34 +6,54 @@ module MixinBot
     # Maps Mixin API +error+ objects to Ruby exceptions.
     #
     module ErrorMapper
+      CODE_MAP = {
+        400 => ValidationError,
+        401 => UnauthorizedError,
+        403 => ForbiddenError,
+        404 => NotFoundError,
+        429 => RateLimitError,
+        10_002 => ValidationError,
+        10_006 => AppUpdateRequiredError,
+        10_104 => TransientError,
+        10_105 => TransientError,
+        10_404 => UserNotFoundError,
+        20_116 => ConflictError,
+        20_117 => InsufficientBalanceError,
+        20_118 => PinError,
+        20_119 => PinError,
+        20_120 => TransferError,
+        20_121 => UnauthorizedError,
+        20_123 => ConflictError,
+        20_124 => InsufficientBalanceError,
+        20_125 => ConflictError,
+        20_127 => TransferError,
+        20_131 => ValidationError,
+        20_133 => ConflictError,
+        20_134 => TransferError,
+        20_135 => TransferError,
+        20_150 => ValidationError,
+        30_102 => InvalidAddressFormatError,
+        30_103 => InsufficientPoolError,
+        500 => ServerError,
+        7000 => ServerError,
+        7001 => ServerError
+      }.freeze
+
       module_function
 
       def raise_for!(verb:, path:, body:, response:, result:)
         err = result['error'] || {}
-        code = err['code']
-        desc = err['description']
-        req_id = response&.headers&.[]('X-Request-Id')
-        srv_time = response&.headers&.[]('X-Server-Time')
-        errmsg = "#{verb.upcase} | #{path} | #{body}, errcode: #{code}, errmsg: #{desc}, request_id: #{req_id}, server_time: #{srv_time}"
+        code = err['code']&.to_i
+        klass = CODE_MAP[code] || default_class_for_code(code)
+        raise APIError.build(klass, verb:, path:, body:, response:, result:)
+      end
 
-        case code
-        when 401, 20_121
-          raise UnauthorizedError, errmsg
-        when 403, 20_116, 10_002, 429
-          raise ForbiddenError, errmsg
-        when 404
-          raise NotFoundError, errmsg
-        when 20_117
-          raise InsufficientBalanceError, errmsg
-        when 20_118, 20_119
-          raise PinError, errmsg
-        when 30_103
-          raise InsufficientPoolError, errmsg
-        when 10_404
-          raise UserNotFoundError, errmsg
-        else
-          raise ResponseError, errmsg
-        end
+      def build(klass, verb:, path:, body:, response:, result:, **)
+        APIError.build(klass, verb:, path:, body:, response:, result:, **)
+      end
+
+      def default_class_for_code(_code)
+        ResponseError
       end
     end
   end

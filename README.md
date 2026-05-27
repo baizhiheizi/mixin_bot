@@ -194,7 +194,11 @@ Top-level helpers on **`MixinBot::API`**: `access_token`, `encode_raw_transactio
 
 ### Errors
 
-Custom errors under `MixinBot::` include `ResponseError`, `UnauthorizedError`, `InsufficientBalanceError`, `UtxoInsufficientError`, `PinError`, and `InvalidInvoiceFormatError`. See `lib/mixin_bot/errors.rb`.
+API failures raise structured `MixinBot::APIError` subclasses with `code`, `description`, `request_id`, and behavior helpers (`retryable?`, `throttle?`). The full mapping follows the [Mixin error codes](https://developers.mixin.one/docs/api/error-codes) table — notably `429` → `RateLimitError`, not `ForbiddenError`.
+
+Use `MixinBot.retryable?(error)` for job retry decisions; use `error.throttle?` on `RateLimitError` for global backoff. `Monitor.check_retryable_error` delegates to the same policy.
+
+Local validation errors (`ArgumentError`, `InvalidInvoiceFormatError`, …) and `InsufficientAppBillingError` (billing preflight) are separate from API envelope errors. See `lib/mixin_bot/errors.rb`.
 
 ### Multiple bots
 

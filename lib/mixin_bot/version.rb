@@ -11,5 +11,5 @@ module MixinBot
   #
   # @see https://semver.org/
   #
-  VERSION = '2.2.2'
+  VERSION = '2.3.0'
 end
