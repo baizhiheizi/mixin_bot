@@ -218,7 +218,7 @@ GEM
       base64
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
-    yard (0.9.43)
+    yard (0.9.44)
 
 PLATFORMS
   ruby
