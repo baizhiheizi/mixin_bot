@@ -1,0 +1,18 @@
+{
+  "pages": [
+    {"slug": "Home", "title": "Home", "level": 1},
+    {"slug": "Getting-Started", "title": "Getting Started", "level": 1, "sidebar": ["Prerequisites", "Common commands"]},
+    {"slug": "Configuration", "title": "Configuration", "level": 1, "sidebar": ["Keystores", "Multiple bots"]},
+    {"slug": "Architecture", "title": "Architecture", "level": 1},
+    {"slug": "API-Reference", "title": "API Reference", "level": 1, "sidebar": ["Profile & Users", "Assets & Network", "Transfers (Safe pipeline)", "Transactions", "Multisig", "Messaging & Blaze", "Snapshots & Outputs", "NFTs & Inscriptions", "Auth & Sessions", "Pin & Tip", "Withdrawals & Deposits", "Legacy APIs (deprecated)"]},
+    {"slug": "Safe-Pipeline", "title": "Safe Pipeline", "level": 1},
+    {"slug": "CLI", "title": "CLI", "level": 1},
+    {"slug": "Transactions", "title": "Transactions", "level": 1},
+    {"slug": "Utils-Crypto", "title": "Utils & Crypto", "level": 1, "sidebar": ["Crypto helpers", "Address helpers"]},
+    {"slug": "MVM", "title": "MVM", "level": 1},
+    {"slug": "Errors-Error-Handling", "title": "Errors & Error Handling", "level": 1, "sidebar": ["Retries & throttling", "Local validation errors"]},
+    {"slug": "Models", "title": "Models", "level": 1},
+    {"slug": "Development", "title": "Development", "level": 1, "sidebar": ["OpenSpec workflow", "Docs & RDoc"]},
+    {"slug": "For-Agents", "title": "For Agents", "level": 1, "children": ["AGENTS", "llms"]}
+  ]
+}

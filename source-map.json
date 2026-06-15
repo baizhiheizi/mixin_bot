@@ -1,0 +1,18 @@
+{
+  "Home": {"files": ["lib/mixin_bot.rb", "lib/mixin_bot/api.rb", "lib/mixin_bot/version.rb"], "g": "2026-06-15"},
+  "Getting-Started": {"files": ["lib/mixin_bot.rb", "lib/mixin_bot/api/transfer.rb", "Rakefile"], "g": "2026-06-15"},
+  "Configuration": {"files": ["lib/mixin_bot/configuration.rb", "lib/mixin_bot/cli.rb"], "g": "2026-06-15"},
+  "Architecture": {"files": ["lib/mixin_bot/api.rb", "lib/mixin_bot/client.rb", "lib/mixin_bot/configuration.rb"], "g": "2026-06-15"},
+  "API-Reference": {"files": ["lib/mixin_bot/api.rb", "lib/mixin_bot/api/blaze.rb", "lib/mixin_bot/api/transfer.rb", "lib/mixin_bot/api/pin.rb"], "g": "2026-06-15"},
+  "Safe-Pipeline": {"files": ["lib/mixin_bot/api/transfer.rb", "lib/mixin_bot/transaction.rb"], "g": "2026-06-15"},
+  "CLI": {"files": ["lib/mixin_bot/cli.rb"], "g": "2026-06-15"},
+  "Transactions": {"files": ["lib/mixin_bot/transaction.rb"], "g": "2026-06-15"},
+  "Utils-Crypto": {"files": ["lib/mixin_bot/utils.rb", "lib/mixin_bot/utils/crypto.rb", "lib/mixin_bot/address.rb"], "g": "2026-06-15"},
+  "MVM": {"files": ["lib/mvm.rb"], "g": "2026-06-15"},
+  "Errors-Error-Handling": {"files": ["lib/mixin_bot/errors.rb", "lib/mixin_bot/client.rb"], "g": "2026-06-15"},
+  "Models": {"files": ["lib/mixin_bot/models.rb", "lib/mixin_bot/models/api_envelope.rb"], "g": "2026-06-15"},
+  "Development": {"files": ["Rakefile"], "g": "2026-06-15"},
+  "For-Agents": {"files": [".github/agentic-wiki/PAGES.md"], "g": "2026-06-15"},
+  "AGENTS": {"files": [".github/agentic-wiki/PAGES.md"], "g": "2026-06-15"},
+  "llms": {"files": [".github/agentic-wiki/PAGES.md"], "g": "2026-06-15"}
+}
