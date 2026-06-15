@@ -71,7 +71,7 @@ jobs:
 
       - name: Configure RubyGems credentials
         if: github.event_name == 'push' || inputs.dry_run != true
-        uses: rubygems/configure-rubygems-credentials@v2.0.0
+        uses: rubygems/configure-rubygems-credentials@v2.1.0
 
       - name: Publish to RubyGems
         if: github.event_name == 'push' || inputs.dry_run != true
@@ -79,7 +79,7 @@ jobs:
 
       - name: Create GitHub Release
         if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: mixin_bot-*.gem
           body_path: release-notes.md
