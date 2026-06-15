@@ -1,17 +1,17 @@
-version: 2
-
 updates:
-  - package-ecosystem: bundler
-    directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-    groups:
-      github-actions:
-        patterns:
-          - '*'
+- directory: /
+  open-pull-requests-limit: 5
+  package-ecosystem: bundler
+  schedule:
+    interval: weekly
+- directory: /
+  groups:
+    github-actions:
+      patterns:
+      - "*"
+  ignore:
+  - dependency-name: "github/gh-aw-actions" # Managed by gh aw compile. Version-locked to the gh-aw compiler; do not bump.
+  package-ecosystem: github-actions
+  schedule:
+    interval: weekly
+version: 2
