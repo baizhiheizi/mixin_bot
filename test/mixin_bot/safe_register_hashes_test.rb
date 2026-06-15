@@ -12,7 +12,7 @@ module MixinBot
 
     def test_app_id_digest_is_sha3_256_not_sha256
       app_id = @j['app_id']
-      sha3 = SHA3::Digest::SHA256.hexdigest(app_id)
+      sha3 = SHA3::Digest::SHA3_256.hexdigest(app_id)
       sha256 = Digest::SHA256.hexdigest(app_id)
 
       assert_equal @j['expected_app_id_sha3_hex'], sha3

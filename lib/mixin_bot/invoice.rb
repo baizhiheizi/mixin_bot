@@ -54,7 +54,7 @@ module MixinBot
       payload = payload.pack('C*')
 
       # Calculate checksum
-      checksum = SHA3::Digest::SHA256.digest(INVOICE_PREFIX + payload)[0...4]
+      checksum = SHA3::Digest::SHA3_256.digest(INVOICE_PREFIX + payload)[0...4]
 
       # Combine everything and encode to base64
       self.address = INVOICE_PREFIX + Base64.urlsafe_encode64(payload + checksum, padding: false)
@@ -68,7 +68,7 @@ module MixinBot
       raise MixinBot::InvalidInvoiceFormatError, 'invalid invoice payload size' if data.size < 3 + 23 + 1
 
       payload = data[...-4]
-      checksum = SHA3::Digest::SHA256.digest(INVOICE_PREFIX + payload)[0...4]
+      checksum = SHA3::Digest::SHA3_256.digest(INVOICE_PREFIX + payload)[0...4]
       raise MixinBot::InvalidInvoiceFormatError, 'invalid invoice checksum' unless checksum == data[-4..]
 
       payload = payload.bytes

@@ -164,9 +164,9 @@ module MixinBot
         signing_key_hex = keypair[1].unpack1('H*')
 
         # NOTE: the Go SDK's +crypto.Sha256Hash+ is misleadingly named — it
-        # actually computes SHA3-256, so +SHA3::Digest::SHA256+ is the correct
+        # actually computes SHA3-256, so +SHA3::Digest::SHA3_256+ is the correct
         # match. See bot-api-go-client safe_user.go +RegisterSafeBareUser+.
-        app_id_hash = SHA3::Digest::SHA256.hexdigest config.app_id
+        app_id_hash = SHA3::Digest::SHA3_256.hexdigest config.app_id
         signature = Base64.urlsafe_encode64(
           JOSE::JWA::Ed25519.sign([app_id_hash].pack('H*'), keypair[1]),
           padding: false

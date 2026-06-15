@@ -138,7 +138,7 @@ module MixinBot
           aid = h[:asset_id]
           raise ArgumentError, 'utxo asset_id or asset is required' if aid.blank?
 
-          SHA3::Digest::SHA256.hexdigest(aid)
+          SHA3::Digest::SHA3_256.hexdigest(aid)
         end
 
         asset = mixin_asset_for.call(utxos[0])

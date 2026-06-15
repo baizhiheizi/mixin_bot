@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`sha3` dependency** — upgraded from `~> 1.0` to `~> 2.2` (sha3 2.x renames `SHA3::Digest::SHA256` to `SHA3::Digest::SHA3_256`; hash output is unchanged).
+
 ## [2.3.0] - 2026-05-27
 
 ### Added

@@ -20,7 +20,7 @@ module MixinBot
         hash: '1973a73d678690c5d004b6d6bfec65483749173617807ebf838a96900a3f6955'
       }
 
-      hash = SHA3::Digest::SHA256.hexdigest meta.to_json
+      hash = SHA3::Digest::SHA3_256.hexdigest meta.to_json
 
       result = 'TkZPAAEAAAAAAAAAAUPWHc3kE0UNgLgQHV6QM1cUPIwWGhiuLIsU_aEhb_99qIxBm10QAAAAAAAAAAAAAAAAAAAAABCZf8JRU9xKu5V5zW47G52vIN8k7X9uQpyzJLSJkRjT2KmX5tONE1oUM0E7o-TplLgq'
 
