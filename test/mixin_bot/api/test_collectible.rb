@@ -88,8 +88,8 @@ module MixinBot
           media: {}
         }
       }
-      metahash = SHA3::Digest::SHA256.hexdigest [meta[:collection][:id], meta[:collection][:name], meta[:token][:id],
-                                                 meta[:token][:name]].join
+      metahash = SHA3::Digest::SHA3_256.hexdigest [meta[:collection][:id], meta[:collection][:name], meta[:token][:id],
+                                                   meta[:token][:name]].join
       memo = MixinBot.api.nft_memo collection, token_id, metahash
 
       payment = MixinBot.api.create_multisig_payment(

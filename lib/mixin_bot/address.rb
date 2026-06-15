@@ -109,7 +109,7 @@ module MixinBot
 
       self.payload = prefix + msg
 
-      checksum = SHA3::Digest::SHA256.digest(MIX_ADDRESS_PREFIX + payload)
+      checksum = SHA3::Digest::SHA3_256.digest(MIX_ADDRESS_PREFIX + payload)
       data = payload + checksum[0...4]
       data = Base58.binary_to_base58 data, :bitcoin
       self.address = "#{MIX_ADDRESS_PREFIX}#{data}"
@@ -126,10 +126,10 @@ module MixinBot
         raise ArgumentError, 'invalid address, length invalid' if data.length < 3 + 16 + 4
 
         self.payload = data[...-4]
-        checksum = SHA3::Digest::SHA256.digest(MIX_ADDRESS_PREFIX + payload)[0...4]
+        checksum = SHA3::Digest::SHA3_256.digest(MIX_ADDRESS_PREFIX + payload)[0...4]
         raise ArgumentError, 'invalid address, checksum invalid' unless checksum == data[-4..]
       else
-        checksum = SHA3::Digest::SHA256.digest(MIX_ADDRESS_PREFIX + payload)[0...4]
+        checksum = SHA3::Digest::SHA3_256.digest(MIX_ADDRESS_PREFIX + payload)[0...4]
         data = payload + checksum
         data = Base58.binary_to_base58 data, :bitcoin
         self.address = "#{MIX_ADDRESS_PREFIX}#{data}"
@@ -171,7 +171,7 @@ module MixinBot
 
     def encode
       msg = MAIN_ADDRESS_PREFIX + public_key
-      checksum = SHA3::Digest::SHA256.digest msg
+      checksum = SHA3::Digest::SHA3_256.digest msg
       data = public_key + checksum[0...4]
       base58 = Base58.binary_to_base58 data, :bitcoin
       self.address = "#{MAIN_ADDRESS_PREFIX}#{base58}"
@@ -188,7 +188,7 @@ module MixinBot
       payload = data[...-4]
 
       msg = MAIN_ADDRESS_PREFIX + payload
-      checksum = SHA3::Digest::SHA256.digest msg
+      checksum = SHA3::Digest::SHA3_256.digest msg
 
       raise ArgumentError, 'invalid address' unless checksum[0...4] == data[-4..]
 
@@ -200,8 +200,8 @@ module MixinBot
     def self.burning_address
       seed = "\0" * 64
 
-      digest1 = SHA3::Digest::SHA256.digest seed
-      digest2 = SHA3::Digest::SHA256.digest digest1
+      digest1 = SHA3::Digest::SHA3_256.digest seed
+      digest2 = SHA3::Digest::SHA3_256.digest digest1
       src = digest1 + digest2
 
       spend_key = MixinBot::Utils.shared_public_key(seed)

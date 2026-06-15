@@ -52,7 +52,7 @@ module MixinBot
       #
       def hash_members(ids)
         list = Array(ids).flatten.compact.map(&:to_s).sort
-        SHA3::Digest::SHA256.hexdigest(list.join)
+        SHA3::Digest::SHA3_256.hexdigest(list.join)
       end
     end
   end

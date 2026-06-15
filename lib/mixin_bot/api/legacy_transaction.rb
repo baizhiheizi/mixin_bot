@@ -89,7 +89,7 @@ module MixinBot
           end
         end
 
-        asset = asset_mixin_id || SHA3::Digest::SHA256.hexdigest(asset_id)
+        asset = asset_mixin_id || SHA3::Digest::SHA3_256.hexdigest(asset_id)
         {
           version:,
           asset:,

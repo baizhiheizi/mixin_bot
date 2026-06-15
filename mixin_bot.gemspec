@@ -45,7 +45,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'jose', '~> 1.1'
   s.add_dependency 'msgpack', '~> 1.3'
   s.add_dependency 'rbnacl', '~> 7.1'
-  s.add_dependency 'sha3', '~> 1.0'
+  s.add_dependency 'sha3', '~> 2.2'
   s.add_dependency 'thor', '~> 1.0'
 
   s.metadata['rubygems_mfa_required'] = 'true'

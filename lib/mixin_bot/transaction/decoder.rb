@@ -12,7 +12,7 @@ module MixinBot
 
       def decode
         raw = [@tx.hex].pack('H*').bytes
-        @tx.hash = SHA3::Digest::SHA256.hexdigest(raw.pack('C*'))
+        @tx.hash = SHA3::Digest::SHA3_256.hexdigest(raw.pack('C*'))
         @buf = Buffer.new(raw)
 
         magic = @buf.shift(2)
