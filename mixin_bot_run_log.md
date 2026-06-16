@@ -7,67 +7,54 @@ metadata:
 
 # MixinBot Run Log
 
-## Run 2026-06-16 (workflow run 27554387102)
+## Run 2026-06-16 evening (workflow run 27572892306)
 
-Selected tasks: 1 (Research & Target Identification), 3 (Formal Spec Writing).
+Selected tasks: 9 (CI Automation), 1 (Research).
+Substitutions: Task 9 → Task 3 (Formal Spec Writing), since no Lean files
+exist in the working tree (the Tier 1 specs are in open PRs, not yet
+merged to main).
 
 ### Completed
 
-- **Task 3 (Formal Spec Writing)**: Wrote Lean 4 specs for all three Tier 1
-  targets, each in its own file with its own namespace:
-  - `formal-verification/lean/FVSquad/Varint.lean` — `encodeInt` / `decodeInt` round-trip
-  - `formal-verification/lean/FVSquad/UintCodec.lean` — `encodeUint` / `decodeUint` for 16/32/64
-  - `formal-verification/lean/FVSquad/UUID.lean` — `packed` / `unpacked` byte-preservation
-  - `formal-verification/lean/FVSquad.lean` — facade
-  - `formal-verification/lean/{lakefile.toml, lake-manifest.json, lean-toolchain, .gitignore}` — Lake project setup
-  - `formal-verification/specs/{uuid,varint,uint_codec}_informal.md` — informal specs
-- **Task Final**: Updated [[lean-squad-status]] issue #93 (replace body + comment).
-
-### Substitutions / fallbacks
-
-None — both selected tasks were applicable. Task 1 (Research) was already
-done in the prior run; Task 3 advanced the Tier 1 targets from Phase 1 to
-Phase 3.
-
-### Verification
-
-- `lake build` passes with Lean 4.31.0 (6 jobs, 0 errors).
-- 7 `sorry` remain — 4 for headline round-trip proofs (Phase 4 / Phase 5) and 3 for spec-level helper lemmas.
-- 19 concrete small-value round-trips verified by `native_decide` (7 in Varint, 10 in UintCodec, plus the length and singleton theorems).
-- UUID spec uses `axiom` for the bit-level hex ⇔ byte conversion (out of scope); the byte-preservation property is stated as a theorem (currently `sorry`).
+- **Task 1 (Research, incremental)**: Updated `RESEARCH.md` to add a
+  "Lessons Learned from Tier 1 Spec Writing" section and a new §8
+  introducing `MainAddress` as the Tier 2 target. Updated `TARGETS.md`
+  to advance Tier 1 to Phase 3 and `MainAddress` to Phase 2→3.
+- **Task 3 (Formal Spec Writing)**: Wrote the `MainAddress` informal
+  spec (`formal-verification/specs/main_address_informal.md`) and the
+  Lean 4 formal spec
+  (`formal-verification/lean/FVSquad/MainAddress.lean`). `lake build`
+  passes with Lean 4.31.0; 2 `sorry` remain (the two headline
+  round-trip proofs).
+- **Lake project setup**: minimal `lakefile.toml` (no Mathlib), pinned
+  `lean-toolchain` to `leanprover/lean4:v4.31.0`, `FVSquad.lean`
+  facade, `.gitignore` excluding `.lake/`.
+- **Task Final**: Updated [[lean-squad-status]] issue.
 
 ### Notes
 
-- Lake project setup needed: a `FVSquad.lean` facade file (matching the library
-  name in `lakefile.toml`) is required so individual files can be
-  cross-imported. Without it, `lake build` reports "some modules have bad
-  imports" even though `lake env lean <file>.lean` succeeds.
-- Each spec file uses its own sub-namespace (`FVSquad.Varint`, etc.) so
-  common names like `Byte` don't collide when the facade imports them all.
-- The Tier 1 specs do **not** need Mathlib — only `Init` + `Std`. This
-  avoids the heavy Mathlib download during CI and keeps the build fast.
-- **PR push failure**: The `create_pull_request` safeoutput produced a patch
-  and bundle but the underlying `git push` may have failed due to the
-  no-credentials policy (the same pattern as the previous run's PR #92
-  that was created as an issue with "git push operation failed"). The
-  local branch `lean-squad/tier1-lean-specs` contains the full commit
-  (`ed3506d`) and is ready to push from a credentials-enabled environment.
-  The status issue comment and a body replacement document this. The
-  next run with credentials should `git push origin lean-squad/tier1-lean-specs`
-  and then `gh pr create --base main` to materialise the PR.
+- The new PR branch is `lean-squad/tier2-mainaddress-spec-7693a2b1`.
+- `MainAddress` introduces a `noncomputable` modelling pattern (since
+  it depends on axiomatised SHA3-256 and Base58). The
+  `base58_decode ∘ base58_encode = id` property is axiomatised as a
+  single lemma so the proof obligation is visible.
+- One structural lemma (`mainAddressPrefix_startsWith` for
+  `String.startsWith` over `++`) is currently axiomatised; the
+  hand proof is future-run work.
+- The 7 `sorry` from the open Tier 1 PRs (#95 / #96) are NOT counted
+  in this run's `lake build` log — they live in those PRs' branches.
 
-### Open items for next run
+## Run 2026-06-16 morning (workflow run 27554387102)
 
-- Push the `lean-squad/tier1-lean-specs` branch when credentials are available.
-- Phase 4 (Task 4) — translate the Ruby implementation into Lean. The
-  concrete (computable) Lean models already exist in `Varint.lean` and
-  `UintCodec.lean`; this task is essentially "done" for those targets
-  except for replacing the `sorry` proofs with the real implementation
-  extraction. For `UUID.lean`, the bit-level `bytesToHex` and
-  `formatDashed` need to be defined concretely.
-- Phase 5 (Task 5) — fill in the 4 headline round-trip `sorry` proofs.
+Selected tasks: 3 (Formal Spec Writing) — Tier 1.
 
----
+### Completed (in open PRs #95 / #96, not yet merged)
+
+- Wrote Tier 1 informal specs:
+  `formal-verification/specs/{uuid,varint,uint_codec}_informal.md`.
+- Wrote Tier 1 Lean specs:
+  `formal-verification/lean/FVSquad/{UUID,Varint,UintCodec}.lean`.
+- `lake build` passes; 7 `sorry` remain.
 
 ## Run 2026-06-15 (workflow run 27528284081)
 
