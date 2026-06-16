@@ -1,2 +1,2 @@
-- [MixinBot FV Targets](mixin_bot_targets.md) — Tier 1 + Tier 2 status; Tier 1 in open PRs, MainAddress in new branch with 2 `sorry`
-- [MixinBot Run Log](mixin_bot_run_log.md) — Per-run log of FV tasks completed for MixinBot (4 runs to date)
+- [MixinBot FV Targets](mixin_bot_targets.md) — Tier 1 + Tier 2 status; Tier 1 merged in #95/#96, MainAddress merged in #97, MixAddress has informal spec
+- [MixinBot Run Log](mixin_bot_run_log.md) — Per-run log of FV tasks completed for MixinBot (5 runs to date; run 5 = CORRESPONDENCE.md + MixAddress informal spec)

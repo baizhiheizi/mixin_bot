@@ -7,6 +7,51 @@ metadata:
 
 # MixinBot Run Log
 
+## Run 2026-06-16 night (workflow run 27597904118)
+
+Selected tasks: 6 (Correspondence Review), 2 (Informal Spec Extraction).
+
+### Completed
+
+- **Task 6 (Correspondence Review)**: Created
+  `formal-verification/CORRESPONDENCE.md` — a comprehensive mapping
+  of all 4 Lean files (UUID, Varint, UintCodec, MainAddress) to their
+  Ruby sources. Each definition has a correspondence level
+  (exact / abstraction / approximation / mismatch), a divergence list,
+  an impact-on-proofs assessment, and a validation-evidence note.
+  **No mismatches found.** Key findings:
+  - `Varint.lean` and `UintCodec.lean` are **exact** translations
+    of the Ruby; round-trip can be `#eval`-ed in Lean 4.
+  - `MainAddress.lean` depends on 4 axioms (sha3_256, base58Encode,
+    base58Decode, base58Encode_decode); the round-trip `sorry`s
+    reduce to the base58 axiom plus List take/drop arithmetic.
+  - `UUID.lean` depends on 5 axioms (hex round-trip both directions,
+    dashed round-trip, two length lemmas); the bit-level hex ⇔ byte
+    conversion is out of scope.
+  - **Comment-only bug** in `UintCodec.lean:22-25` (says "big-endian"
+    but the implementation is little-endian — matching the Ruby).
+    To be fixed in a future run.
+- **Task 2 (Informal Spec — MixAddress)**: Wrote
+  `formal-verification/specs/mix_address_informal.md` (280 lines, 12
+  sections). Covers all 3 construction modes (`address:`, `payload:`,
+  `members:`+`threshold:`), shape-dependent threshold validity
+  rules, 4 distinct round-trip properties, 5 invariants, 9 edge
+  cases, golden test pairs, 5 open questions for maintainers, and
+  11 properties to verify in Lean.
+- **Task Final**: Updated [[lean-squad-status]] issue.
+
+### Notes
+
+- New branch: `lean-squad/correspondence-mixaddress-spec-d5fe5f7e686ad20e`.
+  Contains the two new files (594 lines total). The branch is in
+  draft state as a PR.
+- This is the first run to (a) write the `CORRESPONDENCE.md` audit
+  document, and (b) add an informal spec for a target that has not
+  yet been formalised in Lean.
+- The new `CORRESPONDENCE.md` establishes a reusable template: each
+  future Lean file will get its own section with mapping, divergences,
+  impact on proofs, and validation evidence.
+
 ## Run 2026-06-16 evening (workflow run 27572892306)
 
 Selected tasks: 9 (CI Automation), 1 (Research).
