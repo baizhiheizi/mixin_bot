@@ -12,9 +12,9 @@ metadata:
 
 ## Tier 1 (Foundation, do first)
 
-1. `lib/mixin_bot/uuid.rb` — `UUID.unpacked` / `UUID.packed` round-trip. Phase 1.
-2. `lib/mixin_bot/utils/encoder.rb` — `encode_int` / `decode_int` varint round-trip. Phase 1.
-3. `lib/mixin_bot/utils/encoder.rb` — `encode_uint16/32/64` / `decode_uint16/32/64` round-trip. Phase 1.
+1. `lib/mixin_bot/uuid.rb` — `UUID.unpacked` / `UUID.packed` round-trip. **Phase 3** (Lean spec written, proofs `sorry`).
+2. `lib/mixin_bot/utils/encoder.rb` — `encode_int` / `decode_int` varint round-trip. **Phase 3** (Lean spec written, proofs `sorry`).
+3. `lib/mixin_bot/utils/encoder.rb` — `encode_uint16/32/64` / `decode_uint16/32/64` round-trip. **Phase 3** (Lean spec written, proofs `sorry`).
 
 ## Tier 2 (Address formats — golden-tested)
 
@@ -46,6 +46,16 @@ These provide byte-for-byte oracle for parity with the Go SDK.
 - Mirror little-endian for `encode_int` (current impl) vs normalised big-endian — default: mirror.
 - Treat `encode_uint16/32/64` as partial functions with precondition `0 ≤ n < 2^bits`.
 - Transaction round-trip scope: only `version3_multi_io.hex` (golden).
+
+## Lean spec files (Tier 1)
+
+- `formal-verification/lean/FVSquad/Varint.lean` (concrete model, native_decide verified for small values)
+- `formal-verification/lean/FVSquad/UintCodec.lean` (concrete model, native_decide verified for small values)
+- `formal-verification/lean/FVSquad/UUID.lean` (axiom-based model, byte-preservation stated)
+
+## Branch
+
+- `lean-squad/tier1-lean-specs` (commit `ed3506d`) — ready to push when credentials are available.
 
 **Why**: Ruby codebase with golden fixtures from Go SDK = high-quality spec hints.
 **How to apply**: Pick the highest-tier unstarted target. Build incrementally.
