@@ -2,9 +2,9 @@
 
 > 🔬 *Lean Squad — automated formal verification for `baizhiheizi/mixin_bot`.*
 
-**Status**: Research complete; Tier 1 Lean specs (UUID, Varint, UintCodec) submitted
-in open PRs #95 / #96 with 7 `sorry` remaining for the round-trip proofs; this
-run moves to Tier 2 (`MainAddress`).
+**Status**: Research complete; Tier 1 Lean specs (UUID, Varint, UintCodec) merged
+in PRs #95 / #96 with 7 `sorry` remaining for the round-trip proofs; this run
+adds Tier 2 (`MainAddress`).
 
 ## 1. Codebase Survey
 

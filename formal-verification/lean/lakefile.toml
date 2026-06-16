@@ -1,6 +1,6 @@
 name = "fvsquad"
-version = "0.1.0"
 defaultTargets = ["FVSquad"]
+lean = "leanprover/lean4:stable"
 
 [[lean_lib]]
 name = "FVSquad"
