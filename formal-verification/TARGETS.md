@@ -2,7 +2,9 @@
 
 > 🔬 *Lean Squad — automated formal verification for `baizhiheizi/mixin_bot`.*
 
-**Status**: Initial target list defined. Phase 1 targets ready for spec extraction.
+**Status**: Tier 1 Lean specs merged in PRs #95 / #96 (UUID, Varint, UintCodec;
+7 `sorry` remain for the round-trip proofs). This run adds Tier 2 (`MainAddress`)
+at Lean Spec phase.
 
 ## Convention
 
@@ -19,16 +21,16 @@ Each target row contains:
 
 | Target | File(s) | Phase | Property | Effort | Value |
 |--------|---------|-------|----------|--------|-------|
-| `UUID` round-trip | `lib/mixin_bot/uuid.rb` | 1 | `packed ∘ unpacked = id` and `unpacked ∘ packed = id` (on valid inputs) | low | high |
-| Varint integer codec | `lib/mixin_bot/utils/encoder.rb` (`encode_int`), `lib/mixin_bot/utils/decoder.rb` (`decode_int`) | 1 | `decode_int (encode_int n) = n` for non-negative `n` | low | high |
-| Fixed-width uint codec | same files (`encode_uint16/32/64`, `decode_uint16/32/64`) | 1 | round-trip for `0 ≤ n < 2^bits`; output length is exact `bits/8` | low | high |
+| `UUID` round-trip | `lib/mixin_bot/uuid.rb` | 3 (Lean spec; 2 `sorry` remain) | `packed ∘ unpacked = id` and `unpacked ∘ packed = id` (on valid inputs) | low | high |
+| Varint integer codec | `lib/mixin_bot/utils/encoder.rb` (`encode_int`), `lib/mixin_bot/utils/decoder.rb` (`decode_int`) | 3 (Lean spec; 2 `sorry` remain) | `decode_int (encode_int n) = n` for non-negative `n` | low | high |
+| Fixed-width uint codec | same files (`encode_uint16/32/64`, `decode_uint16/32/64`) | 3 (Lean spec; 3 `sorry` remain) | round-trip for `0 ≤ n < 2^bits`; output length is exact `bits/8` | low | high |
 
 ### Tier 2 — Address formats (security-sensitive, golden-tested)
 
 | Target | File(s) | Phase | Property | Effort | Value |
 |--------|---------|-------|----------|--------|-------|
-| `MainAddress` round-trip + invariants | `lib/mixin_bot/address.rb` (`MainAddress`) | 1 | `MainAddress.new(public_key:).address` then `MainAddress.new(address:).public_key = original`; address starts with `XIN`, valid base58, valid SHA3-256 checksum | medium | high |
-| `MixAddress` round-trip + invariants | `lib/mixin_bot/address.rb` (`MixAddress`) | 1 | round-trip for valid member lists; address starts with `MIX`; members + threshold + version preserved; `XIN`/UUID members separated correctly | medium | high |
+| `MainAddress` round-trip + invariants | `lib/mixin_bot/address.rb` (`MainAddress`) | 3 (Lean spec; 2 `sorry` remain) | `MainAddress.new(public_key:).address` then `MainAddress.new(address:).public_key = original`; address starts with `XIN`, valid base58, valid SHA3-256 checksum | medium | high |
+| `MixAddress` round-trip + invariants | `lib/mixin_bot/address.rb` (`MixAddress`) | 1 → 2 (next run) | round-trip for valid member lists; address starts with `MIX`; members + threshold + version preserved; `XIN`/UUID members separated correctly | medium | high |
 
 ### Tier 3 — Larger formats (builds on Tiers 1+2)
 
@@ -47,11 +49,10 @@ Each target row contains:
 
 ## Phasing Plan
 
-- **Run 1 (this run)**: Phase 1 — produce RESEARCH.md (done), TARGETS.md (this
-  file). Set up CI scaffolding.
-- **Run 2**: Tier 1 informal specs → Lean specs → impl → proofs.
-- **Run 3+**: Tier 2.
-- **Run 4+**: Tier 3.
+- **Run 1 (2026-06-15)**: Phase 1 — produce RESEARCH.md, TARGETS.md, CI scaffold (PR #94, merged).
+- **Run 2 (2026-06-16 morning)**: Tier 1 informal specs + Lean specs (PRs #95 / #96, merged). 7 `sorry` remain.
+- **Run 3 (2026-06-16 evening — this run)**: Tier 2 starts. `MainAddress` informal spec + Lean spec (2 `sorry` remain).
+- **Run 4+**: Implement Tier 1 proofs (close the 7 `sorry`), then `MixAddress`, then Tier 3.
 
 The phasing is heuristic; the squad adapts based on prior-run findings and
 critique feedback.
@@ -71,5 +72,5 @@ critique feedback.
 ---
 
 ## Last Updated
-- **Date**: 2026-06-15 06:38 UTC
-- **Commit**: `<pending — to be filled when PR is opened>`
+- **Date**: 2026-06-16 00:35 UTC
+- **Commit**: `84bac72` (origin/main; Tier 1 Lean specs in open PRs #95 / #96)

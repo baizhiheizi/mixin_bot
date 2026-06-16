@@ -1,5 +1,6 @@
-{"version": "1.1.0",
- "packagesDir": "../.lake",
+{"version": "1.2.0",
+ "packagesDir": ".lake/packages",
  "packages": [],
  "name": "fvsquad",
- "lakeDir": "."}
+ "lakeDir": ".lake",
+ "fixedToolchain": false}
