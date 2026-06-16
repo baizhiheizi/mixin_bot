@@ -1,0 +1,6 @@
+name = "fvsquad"
+defaultTargets = ["FVSquad"]
+lean = "leanprover/lean4:stable"
+
+[[lean_lib]]
+name = "FVSquad"
