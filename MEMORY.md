@@ -1,2 +1,2 @@
-- [MixinBot FV Targets](mixin_bot_targets.md) — Tier 1 + Tier 2 status; Tier 1 merged in #95/#96, MainAddress merged in #97, MixAddress has informal spec
-- [MixinBot Run Log](mixin_bot_run_log.md) — Per-run log of FV tasks completed for MixinBot (5 runs to date; run 5 = CORRESPONDENCE.md + MixAddress informal spec)
+- [MixinBot FV Targets](mixin_bot_targets.md) — Tier 1 + Tier 2 status; Tier 1 + MainAddress + MixAddress informal spec merged; runnable correspondence harness with 77 #guard checks (run 6)
+- [MixinBot Run Log](mixin_bot_run_log.md) — Per-run log of FV tasks completed for MixinBot (6 runs to date; run 6 = executable correspondence harness + CRITIQUE.md)

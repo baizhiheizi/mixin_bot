@@ -7,6 +7,78 @@ metadata:
 
 # MixinBot Run Log
 
+## Run 2026-06-17 morning (workflow run 27689412938)
+
+Selected tasks: 8 (Implementation Correspondence Validation), 7
+(Proof Utility Critique).
+
+### Completed
+
+- **Task 8 (Correspondence Validation, Route B)**:
+  - Created `formal-verification/tests/tier1_codecs/` directory with:
+    - `ruby_harness.rb` (111 lines): runs Ruby
+      `encode_int`/`decode_int` and
+      `encode_uint16/32/64`/`decode_uint16/32/64` on 37
+      distinct inputs (+ 6 UUID round-trips for future
+      comparison). Emits `fixtures.json` with 84 input/output
+      pairs.
+    - `FVSquad/Correspondence.lean` (131 lines, imported by
+      `FVSquad.lean`): 77 `#guard` byte-level checks (26
+      Varint + 45 UintCodec + 6 length). All `#guard`s are
+      checked at compile time via `lake build`.
+    - `run.sh`: end-to-end runner that regenerates
+      `fixtures.json` and runs `lake build`.
+    - `README.md`: full coverage table and "how to run" docs.
+  - Fixed `UintCodec.lean:22-25` endianness comment (was
+    "big-endian", now correctly says "little-endian" and
+    points to the Ruby `pack('S*'/'L*'/'Q*').bytes.reverse`
+    pattern). Implementation was always correct.
+  - **Verified**: `lake build` passes (8 jobs, 0 errors).
+    All 77/77 `#guard` checks pass against the live Ruby
+    output.
+  - This is the first **machine-checked** correspondence
+    guarantee in the Lean Squad: any change to the Ruby
+    `encode_int` / `encode_uint*` that breaks parity with
+    the Lean model will be caught at `lake build` time.
+- **Task 7 (Proof Utility Critique)**:
+  - Created `formal-verification/CRITIQUE.md` (252 lines) with:
+    - Overall assessment
+    - Proved-theorems table (9 `rfl`/`simp`/`intro`/`native_decide`
+      proofs + 77 `#guard` checks; bug-catching potential per
+      theorem)
+    - `sorry` inventory (9 `sorry`s, by file)
+    - Axiom inventory (14 axioms: 9 in UUID, 5 in MainAddress;
+      with discharge difficulty per axiom)
+    - 5 prioritised gaps for future runs
+    - Concerns (axiom-burdened proofs, `sorry` regressions
+      not caught by CI)
+    - Positive findings (clean functional translation,
+      little-endian correctness after comment fix, no real
+      bugs in Ruby)
+- **CORRESPONDENCE.md** updates: added `## Last Updated`
+  (date 2026-06-17, commit `cc56360`), updated repository
+  layout table with correspondence-check counts, updated
+  validation-evidence sections for Varint and UintCodec, and
+  added §7 documenting the new runnable harness.
+- **Task Final**: Updated [[lean-squad-status]] issue (with
+  the new run 6 entry and the runnable-harness / critique
+  rows in the At a Glance table).
+
+### Notes
+
+- New branch: `lean-squad/correspondence-tests-critique-d5fe5f7e686ad20e`.
+  Contains 9 files changed, +1123/-14 lines total. PR opened
+  via `safeoutputs` workflow.
+- The runnable harness is a **permanent regression
+  detector** for the Tier 1 codecs. Future PRs that touch
+  `formal-verification/lean/FVSquad/{Varint,UintCodec}.lean`
+  will be automatically re-validated against the live Ruby
+  output by `lean-ci.yml`.
+- The `correspondence_test_count` is now 77 (was 0).
+- Total `lake build` for run 6: 8 jobs, 0 errors. 9 `sorry`
+  and 14 `axiom` remain (Phase 4 / 5 work; documented in
+  `CRITIQUE.md`).
+
 ## Run 2026-06-16 night (workflow run 27597904118)
 
 Selected tasks: 6 (Correspondence Review), 2 (Informal Spec Extraction).
