@@ -10,18 +10,19 @@
 > - **Mismatch** — the Lean function is incorrect relative to the Ruby in a way that invalidates proofs. **None of the current specs have any mismatches.** If a mismatch is found, it must be fixed before any proved theorem relying on it is trusted.
 
 ## Last Updated
-- **Date**: 2026-06-16 06:25 UTC
-- **Commit**: `8026c6d` (main; PRs #95 / #96 / #97 merged; Tier 1 specs in #95/#96, MainAddress in #97)
+- **Date**: 2026-06-17 06:30 UTC
+- **Commit**: `cc56360` (main; PRs #95 / #96 / #97 / #103 merged; `UintCodec.lean` endianness comment fixed in run 6; executable correspondence harness added in run 6)
 
 ## Repository layout
 
-| Lean file | Ruby source | Tier | Phase | Theorems | `sorry` |
-|-----------|-------------|------|-------|----------|---------|
-| `FVSquad/UUID.lean` | `lib/mixin_bot/uuid.rb` | T1 | 3 (Lean spec) | 2 + 4 axioms | 2 |
-| `FVSquad/Varint.lean` | `lib/mixin_bot/utils/encoder.rb` (`encode_int`), `lib/mixin_bot/utils/decoder.rb` (`decode_int`) | T1 | 3 (Lean spec) | 2 + 6 examples | 2 |
-| `FVSquad/UintCodec.lean` | `lib/mixin_bot/utils/encoder.rb` (`encode_uint16/32/64`), `lib/mixin_bot/utils/decoder.rb` (`decode_uint16/32/64`) | T1 | 3 (Lean spec) | 6 + 10 examples | 3 |
-| `FVSquad/MainAddress.lean` | `lib/mixin_bot/address.rb` (`MainAddress`, lines 159–212) | T2 | 3 (Lean spec) | 4 + 1 example | 2 |
-| `FVSquad/MixAddress.lean` | `lib/mixin_bot/address.rb` (`MixAddress`, lines 10–157) | T2 | 1 (research only) | — | — |
+| Lean file | Ruby source | Tier | Phase | Theorems | `sorry` | Correspondence checks |
+|-----------|-------------|------|-------|----------|---------|----------------------|
+| `FVSquad/UUID.lean` | `lib/mixin_bot/uuid.rb` | T1 | 3 (Lean spec) | 2 + 9 axioms | 2 | 0 (axiom-only) |
+| `FVSquad/Varint.lean` | `lib/mixin_bot/utils/encoder.rb` (`encode_int`), `lib/mixin_bot/utils/decoder.rb` (`decode_int`) | T1 | 3 (Lean spec) | 6 + 7 examples | 2 | 26 (`#guard`s) |
+| `FVSquad/UintCodec.lean` | `lib/mixin_bot/utils/encoder.rb` (`encode_uint16/32/64`), `lib/mixin_bot/utils/decoder.rb` (`decode_uint16/32/64`) | T1 | 3 (Lean spec) | 6 + 10 examples | 3 | 45 (`#guard`s) |
+| `FVSquad/Correspondence.lean` | (all four) | T1 | 4 (executable harness) | 77 `#guard`s | 0 | 77 (`#guard`s) |
+| `FVSquad/MainAddress.lean` | `lib/mixin_bot/address.rb` (`MainAddress`, lines 159–212) | T2 | 3 (Lean spec) | 4 + 2 examples | 2 | 0 (axiom-only) |
+| `FVSquad/MixAddress.lean` | `lib/mixin_bot/address.rb` (`MixAddress`, lines 10–157) | T2 | 1 (research only) | — | — | — |
 
 ---
 
@@ -105,7 +106,7 @@ Informal spec: [`specs/varint_informal.md`](specs/varint_informal.md).
 ### Validation evidence
 
 - The seven `native_decide` examples (`encodeInt_decodeInt` for `n ∈ {0, 1, 127, 128, 255, 256, 65535}`) demonstrate the round-trip on representative inputs.
-- A future Task 8 Route B run would execute the Ruby `encode_int` / `decode_int` on the same inputs (e.g. `encode_int(0x10000)`, `encode_int(0xffffffff)`) and compare against the Lean `encodeInt`. The fact that `encodeInt` is `def` (not `noncomputable`) means it can be `#eval`-ed in Lean 4 directly, which is a stronger form of validation than `#check`.
+- **26 `#guard` byte-level checks** in `FVSquad/Correspondence.lean` (§3 below) confirm the Lean model produces the same bytes as the Ruby `encode_int` on 13 inputs and round-trips correctly on 13 inputs. See `formal-verification/tests/tier1_codecs/README.md`.
 
 ---
 
@@ -132,7 +133,7 @@ Informal spec: [`specs/uint_codec_informal.md`](specs/uint_codec_informal.md).
 ### Divergences
 
 1. **`Bounded` subtype vs. Ruby raises** — Ruby raises `ArgumentError` on negative or out-of-range inputs (`encoder.rb:23, 29, 35`). The Lean model uses the `Bounded N` subtype to make such inputs *unrepresentable*. This is strictly safer than the Ruby code (the Ruby code accepts `Integer`s and trusts the caller to satisfy the precondition).
-2. **Endianness comment vs. implementation** — the Lean comments at `FVSquad/UintCodec.lean:22–25` say "big-endian list of `N/8` bytes" but the implementation computes little-endian lists. This is a comment-only error; the implementation matches the Ruby code. **The comment should be corrected to "little-endian" in a future run.** The `decodeUint` comment at `FVSquad/UintCodec.lean:55` is silent on endianness.
+2. **Endianness comment vs. implementation** — the Lean comment at `FVSquad/UintCodec.lean:22–25` previously said "big-endian list of `N/8` bytes" but the implementation computed little-endian lists. **This comment was corrected to "little-endian" in run 6 (2026-06-17)** to match the actual behavior. The implementation was always correct (matches the Ruby `encode_uint16/32/64`); only the comment was wrong. The `decodeUint` comment at `FVSquad/UintCodec.lean:55` is silent on endianness.
 3. **Length-mismatched decode** — Ruby `decode_uint16` calls `bytes.reverse.pack('C*').unpack1('S*')`, which raises an `ArgumentError` if the reversed list does not have length 2 (because `pack('C*')` is variable-width, but `unpack1('S*')` requires 2 bytes). The Lean `decodeUint16` returns 0 for length-mismatched input. This is a deliberate choice: totalising the function lets the spec be used in larger proofs without needing to thread the precondition.
 
 ### Impact on proofs
@@ -143,7 +144,7 @@ Informal spec: [`specs/uint_codec_informal.md`](specs/uint_codec_informal.md).
 ### Validation evidence
 
 - The 10 `native_decide` examples cover each of the three widths at boundary values (0, 1, max).
-- A future Task 8 Route B run would execute the Ruby `encode_uint64(0x100000000)` and compare against the Lean `encodeUint 64`, expecting both to produce `[0, 0, 0, 0, 1, 0, 0, 0]`.
+- **45 `#guard` byte-level checks** in `FVSquad/Correspondence.lean` (§3 below) confirm the Lean model produces the same bytes as the Ruby `encode_uint16/32/64` on 15 inputs and round-trips correctly on 22 inputs. See `formal-verification/tests/tier1_codecs/README.md`.
 
 ---
 
@@ -219,7 +220,7 @@ Correspondence will be added once the Lean spec is written. The key corresponden
 ### Validation routes
 
 - **Route A (Aeneas/Charon)**: not applicable. The codebase is Ruby, and Aeneas is a Rust-to-Lean extractor. The `has_rust: false` flag in `task_selection.json` confirms this.
-- **Route B (executable correspondence tests)**: applicable. The plan is to write a Ruby harness that runs the `encode_*` / `decode_*` methods on a fixture of public keys, UUIDs, and integers; and a Lean harness that runs the Lean `encodeInt`, `encodeUint`, etc. on the same inputs. The outputs are compared bit-for-bit. This is scheduled for a future run (likely after the Tier 1 `sorry`s are closed).
+- **Route B (executable correspondence tests)**: applicable and **now live** at `formal-verification/tests/tier1_codecs/`. The Ruby harness (`ruby_harness.rb`) exercises the Ruby implementation on 84 input/output pairs; the Lean harness (`FVSquad/Correspondence.lean`) contains 77 `#guard` statements that fail at compile time if the Lean model disagrees with the Ruby output. Run via `bash formal-verification/tests/tier1_codecs/run.sh`. **Current status: 77/77 pass on `main`.**
 
 ### What would *invalidate* a proved theorem
 
@@ -261,3 +262,32 @@ Discharging these axioms is *the* work of Phases 4–5 for each target.
 | `MainAddress` | abstraction + 4 axioms | 5 (axioms, totalisation, defensive check, no `burning_address`, no init raise) | high — axioms carry the third-party impl | none yet (axiom-only) |
 
 No mismatches. All four Lean models are sound approximations of the Ruby code; the axioms are clearly documented and dischargeable.
+
+---
+
+## 7. Runnable correspondence harness
+
+The `formal-verification/tests/tier1_codecs/` directory (added in run 6) provides
+**executable, repeatable** correspondence validation for the Tier 1 codecs
+(`encode_int` / `decode_int` and `encode_uint16/32/64` / `decode_uint16/32/64`).
+
+- **77 `#guard` byte-level checks** in `FVSquad/Correspondence.lean` that
+  fail at compile time (`lake build`) if the Lean model disagrees with
+  the Ruby implementation on any of the 77 (input, expected bytes) pairs.
+- **`ruby_harness.rb`** generates `fixtures.json` from the live Ruby
+  implementation. The 77 expected byte values in the `#guard`s match
+  `fixtures.json` byte-for-byte.
+- **`run.sh`** is the end-to-end entry point: regenerates the fixtures
+  and runs `lake build`. Exit code 0 = both sides agree.
+
+The harness currently covers **Varint and UintCodec**. UUID and
+`MainAddress` are not covered because their Lean models depend on
+`noncomputable` axioms (`bytesToHex` / `formatDashed` / `sha3_256` /
+`base58Encode` / `base58Decode`) and cannot be `#eval`-ed in Lean 4 in
+their current form. Extending the harness to UUID requires discharging
+the 9 axioms in `UUID.lean` with a concrete `bytesToHex` /
+`formatDashed` implementation (Phase 4 work for `UUID`).
+
+**Validation status (run 6)**: 77/77 checks pass on the live Ruby
+output. See `formal-verification/tests/tier1_codecs/README.md` for
+the full coverage table.

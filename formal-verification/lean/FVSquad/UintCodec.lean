@@ -23,7 +23,11 @@ private def toByte (n : Nat) (h : n < 256) : Byte :=
 /-- `encodeUint` is the Lean model of `encode_uintN`.
 
     Encodes a non-negative integer `n` with `n < 2^N` as a fixed-width
-    big-endian list of `N/8` bytes. -/
+    *little-endian* list of `N/8` bytes. The low byte is at index 0.
+
+    This matches the Ruby `encode_uint16/32/64` in
+    `lib/mixin_bot/utils/encoder.rb` lines 22–38, which reverses
+    `pack('S*'/'L*'/'Q*')` (big-endian) output to little-endian. -/
 def encodeUint : (N : Nat) → Bounded N → List Byte
   | 0,   _ => []
   | 16,  n => encodeUint16 n
