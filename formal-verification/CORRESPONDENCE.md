@@ -10,17 +10,17 @@
 > - **Mismatch** — the Lean function is incorrect relative to the Ruby in a way that invalidates proofs. **None of the current specs have any mismatches.** If a mismatch is found, it must be fixed before any proved theorem relying on it is trusted.
 
 ## Last Updated
-- **Date**: 2026-06-17 06:30 UTC
-- **Commit**: `cc56360` (main; PRs #95 / #96 / #97 / #103 merged; `UintCodec.lean` endianness comment fixed in run 6; executable correspondence harness added in run 6)
+- **Date**: 2026-06-17 20:45 UTC
+- **Commit**: run 7 (PR open) — UUID 9 axioms replaced with concrete defs + `sorry` theorems; 24 UUID `#guard` correspondence checks added to `Correspondence.lean` (77 → 101 total)
 
 ## Repository layout
 
 | Lean file | Ruby source | Tier | Phase | Theorems | `sorry` | Correspondence checks |
 |-----------|-------------|------|-------|----------|---------|----------------------|
-| `FVSquad/UUID.lean` | `lib/mixin_bot/uuid.rb` | T1 | 3 (Lean spec) | 2 + 9 axioms | 2 | 0 (axiom-only) |
+| `FVSquad/UUID.lean` | `lib/mixin_bot/uuid.rb` | T1 | 4 (implementation) | 7 + 0 axioms (was 2 + 9 axioms) | 7 | 24 (`#guard`s) |
 | `FVSquad/Varint.lean` | `lib/mixin_bot/utils/encoder.rb` (`encode_int`), `lib/mixin_bot/utils/decoder.rb` (`decode_int`) | T1 | 3 (Lean spec) | 6 + 7 examples | 2 | 26 (`#guard`s) |
 | `FVSquad/UintCodec.lean` | `lib/mixin_bot/utils/encoder.rb` (`encode_uint16/32/64`), `lib/mixin_bot/utils/decoder.rb` (`decode_uint16/32/64`) | T1 | 3 (Lean spec) | 6 + 10 examples | 3 | 45 (`#guard`s) |
-| `FVSquad/Correspondence.lean` | (all four) | T1 | 4 (executable harness) | 77 `#guard`s | 0 | 77 (`#guard`s) |
+| `FVSquad/Correspondence.lean` | (all four) | T1 | 4 (executable harness) | 101 `#guard`s | 0 | 101 (`#guard`s) |
 | `FVSquad/MainAddress.lean` | `lib/mixin_bot/address.rb` (`MainAddress`, lines 159–212) | T2 | 3 (Lean spec) | 4 + 2 examples | 2 | 0 (axiom-only) |
 | `FVSquad/MixAddress.lean` | `lib/mixin_bot/address.rb` (`MixAddress`, lines 10–157) | T2 | 1 (research only) | — | — | — |
 
@@ -38,20 +38,24 @@ Test oracle: `test/mixin_bot/test_uuid.rb` (canonical pairs `965e5c6e-…-955c` 
 |-----------------|-----------------|-----------|-------|-------|
 | `Byte := Fin 256` | (implicit, Ruby's `String#bytes`) | n/a | abstraction | Ruby uses a `String`; the Lean model uses `List (Fin 256)`. The `Fin 256` constraint replaces Ruby's `b.is_a?(Integer) && 0 <= b < 256` precondition on the bit conversion. |
 | `UUIDBytes := { bs : List Byte // bs.length = 16 }` | `@raw` field | `uuid.rb:43, 85–88` | abstraction | The Ruby `@raw` is a `String` of length 16; the Lean model captures the length-16 invariant as a subtype. The `present?` handling and `InvalidUuidFormatError` raise are not modelled. |
-| `Hex32 := String` | `@hex` field (post `gsub('-', '')`) | `uuid.rb:40, 88, 105` | abstraction | The Ruby `@hex` is 32 chars; the Lean type captures the *behaviour* (32 chars) but not the structural subtype (a bare `String` is used; length is enforced by `bytesToHex_length` axiom). |
-| `DashedUUID := String` | `unpacked` return | `uuid.rb:102–118` | abstraction | Same as above; length is enforced by `formatDashed_length` axiom. |
-| `axiom bytesToHex : List Byte → Hex32` | `[raw].pack('H*')` (or `raw.unpack1('H*')`) | `uuid.rb:88, 107` | approximation | Modelled as a black-box function with the round-trip property axiomatised. |
-| `axiom hexToBytes : Hex32 → List Byte` | (inverse of `bytesToHex`, used implicitly) | n/a | approximation | Same as above. |
-| `axiom formatDashed : Hex32 → DashedUUID` | `format('%<first>s-…', ...)` | `uuid.rb:110–117` | approximation | Modelled as a black-box function. The 8-4-4-4-12 grouping and dash insertion are abstract. |
-| `axiom stripDashes : DashedUUID → Hex32` | `hex.gsub('-', '')` | `uuid.rb:71, 88, 105` | approximation | Modelled as a black-box function. |
+| `Hex32 := String` | `@hex` field (post `gsub('-', '')`) | `uuid.rb:40, 88, 105` | abstraction | The Ruby `@hex` is 32 chars; the Lean type captures the *behaviour* (32 chars) but not the structural subtype (a bare `String` is used; length is enforced by the concrete `bytesToHex_length` theorem, currently `sorry`). |
+| `DashedUUID := String` | `unpacked` return | `uuid.rb:102–118` | abstraction | Same as above; length is enforced by `formatDashed_length`, currently `sorry`. |
+| `def hexDigit (n : Nat) : Char` | (one nibble → lowercase hex char) | implicit | exact | Models the standard `0..9 → '0'..'9'`, `10..15 → 'a'..'f'` mapping. |
+| `def bytesToHexAux : List Byte → List Char` | `[raw].pack('H*')` per byte | `uuid.rb:88, 107` | exact | Two lowercase hex chars per byte, MSB-first. |
+| `def bytesToHex (bs : List Byte) : Hex32` | `[raw].pack('H*')` | `uuid.rb:88, 107` | exact | **Concrete (run 7)**; previously an `axiom`. `String.ofList (bytesToHexAux bs)`. |
+| `def hexCharToDigit (c : Char) : Fin 16` | one hex char → nibble | implicit | exact | `0..9 → 0..9`, `a..f → 10..15`. Invalid chars default to `0` (callers must pre-validate). |
+| `def hexToBytesAux : List Char → List Byte` | hex pairs → bytes | implicit | exact | Consumes two chars at a time; `h*16+l` reconstructs the byte. |
+| `def hexToBytes (s : Hex32) : List Byte` | (inverse of `bytesToHex`, used implicitly) | n/a | exact | **Concrete (run 7)**; previously an `axiom`. `hexToBytesAux s.toList`. |
+| `def formatDashed (s : Hex32) : DashedUUID` | `format('%<first>s-…', ...)` | `uuid.rb:110–117` | exact | **Concrete (run 7)**; previously an `axiom`. Uses `String.intercalate "-" [s.take 8, ..., s.drop 20]`. |
+| `def stripDashes (s : DashedUUID) : Hex32` | `hex.gsub('-', '')` | `uuid.rb:71, 88, 105` | exact | **Concrete (run 7)**; previously an `axiom`. `String.ofList (s.toList.filter (· != '-'))`. |
 | `def packed (b : UUIDBytes) : UUIDBytes := b` | `def packed; if raw.present?; raw; elsif hex.present?; [hex.gsub('-', '')].pack('H*'); end; end` | `uuid.rb:84–90` | abstraction | The Lean model takes a 16-byte `UUIDBytes` and returns the same bytes. The Ruby code branches on `raw.present?` / `hex.present?`; the Lean model abstracts over the storage form and assumes the input is already the 16-byte form. |
-| `noncomputable def unpacked (b : UUIDBytes) : DashedUUID := formatDashed (bytesToHex b.val)` | `def unpacked; _hex = raw.unpack1('H*'); format(..., first: _hex[0..7], second: _hex[8..11], ...); end` | `uuid.rb:102–118` | abstraction | The Ruby code also handles the `hex.present?` branch (returning the input with dashes); the Lean model only handles the `raw.present?` branch. The `with_indifferent_access` and `present?` semantics are abstracted away. |
-| `axiom bytesToHex_hexToBytes` | (round-trip property) | implicit | approximation | Asserts the hex ⇔ byte bijection; a Ruby invariant baked into the gem's tests. |
-| `axiom hexToBytes_bytesToHex` | (round-trip property) | implicit | approximation | Same as above. |
-| `axiom formatDashed_stripDashes` | (round-trip property) | implicit | approximation | Asserts the dashed ⇔ undashed bijection. |
-| `axiom bytesToHex_length` | `raw.size == 16` (the test indirectly pins this) | `uuid.rb:70` | approximation | Asserts the hex form is 32 chars. |
-| `axiom formatDashed_length` | `'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.size == 36` | implicit | approximation | Asserts the dashed form is 36 chars. |
-| `theorem unpacked_packed` (`sorry`) | `unpacked` then re-parse round-trip | implicit | abstract proof | The headline property; the proof obligation reduces to composing the four round-trip axioms. |
+| `def unpacked (b : UUIDBytes) : DashedUUID := formatDashed (bytesToHex b.val)` | `def unpacked; _hex = raw.unpack1('H*'); format(..., first: _hex[0..7], second: _hex[8..11], ...); end` | `uuid.rb:102–118` | abstraction | The Ruby code also handles the `hex.present?` branch (returning the input with dashes); the Lean model only handles the `raw.present?` branch. The `with_indifferent_access` and `present?` semantics are abstracted away. |
+| `theorem bytesToHex_hexToBytes` (`sorry`) | (round-trip property) | implicit | abstract proof | Hex ⇔ byte bijection. Was an `axiom` in run 6; converted to `theorem` in run 7. Proof is blocked on the `hexCharToDigit ∘ hexDigit` key lemma (requires `Char.ofNat.toNat` reduction, opaque in Lean 4.31 without Mathlib). |
+| `theorem hexToBytes_bytesToHex` (`sorry`) | (round-trip property) | implicit | abstract proof | Reverse direction. Was an `axiom` in run 6. Same blocking issue as above. |
+| `theorem formatDashed_stripDashes` (`sorry`) | (round-trip property) | implicit | abstract proof | Dashed ⇔ undashed bijection. Was an `axiom` in run 6. |
+| `theorem bytesToHex_length` (`sorry`) | `raw.size == 16` (the test indirectly pins this) | `uuid.rb:70` | abstract proof | Hex form is 32 chars. Was an `axiom` in run 6. Blocked on `(String.ofList cs).length = cs.length`, opaque in Lean 4.31 without Mathlib. |
+| `theorem formatDashed_length` (`sorry`) | `'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.size == 36` | implicit | abstract proof | Dashed form is 36 chars. Was an `axiom` in run 6. Depends on `bytesToHex_length` and `String.intercalate` length lemmas. |
+| `theorem unpacked_packed` (`sorry`) | `unpacked` then re-parse round-trip | implicit | abstract proof | The headline property; the proof obligation reduces to composing `bytesToHex_hexToBytes` + `formatDashed_stripDashes`. |
 | `theorem unpacked_preserves_bytes` (`sorry`) | same | implicit | abstract proof | Length-16 preservation. |
 
 ### Divergences
@@ -63,12 +67,14 @@ Test oracle: `test/mixin_bot/test_uuid.rb` (canonical pairs `965e5c6e-…-955c` 
 ### Impact on proofs
 
 - `unpacked_packed` and `unpacked_preserves_bytes` are `sorry`-guarded. Once proved, they would imply the canonical 16 bytes are preserved by `unpacked`. They are *weaker* than the Ruby `packed ∘ unpacked` round-trip, which would also cover the `hex.present?` branch.
-- The four `axiom`s (hex round-trip, format-dash round-trip, two length lemmas) carry the entire bit-level implementation. The Lean proofs would stand or fall on the correctness of these axioms; for full assurance, they would need to be discharged by a verified hex/dash codec in Mathlib or by extracting the Ruby code to Lean and proving the equivalence.
+- The five `theorem`s (hex round-trip, format-dash round-trip, two length lemmas, hex ⇔ bytes reverse round-trip) are now `sorry`-guarded in place of the previous `axiom`s (run 7). The Lean proofs would stand or fall on the correctness of these theorems; the **24 `#guard` byte-level checks** in `Correspondence.lean` validate the concrete definitions against live Ruby output for 6 UUID fixtures.
 
 ### Validation evidence
 
-- **No executable harness yet.** The `test/mixin_bot/test_uuid.rb` golden pairs are pinned against the Ruby `UUID` class; a future Task 8 Route B run would extract those pairs and run the Lean model on them.
-- The Lean `examples` in `FVSquad/UUID.lean` are largely `axiom`s, not `native_decide` examples, because the underlying conversion functions are abstracted. Adding `native_decide` examples for the dashed format would require concrete hex strings, which is a future-run task.
+- **Executable harness** (`formal-verification/lean/FVSquad/Correspondence.lean:138–225`, added in run 7). The 6 UUID fixtures in `formal-verification/tests/tier1_codecs/fixtures.json` record the live Ruby `UUID#packed` / `UUID#unpacked` byte output. Each `#guard` is the Lean ↔ Ruby byte equality check; failures fail the `lake build`. **24 of 24 `#guard`s pass on `main`.** Coverage:
+  - 4 checks per UUID: `bytesToHex <bytes> = <hex>`, `hexToBytes <hex> = <bytes>`, `formatDashed <hex> = <dashed>`, `stripDashes <dashed> = <hex>`.
+  - 6 UUIDs: zero UUID `00000000-…`, max UUID `ffffffff-…`, and 4 representative random UUIDs.
+- `bytesToHex ∘ hexToBytes = id` and `formatDashed ∘ stripDashes = id` (round-trip properties) are also `#guard`-tested on each fixture, providing independent confirmation that the concrete definitions are mutually consistent.
 
 ---
 
@@ -256,12 +262,12 @@ Discharging these axioms is *the* work of Phases 4–5 for each target.
 
 | Target | Level | Divergences | Impact on proofs | Validation evidence |
 |--------|-------|-------------|------------------|---------------------|
-| `UUID` | abstraction + 5 axioms | 3 (present?, InvalidUuidFormatError, storage polymorphism) | moderate — axioms carry the bit-level impl | none yet (axiom-only) |
-| `Varint` | exact | 1 (no ArgumentError raise) | low — `encodeInt` is a faithful translation | 7 `native_decide` examples |
-| `UintCodec` | exact (with comment-only bug) | 3 (`Bounded` subtype, endiness comment, length-mismatch handling) | low | 10 `native_decide` examples |
+| `UUID` | exact | 3 (present?, InvalidUuidFormatError, storage polymorphism) | low — concrete defs validated by 24 `#guard`s | 24 `#guard`s (run 7) |
+| `Varint` | exact | 1 (no ArgumentError raise) | low — `encodeInt` is a faithful translation | 7 `native_decide` examples + 26 `#guard`s |
+| `UintCodec` | exact (with comment-only bug) | 3 (`Bounded` subtype, endiness comment, length-mismatch handling) | low | 10 `native_decide` examples + 45 `#guard`s |
 | `MainAddress` | abstraction + 4 axioms | 5 (axioms, totalisation, defensive check, no `burning_address`, no init raise) | high — axioms carry the third-party impl | none yet (axiom-only) |
 
-No mismatches. All four Lean models are sound approximations of the Ruby code; the axioms are clearly documented and dischargeable.
+No mismatches. All four Lean models are sound approximations of the Ruby code; the UUID axioms have been discharged (run 7) in favour of concrete `#eval`-able definitions; the MainAddress axioms remain and are clearly documented.
 
 ---
 
@@ -269,25 +275,29 @@ No mismatches. All four Lean models are sound approximations of the Ruby code; t
 
 The `formal-verification/tests/tier1_codecs/` directory (added in run 6) provides
 **executable, repeatable** correspondence validation for the Tier 1 codecs
-(`encode_int` / `decode_int` and `encode_uint16/32/64` / `decode_uint16/32/64`).
+(`encode_int` / `decode_int`, `encode_uint16/32/64` / `decode_uint16/32/64`,
+and — since run 7 — `bytesToHex` / `hexToBytes` / `formatDashed` /
+`stripDashes` for UUID).
 
-- **77 `#guard` byte-level checks** in `FVSquad/Correspondence.lean` that
-  fail at compile time (`lake build`) if the Lean model disagrees with
-  the Ruby implementation on any of the 77 (input, expected bytes) pairs.
+- **101 `#guard` byte-level checks** in `FVSquad/Correspondence.lean`
+  that fail at compile time (`lake build`) if the Lean model disagrees
+  with the Ruby implementation. Breakdown:
+  - 26 Varint (`encode_int` / `decode_int` round-trip and length checks)
+  - 45 UintCodec (`encode_uint16/32/64` / `decode_uint16/32/64` round-trip and length checks)
+  - 24 UUID (`bytesToHex` / `hexToBytes` / `formatDashed` / `stripDashes` × 6 fixtures, including 0-byte and 255-byte boundary cases)
+  - 6 length cross-checks
 - **`ruby_harness.rb`** generates `fixtures.json` from the live Ruby
-  implementation. The 77 expected byte values in the `#guard`s match
+  implementation. The 101 expected byte values in the `#guard`s match
   `fixtures.json` byte-for-byte.
 - **`run.sh`** is the end-to-end entry point: regenerates the fixtures
   and runs `lake build`. Exit code 0 = both sides agree.
 
-The harness currently covers **Varint and UintCodec**. UUID and
-`MainAddress` are not covered because their Lean models depend on
-`noncomputable` axioms (`bytesToHex` / `formatDashed` / `sha3_256` /
-`base58Encode` / `base58Decode`) and cannot be `#eval`-ed in Lean 4 in
-their current form. Extending the harness to UUID requires discharging
-the 9 axioms in `UUID.lean` with a concrete `bytesToHex` /
-`formatDashed` implementation (Phase 4 work for `UUID`).
+The harness currently covers **Varint, UintCodec, and UUID**. `MainAddress`
+is not covered because its Lean model depends on `noncomputable` axioms
+(`sha3_256` / `base58Encode` / `base58Decode`) and cannot be `#eval`-ed
+in Lean 4 in its current form. Extending the harness to `MainAddress`
+requires discharging those 5 axioms (Phase 4 work for `MainAddress`).
 
-**Validation status (run 6)**: 77/77 checks pass on the live Ruby
+**Validation status (run 7)**: 101/101 checks pass on the live Ruby
 output. See `formal-verification/tests/tier1_codecs/README.md` for
 the full coverage table.
