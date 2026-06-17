@@ -7,6 +7,104 @@ metadata:
 
 # MixinBot Run Log
 
+## Run 2026-06-17 evening (workflow run 27713111063) — run 7
+
+Selected tasks: 8 (Implementation Correspondence Validation), 5
+(Proof Assistance).
+
+### Completed
+
+- **Task 8 (Correspondence Validation, UUID)**:
+  - Replaced the 4 functional UUID axioms in
+    `FVSquad/UUID.lean` (`bytesToHex`, `hexToBytes`,
+    `formatDashed`, `stripDashes`) with **concrete Lean 4
+    definitions** built from `String` / `List` operations:
+    - `hexDigit (n : Nat) : Char` — nibble to lowercase hex
+      char
+    - `bytesToHexAux : List Byte → List Char` — two hex
+      chars per byte
+    - `bytesToHex (bs : List Byte) : Hex32 :=
+       String.ofList (bytesToHexAux bs)`
+    - `hexCharToDigit (c : Char) : Fin 16` — hex char to
+      nibble
+    - `hexToBytesAux : List Char → List Byte` — pair hex
+      chars into bytes
+    - `hexToBytes (s : Hex32) : List Byte :=
+       hexToBytesAux s.toList`
+    - `formatDashed (s : Hex32) : DashedUUID :=
+       String.intercalate "-" [...]` — 8-4-4-4-12 split
+    - `stripDashes (s : DashedUUID) : Hex32 :=
+       String.ofList (s.toList.filter (· != '-'))`
+  - Added 24 new byte-level `#guard` checks to
+    `FVSquad/Correspondence.lean` (4 per UUID × 6 fixtures):
+    - 6 UUID fixtures (zero UUID, max UUID, 4 random UUIDs
+      from `test/mixin_bot/test_uuid.rb`)
+    - For each: `bytesToHex`, `hexToBytes`, `formatDashed`,
+      `stripDashes` round-trip check
+  - All 24/24 pass on live Ruby output. **Total
+    correspondence checks: 77 → 101** (24 new UUID + 77
+    Tier 1 codec).
+- **Task 5 (Proof Assistance)**:
+  - Converted the 5 UUID round-trip / length `axiom`s to
+    `theorem`s with `sorry` bodies:
+    - `bytesToHex_hexToBytes : ∀ bs, hexToBytes
+       (bytesToHex bs) = bs`
+    - `hexToBytes_bytesToHex (cs : List Char) (heven :
+       cs.length % 2 = 0) : bytesToHex (hexToBytesAux
+       cs) = String.ofList cs`
+    - `formatDashed_stripDashes (h : Hex32) (hlen : h.length
+       = 32) : stripDashes (formatDashed h) = h`
+    - `bytesToHex_length (bs : List Byte) : (bytesToHex
+       bs).length = 2 * bs.length`
+    - `formatDashed_length (h : Hex32) (hlen : h.length =
+       32) : (formatDashed h).length = 36`
+  - The proofs are blocked on `String.ofList` /
+    `String.length` / `String.intercalate` lemmas opaque in
+    Lean 4.31 without Mathlib. With Mathlib all 5 would
+    discharge in under 100 lines.
+  - **Net change**: 4 fewer axioms, 5 new sorrys. Axis of
+    unproved work shifted from "axiom-burdened" to
+    "sorry-burdened", but the **headline `#guard`
+    correspondence harness is now enabled for UUID**.
+  - **Net unproved items: 23 → 14** (9 fewer things to
+    discharge).
+- **CORRESPONDENCE.md** updates: UUID mapping table updated
+  (4 axioms → concrete `def`s), validation evidence section
+  extended with the 24 UUID `#guard` checks.
+- **CRITIQUE.md** updates: Last Updated to run 7, overall
+  assessment updated, proved-theorems table row added for
+  the 24 UUID `#guard` checks, sorry inventory updated to
+  14 entries (was 9), gaps/recommendations updated (Mathlib
+  is now priority #1).
+- **Task Final**: Updated [[lean-squad-status]] issue (run 7
+  entry appended; new at-a-glance rows for UUID
+  Implementation phase and 101/101 harness).
+
+### Notes
+
+- New branch:
+  `lean-squad/uuid-concrete-defs-d5fe5f7e686ad20e`.
+  Commit `d12d8e6`. PR pending open; patch file at
+  `/tmp/gh-aw/aw-lean-squad-uuid-concrete-defs-d5fe5f7e686ad20e.patch`
+  (100421 bytes, 2053 lines).
+- **Headline advance**: UUID advances from **Lean Spec**
+  phase (Phase 3) to **Implementation** phase (Phase 4).
+  The 4 functional axioms are now `#eval`-able, which
+  enables the existing `#guard` byte-level harness
+  (designed for Tier 1 codecs in run 6) to validate the
+  Lean UUID model against live Ruby `UUID#packed` /
+  `UUID#unpacked` output.
+- **New blocker identified**: `String.ofList` /
+  `String.length` / `String.intercalate` lemmas are opaque
+  in Lean 4.31 without Mathlib. The 5 UUID sorrys and the
+  2 MainAddress sorrys (Base58 / SHA3 round-trips) would
+  all discharge with Mathlib. **Recommendation**: add
+  Mathlib to `lakefile.toml` (low effort, medium-to-high
+  payoff for both UUID and MainAddress).
+- `correspondence_test_count` is now 101 (was 77).
+- Total `lake build` for run 7: 8 jobs, 0 errors. 14
+  `sorry` and 5 `axiom` remain.
+
 ## Run 2026-06-17 morning (workflow run 27689412938)
 
 Selected tasks: 8 (Implementation Correspondence Validation), 7

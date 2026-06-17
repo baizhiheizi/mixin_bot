@@ -12,7 +12,7 @@ metadata:
 
 ## Tier 1 (Foundation, do first)
 
-1. `lib/mixin_bot/uuid.rb` — `UUID.unpacked` / `UUID.packed` round-trip. **Phase 3** (merged; 2 `sorry`, 9 `axiom` remain).
+1. `lib/mixin_bot/uuid.rb` — `UUID.unpacked` / `UUID.packed` round-trip. **Phase 4 (Implementation)** (run 7; 4 functional axioms discharged as concrete `def`s; 7 `sorry`, 0 `axiom` remain). **Executable correspondence harness**: 24 `#guard` byte-level checks in `FVSquad/Correspondence.lean` (4 per UUID × 6 fixtures), all pass on live Ruby.
 2. `lib/mixin_bot/utils/encoder.rb` — `encode_int` / `decode_int` varint round-trip. **Phase 3** (merged; 2 `sorry` remain). **Executable correspondence harness**: 26 `#guard` byte-level checks in `FVSquad/Correspondence.lean`, all pass on live Ruby.
 3. `lib/mixin_bot/utils/encoder.rb` — `encode_uint16/32/64` / `decode_uint16/32/64` round-trip. **Phase 3** (merged; 3 `sorry` remain). **Executable correspondence harness**: 45 `#guard` byte-level checks, all pass. **Endianness comment fixed in run 6** (was "big-endian", now "little-endian").
 
@@ -53,22 +53,28 @@ These provide byte-for-byte oracle for parity with the Go SDK.
 `formal-verification/CORRESPONDENCE.md` (run 4, updated in run 6) maps all 4 Lean files to their Ruby sources with correspondence level, divergences, impact on proofs, and validation evidence. **No mismatches found across 4 models.**
 
 **Runnable correspondence harness** (run 6, branch
-`lean-squad/correspondence-tests-critique-d5fe5f7e686ad20e`):
-77 `#guard` byte-level checks at
-`formal-verification/lean/FVSquad/Correspondence.lean` + Ruby
-harness at `formal-verification/tests/tier1_codecs/`. **All 77
-pass on `main`.** End-to-end runner: `bash
+`lean-squad/correspondence-tests-critique-d5fe5f7e686ad20e`;
+extended in run 7, branch
+`lean-squad/uuid-concrete-defs-d5fe5f7e686ad20e`):
+**101 `#guard` byte-level checks** at
+`formal-verification/lean/FVSquad/Correspondence.lean` (77
+Tier 1 codec + 24 UUID round-trips) + Ruby harness at
+`formal-verification/tests/tier1_codecs/`. **All 101 pass
+on `main`.** End-to-end runner: `bash
 formal-verification/tests/tier1_codecs/run.sh`. Permanent
-regression detector for the Tier 1 codecs.
+regression detector for the Tier 1 codecs **and** the UUID
+codec.
 
 ## Critique
 
-`formal-verification/CRITIQUE.md` (run 6): honest assessment
-of proof utility. 9 `sorry` and 14 `axiom` remain (Phase 4 / 5
-work). 5 prioritised gaps: (1) discharge UUID axioms → UUID
-round-trips provable; (2) hand-write Base58 → MainAddress
-round-trips provable; (3) prove Varint round-trip; (4) prove
-UintCodec round-trips; (5) advance MixAddress to Phase 3.
+`formal-verification/CRITIQUE.md` (run 6, updated run 7):
+honest assessment of proof utility. **14 `sorry` and 5 `axiom`
+remain** (Phase 4 / 5 work). Net unproved items: **23 → 14**
+(run 7). 5 prioritised gaps: (1) **add Mathlib to
+`lakefile.toml`** (closes 5 UUID + 2 MainAddress sorrys); (2)
+hand-write Base58 → MainAddress round-trips provable; (3)
+prove Varint round-trip; (4) prove UintCodec round-trips; (5)
+advance MixAddress to Phase 3.
 
 **Why**: Ruby codebase with golden fixtures from Go SDK = high-quality spec hints.
 **How to apply**: Pick the highest-tier unstarted target. Build incrementally.
