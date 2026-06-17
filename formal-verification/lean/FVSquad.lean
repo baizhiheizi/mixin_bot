@@ -9,3 +9,4 @@ import FVSquad.Varint
 import FVSquad.UintCodec
 import FVSquad.UUID
 import FVSquad.MainAddress
+import FVSquad.Correspondence
