@@ -226,7 +226,7 @@ Correspondence will be added once the Lean spec is written. The key corresponden
 ### Validation routes
 
 - **Route A (Aeneas/Charon)**: not applicable. The codebase is Ruby, and Aeneas is a Rust-to-Lean extractor. The `has_rust: false` flag in `task_selection.json` confirms this.
-- **Route B (executable correspondence tests)**: applicable and **now live** at `formal-verification/tests/tier1_codecs/`. The Ruby harness (`ruby_harness.rb`) exercises the Ruby implementation on 84 input/output pairs; the Lean harness (`FVSquad/Correspondence.lean`) contains 77 `#guard` statements that fail at compile time if the Lean model disagrees with the Ruby output. Run via `bash formal-verification/tests/tier1_codecs/run.sh`. **Current status: 77/77 pass on `main`.**
+- **Route B (executable correspondence tests)**: applicable and **now live** at `formal-verification/tests/tier1_codecs/`. The Ruby harness (`ruby_harness.rb`) exercises the Ruby implementation on 84 input/output pairs; the Lean harness (`FVSquad/Correspondence.lean`) contains 101 `#guard` statements that fail at compile time if the Lean model disagrees with the Ruby output. Run via `bash formal-verification/tests/tier1_codecs/run.sh`. **Current status: 101/101 pass on `main`.**
 
 ### What would *invalidate* a proved theorem
 
@@ -238,23 +238,20 @@ The Lean files use the following `axiom`s:
 
 | File | Axiom | What it asserts | How to discharge |
 |------|-------|-----------------|------------------|
-| `UUID.lean` | `bytesToHex_hexToBytes` | hex ⇔ byte round-trip | Define `bytesToHex` concretely (e.g. `List.map` over the 16 `Byte`s) and prove the round-trip with `decide`. |
-| `UUID.lean` | `hexToBytes_bytesToHex` | reverse direction | Same. |
-| `UUID.lean` | `formatDashed_stripDashes` | dashed ⇔ undashed | Define `formatDashed` as `fun h => h.take 8 ++ "-" ++ h.drop 8 |>.take 4 ++ "-" ++ ...` and prove. |
-| `UUID.lean` | `bytesToHex_length` | hex length is 32 | `rfl` once `bytesToHex` is concrete. |
-| `UUID.lean` | `formatDashed_length` | dashed length is 36 | Same. |
 | `MainAddress.lean` | `sha3_256` | SHA3-256 exists | Use a verified SHA3 implementation (e.g. `crypto-bytes` Lean lib) or axiomatise as opaque. |
 | `MainAddress.lean` | `base58Encode` | Base58 exists | Same. |
 | `MainAddress.lean` | `base58Decode` | Base58 decode exists | Same. |
 | `MainAddress.lean` | `base58Encode_decode` | Base58 round-trip | Use the same library as above and prove the round-trip. |
 | `MainAddress.lean` | `mainAddressPrefix_startsWith` | `(prefix ++ s).startsWith prefix = true` | `List.append_prefix_startsWith`-style lemma; should be `rfl`-like in Lean 4's `String` API. |
 
+`UUID.lean` has **0 axioms** as of run 7; the former UUID axioms are concrete `def`s with `sorry`-guarded `theorem`s.
+
 Discharging these axioms is *the* work of Phases 4–5 for each target.
 
 ### CI status
 
 - `.github/workflows/lean-ci.yml` exists and triggers on changes to `formal-verification/lean/**` (see `formal-verification/RESEARCH.md` §7 for the run history).
-- The CI runs `lake build` on the Lean files; the 9 `sorry` axioms / theorems across the four files are flagged by the build but do not fail it. Discharging them would shrink the `sorry` count to 0 and the CI would then be a true correctness check.
+- The CI runs `lake build` on the Lean files; the 14 `sorry` theorems across the four files are flagged by the build but do not fail it. Discharging them would shrink the `sorry` count to 0 and the CI would then be a true correctness check.
 
 ---
 

@@ -96,4 +96,4 @@ build error.
 - **Date**: 2026-06-17
 - **Branch**: `lean-squad/correspondence-tests-critique-d5fe5f7e686ad20e`
 - **Toolchain**: Lean 4.31.0 (stable), Ruby 4.0.5
-- **Status**: ✓ 77/77 correspondence checks pass
+- **Status**: ✓ 101/101 correspondence checks pass

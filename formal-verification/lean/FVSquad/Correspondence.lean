@@ -14,12 +14,9 @@
   checked at compile time, `lake build` is the pass/fail check: any
   mismatch fails the build.
 
-  The UUID codec uses `noncomputable` axioms in `FVSquad.UUID` and is
-  not `#eval`-able in its current form. It is verified by the round-trip
-  `sorry`s in `UUID.lean` and the existing test oracle in
-  `test/mixin_bot/test_uuid.rb`. The Ruby `UUID#packed` / `UUID#unpacked`
-  outputs are captured in the fixture for future direct comparison
-  once a concrete `bytesToHex` / `formatDashed` is supplied.
+  The UUID codec is verified by 24 byte-level `#guard` checks against
+  live Ruby output from `fixtures.json`, plus round-trip `sorry`s in
+  `UUID.lean` and the existing test oracle in `test/mixin_bot/test_uuid.rb`.
 -/
 
 import FVSquad.Varint

@@ -54,9 +54,9 @@ Base58 (~250 lines of Lean 4).
 ## Proved theorems (Lean 4 / Mathlib 0 / Init+Std only)
 
 The four Lean files contain **18 theorem declarations** total, of which
-**9 are `sorry`** and **9 are proved** (4 `rfl`/`simp`/`intro` proofs +
+**14 are `sorry`** and **9 are proved** (4 `rfl`/`simp`/`intro` proofs +
 5 `native_decide` examples classified as round-trip checks). Plus
-**77 `#guard` byte-level checks** in `FVSquad/Correspondence.lean` that
+**101 `#guard` byte-level checks** in `FVSquad/Correspondence.lean` that
 are checked at compile time via `lake build`.
 
 | # | Theorem / Example | File | Level | Bug-catching | Status |
@@ -92,7 +92,7 @@ are checked at compile time via `lake build`.
   was changed from `'XIN'` to `'xin'`).
 - **`#guard` byte-level checks** (Correspondence.lean): the strongest
   evidence. They prove the Lean model and the Ruby model produce
-  *byte-for-byte identical output* on the 77 specific (input, output)
+  *byte-for-byte identical output* on the 101 specific (input, output)
   pairs. The `lake build` exit code is the pass/fail signal.
 
 ### `sorry`-guarded theorems (Phase 4–5 work)
@@ -193,7 +193,7 @@ In order of highest value:
   correspondence cross-check on UUID (now in place) as a template
   for the MainAddress work; introduce a similar harness once Base58
   is concrete.
-- **The 9 `sorry` round-trip theorems**: `lake build` passes with
+- **The 14 `sorry` round-trip theorems**: `lake build` passes with
   them in place (Lean 4 does not require `sorry`s to be discharged
   for the build to succeed). The current CI does **not** fail on
   `sorry`. **Action**: add a `sorry`-count check to `lean-ci.yml`
