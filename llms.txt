@@ -1,6 +1,6 @@
 # MixinBot
 
-> Ruby SDK and CLI for Mixin Network: Safe UTXO transfers, REST API, Blaze messaging, transaction crypto, optional MVM helpers. Ruby >= 3.2. Gem version 2.2.1.
+> Ruby SDK and CLI for Mixin Network: Safe UTXO transfers, REST API, Blaze messaging, transaction crypto, optional MVM helpers. Ruby >= 3.2. Gem version 2.3.0.
 
 Important notes:
 
