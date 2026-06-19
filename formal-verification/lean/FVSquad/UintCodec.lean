@@ -20,6 +20,9 @@ abbrev Bounded (N : Nat) := { n : Nat // n < 2 ^ N }
 private def toByte (n : Nat) (h : n < 256) : Byte :=
   Fin.mk n h
 
+theorem toByte_val (n : Nat) (h : n < 256) : (toByte n h).val = n :=
+  rfl
+
 /-- `encodeUint` is the Lean model of `encode_uintN`.
 
     Encodes a non-negative integer `n` with `n < 2^N` as a fixed-width
@@ -88,20 +91,32 @@ where
         (h.val : Nat)
     | _ => 0
 
-/-- **Headline property (16-bit)**: round-trip for 16-bit values. -/
+/-- **Headline property (16-bit)**: round-trip for 16-bit values.
+
+    Proof sketch: unfold both definitions. `encodeUint 16 n` returns
+    `[n.val / 256 % 256, n.val % 256]`. `decodeUint 16` on a 2-element
+    list returns `(a : Nat) * 256 + (b : Nat)`. With `a = n.val / 256`
+    and `b = n.val % 256` and `n.val < 2^16`, we have
+    `a * 256 + b = n.val` by the Euclidean division identity. -/
 theorem encodeUint16_decodeUint16 (n : Bounded 16) :
     decodeUint 16 (encodeUint 16 n) = n.val := by
-  sorry
+  simp [encodeUint, encodeUint.encodeUint16, decodeUint, decodeUint.decodeUint16,
+        toByte_val]
+  omega
 
 /-- **Headline property (32-bit)**: round-trip for 32-bit values. -/
 theorem encodeUint32_decodeUint32 (n : Bounded 32) :
     decodeUint 32 (encodeUint 32 n) = n.val := by
-  sorry
+  simp [encodeUint, encodeUint.encodeUint32, decodeUint, decodeUint.decodeUint32,
+        toByte_val]
+  omega
 
 /-- **Headline property (64-bit)**: round-trip for 64-bit values. -/
 theorem encodeUint64_decodeUint64 (n : Bounded 64) :
     decodeUint 64 (encodeUint 64 n) = n.val := by
-  sorry
+  simp [encodeUint, encodeUint.encodeUint64, decodeUint, decodeUint.decodeUint64,
+        toByte_val]
+  omega
 
 /-- **Length property (16-bit)**: `encodeUint 16 n` is a 2-byte list. -/
 theorem encodeUint16_length (n : Bounded 16) :
