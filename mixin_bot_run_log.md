@@ -7,6 +7,91 @@ metadata:
 
 # MixinBot Run Log
 
+## Run 2026-06-19 (workflow run 27825890229) — run 9
+
+Selected tasks: 7 (Proof Utility Critique), 5 (Proof Assistance).
+
+### Completed
+
+- **Task 5 (Proof Assistance — Varint round-trip)**:
+  - **Discharged both remaining Varint sorrys** in
+    `FVSquad/Varint.lean`:
+    - `decodeInt_encodeIntHelper (k : Nat) (acc : List Byte) :
+       decodeInt (encodeInt.encodeIntHelper k acc) =
+       k * 256 ^ acc.length + decodeInt acc` — the key
+       lemma; proved by `Nat.strongRecOn` on `k`,
+       generalizing `acc`. Inductive step uses
+       `Nat.div_lt_of_lt_mul` (valid since
+       `(k'+1) / 256 < k'+1`), then applies the
+       induction hypothesis with the smaller
+       `(k'+1) / 256` and the new accumulator
+       `b :: acc` (`b = ⟨(k'+1) % 256, by omega⟩`).
+       After `simp only [decodeInt]`, the goal becomes
+       a two-product sum on `256^acc.length` which is
+       folded via `← Nat.mul_add`, then reduced via
+       `Nat.div_add_mod (k'+1) 256` to the goal.
+    - `encodeInt_decodeInt (n : Nat) :
+       decodeInt (encodeInt n) = n` — the headline
+       round-trip. Case analysis on `n`: `n = 0` is
+       `simp [encodeInt, decodeInt]`; `n = n' + 1`
+       unfolds `encodeInt` to
+       `encodeInt.encodeIntHelper (n'+1) []`, applies
+       the helper lemma with `acc := []`, then
+       simplifies using `List.length_nil = 0`,
+       `Nat.pow_zero = 1`, `Nat.mul_one`.
+  - **Varint codec advances from Lean Spec to
+    Implementation phase (2 `sorry` → 2 theorems)**.
+  - **Net unproved items: 11 → 9** (2 fewer things to
+    discharge).
+  - File restructured: helper lemma `decodeInt_encodeIntHelper`
+    moved ahead of the headline `encodeInt_decodeInt` to
+    avoid a forward-reference error in Lean 4.
+  - Minor cleanup: removed an unused `simp` argument
+    (`decodeInt`) from a `simp` call to silence the
+    `linter.unusedSimpArgs` warning.
+
+- **Task 7 (Proof Utility Critique)**:
+  - Updated `formal-verification/CRITIQUE.md` to reflect
+    run 9 state. Added 2 new proved-theorems rows
+    (`encodeInt_decodeInt` mid-high level,
+    `decodeInt_encodeIntHelper` mid level), removed
+    Varint from the recommended-gaps list, updated sorry
+    inventory from 14 → 9 (was 11 after run 8),
+    expanded the "Approach Notes" with the run 9
+    proof technique (`Nat.strongRecOn` over
+    `Nat.strong_induction_on`, since the latter is not
+    in Lean 4.31 without Mathlib).
+  - Updated "What does each proved property actually
+    catch?" to flag that `encodeInt_decodeInt` (new in
+    run 9) is now the strongest Varint property — the
+    encoder is a left inverse of the decoder for all
+    non-negative integers, catching byte-order bugs,
+    modulo off-by-ones, and missing carries.
+
+- **Task Final**: Updated [[lean-squad-status]] issue #93
+  with the run 9 entry, the corrected at-a-glance table
+  (Varint now ✅ Done at Implementation phase), and the
+  headline "Varint codec advances to Implementation phase".
+
+### Notes
+
+- New branch: `lean-squad/run-9-varint-proof-d5fe5f7e686ad20e`.
+  Commit `8f3eb29`. PR opened via `safeoutputs` workflow;
+  patch file at
+  `/tmp/gh-aw/aw-lean-squad-run-9-varint-proof-d5fe5f7e686ad20e.patch`
+  (~28 KB, 454 lines).
+- Total `lake build` for run 9: 8 jobs, 0 errors. **9
+  `sorry` and 5 `axiom` remain** (was 11 and 5). Of the 9
+  remaining sorries: 7 in `UUID.lean` (blocked on
+  `String.ofList` / `String.length` / `String.intercalate`
+  opacity), 2 in `MainAddress.lean` (blocked on the 5
+  noncomputable axioms).
+- **Both Tier 1 codecs are now at Implementation phase**
+  (UintCodec in run 8, Varint in run 9). The Varint
+  proof is the first machine-checked Lean 4 proof of
+  `decode_int ∘ encode_int = id` for arbitrary natural
+  numbers, without Mathlib.
+
 ## Run 2026-06-19 (workflow run 27807616383) — run 8
 
 Selected tasks: 11 (Conference Paper), 5 (Proof Assistance).

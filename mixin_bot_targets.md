@@ -13,7 +13,7 @@ metadata:
 ## Tier 1 (Foundation, do first)
 
 1. `lib/mixin_bot/uuid.rb` — `UUID.unpacked` / `UUID.packed` round-trip. **Phase 4 (Implementation)** (run 7; 4 functional axioms discharged as concrete `def`s; 7 `sorry`, 0 `axiom` remain). **Executable correspondence harness**: 24 `#guard` byte-level checks in `FVSquad/Correspondence.lean` (4 per UUID × 6 fixtures), all pass on live Ruby.
-2. `lib/mixin_bot/utils/encoder.rb` — `encode_int` / `decode_int` varint round-trip. **Phase 3** (merged; 2 `sorry` remain). **Executable correspondence harness**: 26 `#guard` byte-level checks in `FVSquad/Correspondence.lean`, all pass on live Ruby.
+2. `lib/mixin_bot/utils/encoder.rb` — `encode_int` / `decode_int` varint round-trip. **Phase 4 (Implementation)** (run 9; **2 `sorry` → 2 proved theorems** via `Nat.strongRecOn` + `Nat.div_add_mod` + `Nat.mul_add`). **Executable correspondence harness**: 26 `#guard` byte-level checks in `FVSquad/Correspondence.lean`, all pass on live Ruby.
 3. `lib/mixin_bot/utils/encoder.rb` — `encode_uint16/32/64` / `decode_uint16/32/64` round-trip. **Phase 4 (Implementation)** (run 8; **3 `sorry` → 3 proved theorems** via `simp + toByte_val + omega`). **Executable correspondence harness**: 45 `#guard` byte-level checks, all pass. **Endianness comment fixed in run 6** (was "big-endian", now "little-endian").
 
 ## Tier 2 (Address formats — golden-tested)
@@ -67,14 +67,16 @@ codec.
 
 ## Critique
 
-`formal-verification/CRITIQUE.md` (run 6, updated run 7):
-honest assessment of proof utility. **11 `sorry` and 5 `axiom`
-remain** (Phase 4 / 5 work). Net unproved items: **23 → 11**
-(run 8, with 3 UintCodec round-trips discharged). 5 prioritised gaps: (1) **add Mathlib to
-`lakefile.toml`** (closes 5 UUID + 2 MainAddress sorrys); (2)
+`formal-verification/CRITIQUE.md` (run 6, updated run 9):
+honest assessment of proof utility. **9 `sorry` and 5 `axiom`
+remain** (Phase 4 / 5 work). Net unproved items: **23 → 9**
+(run 9, with 3 UintCodec round-trips discharged in run 8
+and 2 Varint round-trips discharged in run 9). 5 prioritised gaps: (1) **add Mathlib to
+`lakefile.toml`** (closes 7 UUID + 2 MainAddress sorrys); (2)
 hand-write Base58 → MainAddress round-trips provable; (3)
-prove Varint round-trip; (4) prove UUID round-trips (now possible with Mathlib); (5)
-advance MixAddress to Phase 3.
+prove UUID round-trips (now possible with Mathlib); (4)
+advance MixAddress to Phase 3; (5) Phase 1 work for the
+`Transaction` encoder/decoder (Tier 3).
 
 ## Conference paper
 
@@ -87,3 +89,19 @@ pdflatex paper.tex`.
 
 **Why**: Ruby codebase with golden fixtures from Go SDK = high-quality spec hints.
 **How to apply**: Pick the highest-tier unstarted target. Build incrementally.
+
+## Run 9 addendum (2026-06-19)
+
+Varint codec reached **Implementation phase** (run 9):
+- `decodeInt_encodeIntHelper` and `encodeInt_decodeInt`
+  discharged via `Nat.strongRecOn` + `Nat.div_add_mod` +
+  `Nat.mul_add` algebra.
+- Net: **11 → 9 sorry** across all 4 files.
+- Both Tier 1 codecs (Varint + UintCodec) now at
+  Implementation phase.
+- 9 remaining sorries: 7 (UUID, blocked on
+  `String.ofList`/`String.length`/`String.intercalate`
+  opacity in Lean 4.31 without Mathlib) + 2 (MainAddress,
+  blocked on 5 noncomputable axioms for SHA3-256 / Base58).
+- `formal-verification/CRITIQUE.md` updated to reflect
+  the run 9 state.
