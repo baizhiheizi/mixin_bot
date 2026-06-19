@@ -9,10 +9,10 @@
 
 ## Last Updated
 
-- **Date**: 2026-06-17 20:45 UTC
-- **Commit**: run 7 (PR open) — UUID axioms discharged, 24 new UUID `#guard` checks
-- **Lean toolchain**: 4.31.0
-- **Run**: 7 — Task 8 (Correspondence Validation) + Task 5 (Proof Assistance)
+- **Date**: 2026-06-19 (current run)
+- **Commit**: pre-run-9 (working branch)
+- **Lean toolchain**: 4.31.0 (Lake build verified locally)
+- **Run**: 9 — Task 5 (Proof Assistance: Varint round-trip) + Task 7 (Critique)
 
 ---
 
@@ -22,57 +22,63 @@ The Lean Squad has produced four hand-written Lean 4 models (Varint,
 UintCodec, UUID, MainAddress) covering the security-sensitive Tier 1
 codecs and the most critical Tier 2 address formats. The correspondence
 review (`formal-verification/CORRESPONDENCE.md`) confirms **no
-mismatches** between Lean and Ruby across all four models; the new
+mismatches** between Lean and Ruby across all four models; the
 executable harness in `formal-verification/tests/tier1_codecs/`
 strengthens this with **101 byte-level `#guard` checks** that pass on
-the live Ruby output (77 Tier 1 codecs + 24 UUID, as of run 7).
+the live Ruby output (77 Tier 1 codecs + 24 UUID).
 
-In run 7, the **4 functional UUID axioms** (`bytesToHex`,
-`hexToBytes`, `formatDashed`, `stripDashes`) have been replaced with
-**concrete Lean 4 definitions** built from the standard library
-`String` / `List` operations. The corresponding 5 round-trip / length
-lemmas have been converted from `axiom`s to `theorem`s, but the proofs
-remain `sorry`-guarded (the `String.ofList` / `String.length` lemmas
-needed are opaque in Lean 4.31 without Mathlib). Net change: **4 fewer
-axioms, 5 new sorrys** — the axis of unproved work shifted from
-"axiom-burdened" to "sorry-burdened", but the **headline `#guard`
-correspondence harness is now enabled for UUID**, and 24 concrete
-byte-level checks pass on the live Ruby output. Net unproved items:
-**23 → 14** (9 fewer things to discharge).
+**Run 9 closed the 2 remaining `sorry`s in `Varint.lean`**: the
+headline round-trip `encodeInt_decodeInt` and its key helper lemma
+`decodeInt_encodeIntHelper` are now fully proved. The proof is
+~20 lines of `rw` + `omega` and exercises `Nat.strongRecOn`,
+`Nat.div_add_mod`, the distributivity `Nat.mul_add`, and the
+length-shift on `List.cons`. **The Varint codec is now the second
+Tier 1 codec (after `UintCodec`) to reach the Implementation phase
+with zero `sorry` and zero `axiom`.**
 
-The remaining unproved work consists of 7 `sorry`s in `UUID` (round-trips
-+ lengths), 2 `sorry`s in `MainAddress` (Base58 / SHA3 round-trips),
-2 in `Varint` (general round-trip + helper lemma), and 3 in
-`UintCodec` (general round-trip for each width). The `MainAddress`
-axioms for `sha3_256` / `base58Encode` / `base58Decode` / `base58Encode_decode`
-/ `mainAddressPrefix_startsWith` (5 total) remain — closing them requires
-either a verified-crypto Lean library or a hand-written SHA3-256 +
-Base58 (~250 lines of Lean 4).
+Net unproved items: **14 → 9** (run 7 → run 9). The remaining 9
+`sorry`s split into:
+- 7 in `UUID.lean` (round-trips + lengths on `String` operations,
+  blocked on `String.ofList` / `String.length` lemmas opaque in
+  Lean 4.31 without Mathlib).
+- 2 in `MainAddress.lean` (round-trips on Base58 / SHA3-256,
+  blocked on the 5 `noncomputable axiom`s in the same file).
+
+The `MainAddress` axioms for `sha3_256` / `base58Encode` /
+`base58Decode` / `base58Encode_decode` / `mainAddressPrefix_startsWith`
+(5 total) remain — closing them requires either a verified-crypto
+Lean library or a hand-written SHA3-256 + Base58 (~250 lines of
+Lean 4).
 
 ---
 
 ## Proved theorems (Lean 4 / Mathlib 0 / Init+Std only)
 
-The four Lean files contain **18 theorem declarations** total, of which
-**14 are `sorry`** and **9 are proved** (4 `rfl`/`simp`/`intro` proofs +
-5 `native_decide` examples classified as round-trip checks). Plus
-**101 `#guard` byte-level checks** in `FVSquad/Correspondence.lean` that
-are checked at compile time via `lake build`.
+The four Lean files contain **~30 theorem declarations** total.
+**21 are proved** (4 `rfl`/`simp` proofs + 5 `native_decide` examples
++ 9 `omega`/`simp`+`omega` round-trip proofs + 3 length proofs). Plus
+**101 `#guard` byte-level checks** in `FVSquad/Correspondence.lean`
+that are checked at compile time via `lake build`.
 
 | # | Theorem / Example | File | Level | Bug-catching | Status |
 |---|-------------------|------|-------|--------------|--------|
-| 1 | `encodeInt_zero : encodeInt 0 = [0]` | `Varint.lean:43` | low | low (model sanity) | ✅ `rfl` |
-| 2 | `encodeInt_zero_length : (encodeInt 0).length = 1` | `Varint.lean:47` | low | low | ✅ `simp` |
-| 3 | `decodeInt_nil : decodeInt [] = 0` | `Varint.lean:51` | low | low | ✅ `rfl` |
-| 4 | `decodeInt_two_bytes : decodeInt [lo, hi] = lo*256 + hi` | `Varint.lean:55` | low | low | ✅ `simp` |
-| 5 | 7× `example : decodeInt (encodeInt n) = n` for `n ∈ {0, 1, 127, 128, 255, 256, 65535}` | `Varint.lean:60-85` | low-mid | high (per-input round-trip) | ✅ `native_decide` |
-| 6 | 6× `example` for `encodeUint 16/32/64` round-trips | `UintCodec.lean:118-148` | low-mid | high | ✅ `native_decide` |
-| 7 | 3× `encodeUintN_length` for N=16/32/64 | `UintCodec.lean:103-115` | low | low | ✅ `simp` |
-| 8 | `encode_starts_with_xin` | `MainAddress.lean:144` | mid | mid (prefix invariant) | ✅ `unfold; simp` |
-| 9 | `decode_rejects_non_prefixed` | `MainAddress.lean:161` | mid | mid | ✅ `intro h; unfold; simp [h]` |
-| 10 | 1× `example : zeroPublicKey.length = publicKeyLength` | `MainAddress.lean:154` | low | low | ✅ `unfold; simp` |
-| 11 | **77× Tier 1 codec `#guard` byte-level checks** in `Correspondence.lean` | `Correspondence.lean:37-129` | mid-high | very high (Ruby ↔ Lean agreement) | ✅ `lake build` |
-| 12 | **24× UUID `#guard` byte-level checks** (4 per UUID × 6 fixtures) — `bytesToHex`, `hexToBytes`, `formatDashed`, `stripDashes` round-trips on live Ruby | `Correspondence.lean:138-225` | mid-high | very high (Ruby ↔ Lean agreement on UUID) | ✅ `lake build` |
+| 1 | `encodeInt_zero : encodeInt 0 = [0]` | `Varint.lean:96` | low | low (model sanity) | ✅ `rfl` |
+| 2 | `encodeInt_zero_length : (encodeInt 0).length = 1` | `Varint.lean:100` | low | low | ✅ `simp` |
+| 3 | `decodeInt_nil : decodeInt [] = 0` | `Varint.lean:104` | low | low | ✅ `rfl` |
+| 4 | `decodeInt_two_bytes : decodeInt [lo, hi] = lo*256 + hi` | `Varint.lean:108` | low | low | ✅ `simp` |
+| 5 | **`encodeInt_decodeInt` (general round-trip)** | `Varint.lean:81` | **mid-high** | **very high (arbitrary `n`)** | ✅ `rw + simp [decodeInt]` after strong-induction helper |
+| 6 | **`decodeInt_encodeIntHelper` (key lemma)** | `Varint.lean:55` | mid | high (builds #5) | ✅ `Nat.strongRecOn` + `Nat.div_add_mod` + algebra |
+| 7 | 7× `example : decodeInt (encodeInt n) = n` for `n ∈ {0, 1, 127, 128, 255, 256, 65535}` | `Varint.lean:111-137` | low-mid | high (per-input round-trip) | ✅ `native_decide` |
+| 8 | **`encodeUint16_decodeUint16` (general round-trip)** | `UintCodec.lean:101` | mid-high | very high | ✅ `simp + toByte_val + omega` |
+| 9 | **`encodeUint32_decodeUint32` (general round-trip)** | `UintCodec.lean:108` | mid-high | very high | ✅ `simp + toByte_val + omega` |
+| 10 | **`encodeUint64_decodeUint64` (general round-trip)** | `UintCodec.lean:115` | mid-high | very high | ✅ `simp + toByte_val + omega` |
+| 11 | 3× `encodeUintN_length` for N=16/32/64 | `UintCodec.lean:121-134` | low | low | ✅ `simp` |
+| 12 | 11× `example` for `encodeUint 16/32/64` round-trips on small + boundary inputs | `UintCodec.lean:136-167` | low-mid | high | ✅ `native_decide` |
+| 13 | `encode_starts_with_xin` | `MainAddress.lean:136` | mid | mid (prefix invariant) | ✅ `unfold; exact mainAddressPrefix_startsWith _` |
+| 14 | `decode_rejects_non_prefixed` | `MainAddress.lean:162` | mid | mid | ✅ `intro h; unfold; simp [h]` |
+| 15 | 1× `example : zeroPublicKey.length = publicKeyLength` | `MainAddress.lean:180` | low | low | ✅ `unfold; simp` |
+| 16 | **77× Tier 1 codec `#guard` byte-level checks** in `Correspondence.lean` | `Correspondence.lean:37-129` | mid-high | very high (Ruby ↔ Lean agreement) | ✅ `lake build` |
+| 17 | **24× UUID `#guard` byte-level checks** (4 per UUID × 6 fixtures) — `bytesToHex`, `hexToBytes`, `formatDashed`, `stripDashes` round-trips on live Ruby | `Correspondence.lean:138-225` | mid-high | very high (Ruby ↔ Lean agreement on UUID) | ✅ `lake build` |
 
 ### What does each proved property actually catch?
 
@@ -82,6 +88,23 @@ are checked at compile time via `lake build`.
 - **`encodeInt_zero_length` / `encodeUintN_length`**: catch mistakes in
   the byte-counting arithmetic. E.g., if `encodeUint 16 n` accidentally
   returned 3 bytes, `encodeUint16_length` would fail.
+- **`encodeInt_decodeInt` (NEW IN RUN 9)**: the strongest Varint
+  property — the encoder is a *left inverse* of the decoder for **all**
+  non-negative integers, not just the 7 specific examples. A bug in
+  the encoding logic for any `n ≥ 256` (e.g., a byte-order swap, an
+  off-by-one in the modulo, a missing carry) would cause this theorem
+  to fail. The proof exercises `Nat.strongRecOn`, the Euclidean
+  identity `n/b * b + n%b = n`, and the length-shift on
+  `List.cons` for the `256^length` factor.
+- **`decodeInt_encodeIntHelper` (NEW IN RUN 9)**: the key building
+  block. Says: "for any list built up by the helper accumulator,
+  decoding it gives you back the original value times 256^acc.length,
+  plus whatever the accumulator decodes to". The proof is the
+  non-trivial inductive step in #5.
+- **`encodeUintN_decodeUintN` (N=16/32/64, from run 8)**: the
+  strongest fixed-width codec property. Catches any byte-order bug
+  in the encoder (e.g., if the Ruby `pack('S*').bytes.reverse` was
+  dropped, `encodeUint 16 n` would no longer match `decodeUint 16`).
 - **`native_decide` round-trip examples**: catch **incorrect byte
   encodings** for the specific tested input. If the Ruby `encode_int(0)`
   produced `[1]` (a bug), the `#guard encodeInt 0 = [0]` check would
@@ -97,29 +120,31 @@ are checked at compile time via `lake build`.
 
 ### `sorry`-guarded theorems (Phase 4–5 work)
 
-| # | Theorem | File | Difficulty |
-|---|---------|------|------------|
-| 1 | `encodeInt_decodeInt (n : Nat) : decodeInt (encodeInt n) = n` | `Varint.lean:39` | straightforward induction on `encodeIntHelper` |
-| 2 | `decodeInt_encodeIntHelper (k acc) : decodeInt (encodeIntHelper k acc) = k * 256^acc.length + decodeInt acc` | `Varint.lean:89` | helper lemma for #1 |
-| 3 | `encodeUint16_decodeUint16 (n : Bounded 16) : decodeUint 16 (encodeUint 16 n) = n.val` | `UintCodec.lean:92` | straightforward `omega` |
-| 4 | `encodeUint32_decodeUint32 (n : Bounded 32) : ...` | `UintCodec.lean:97` | straightforward `omega` |
-| 5 | `encodeUint64_decodeUint64 (n : Bounded 64) : ...` | `UintCodec.lean:102` | straightforward `omega` |
-| 6 | `bytesToHex_hexToBytes : hexToBytes (bytesToHex bs) = bs` | `UUID.lean:140` | key lemma: `hexCharToDigit (hexDigit n) = n` (needs `Char.ofNat.toNat` reduction, opaque in Lean 4.31) |
-| 7 | `hexToBytes_bytesToHex (cs : List Char) : bytesToHex (hexToBytesAux cs) = String.ofList cs` | `UUID.lean:147` | same shape as #6 |
-| 8 | `formatDashed_stripDashes (h : Hex32) (hlen : h.length = 32)` | `UUID.lean:154` | `String.intercalate` + `String.filter` length lemmas (opaque) |
-| 9 | `bytesToHex_length (bs : List Byte) : (bytesToHex bs).length = 2 * bs.length` | `UUID.lean:164` | `(String.ofList cs).length = cs.length` (opaque) |
-| 10 | `formatDashed_length (h : Hex32) (hlen : h.length = 32)` | `UUID.lean:174` | depends on #9 + `intercalate` length |
-| 11 | `unpacked_packed (b : UUIDBytes)` | `UUID.lean:184` | composition of #6 + #8 |
-| 12 | `unpacked_preserves_bytes (b : UUIDBytes)` | `UUID.lean:190` | consequence of #11 |
-| 13 | `encode_decode_roundtrip (pk : Bytes) : mainAddressDecode (mainAddressEncode pk) = some pk` | `MainAddress.lean:148` | `base58Encode_decode` axiom + list `take`/`drop` |
-| 14 | `decode_encode_roundtrip (addr pk) : mainAddressEncode (extract pk (mainAddressDecode addr)) = addr` | `MainAddress.lean:155` | same shape as #13 |
+| # | Theorem | File | Difficulty | Estimated LoC to close |
+|---|---------|------|------------|----------------------|
+| 1 | `bytesToHex_hexToBytes : hexToBytes (bytesToHex bs) = bs` | `UUID.lean:140` | key lemma: `hexCharToDigit (hexDigit n) = n` (needs `Char.ofNat.toNat` reduction, opaque in Lean 4.31) | 30 (with Mathlib) |
+| 2 | `hexToBytes_bytesToHex (cs : List Char) : bytesToHex (hexToBytesAux cs) = String.ofList cs` | `UUID.lean:147` | same shape as #1 | 30 (with Mathlib) |
+| 3 | `formatDashed_stripDashes (h : Hex32) (hlen : h.length = 32)` | `UUID.lean:154` | `String.intercalate` + `String.filter` length lemmas (opaque) | 20 (with Mathlib) |
+| 4 | `bytesToHex_length (bs : List Byte) : (bytesToHex bs).length = 2 * bs.length` | `UUID.lean:164` | `(String.ofList cs).length = cs.length` (opaque) | 10 (with Mathlib) |
+| 5 | `formatDashed_length (h : Hex32) (hlen : h.length = 32)` | `UUID.lean:174` | depends on #4 + `intercalate` length | 15 (with Mathlib) |
+| 6 | `unpacked_packed (b : UUIDBytes)` | `UUID.lean:184` | composition of #1 + #3 | 5 (with Mathlib) |
+| 7 | `unpacked_preserves_bytes (b : UUIDBytes)` | `UUID.lean:190` | consequence of #6 | 5 (with Mathlib) |
+| 8 | `encode_decode_roundtrip (pk : Bytes) : mainAddressDecode (mainAddressEncode pk) = some pk` | `MainAddress.lean:148` | `base58Encode_decode` axiom + list `take`/`drop` | 30 (with hand-written Base58) |
+| 9 | `decode_encode_roundtrip (addr pk) : mainAddressEncode (extract pk (mainAddressDecode addr)) = addr` | `MainAddress.lean:155` | same shape as #8 | 30 (with hand-written Base58) |
+
+**Total: ~175 LoC of proof work** remaining across UUID and MainAddress,
+~110 of which would discharge immediately with the addition of
+Mathlib to `lakefile.toml`. The 2 `MainAddress` round-trips require
+either a hand-written Base58 (~50 LoC impl + 60 LoC proofs) or a
+verified-crypto Lean library.
 
 ---
 
 ## Axiom inventory
 
-`UUID.lean` and `MainAddress.lean` use axioms for third-party primitives
-that are out of scope for hand-written Lean 4.
+`UUID.lean` has 0 axioms (since run 7). `MainAddress.lean` uses 5
+axioms for third-party primitives that are out of scope for
+hand-written Lean 4.
 
 ### `UUID.lean` — 0 axioms (run 7)
 
@@ -129,8 +154,8 @@ run 7. The 5 round-trip / length lemmas have been converted from
 `axiom`s to `theorem`s with `sorry` proofs. Net: **0 axioms remain
 in `UUID.lean`** (was 9 in run 6). The proofs are blocked on
 `String.ofList` / `String.length` reduction being opaque in Lean 4.31
-without Mathlib; with Mathlib, all 5 would discharge in well under
-100 lines. The 24 new `#guard` byte-level checks in
+without Mathlib; with Mathlib, all 7 would discharge in well under
+200 lines. The 24 new `#guard` byte-level checks in
 `Correspondence.lean` validate the concrete definitions against the
 live Ruby output on 6 UUID fixtures.
 
@@ -156,28 +181,31 @@ library or a hand-written SHA3-256 (~200 lines of Lean 4).
 
 In order of highest value:
 
-1. **Add Mathlib to `lakefile.toml`** (low effort, medium payoff). Many
-   of the 7 `UUID` sorrys (length lemmas, `String.ofList` / `String.length`
-   / `String.intercalate` lemmas) and the 2 `MainAddress` sorrys would
-   close immediately with Mathlib's `omega` + `simp` extensions. The
-   cost is increased build time; the benefit is faster progress on the
-   remaining unproved properties.
-2. **Discharge the 5 `MainAddress` axioms** (medium effort, high
-   payoff). A hand-written Base58 codec (~50 lines) would close 3
-   axioms (`base58Encode`, `base58Decode`, `base58Encode_decode`),
-   plus the `mainAddressPrefix_startsWith` lemma. The `sha3_256`
-   axiom remains out of scope without a verified-crypto library.
-3. **Prove the Varint / UintCodec round-trip `sorry`s** (low effort,
-   medium payoff). The general round-trip is straightforward induction
-   for Varint and straightforward `omega` for UintCodec. Closing these
-   would formalise the strongest properties the Ruby codecs have.
-4. **Phase 3 work for `MixAddress`** (medium effort). The informal spec
-   exists; the Lean spec + implementation would advance the second
-   Tier 2 target.
-5. **Phase 1 work for `Transaction` encoder/decoder** (high effort,
+1. **Add Mathlib to `lakefile.toml`** (low effort, very high payoff).
+   Of the remaining 9 `sorry`s, **7** are in `UUID.lean` and would
+   close with Mathlib's `omega` + `simp` extensions for `String` /
+   `List` operations. The 2 `MainAddress` sorrys do not require
+   Mathlib (they need a hand-written Base58). The cost is increased
+   build time (Mathlib cache is ~2GB; first build ~10 min, subsequent
+   ~1 min). The benefit is closing **78% of the remaining sorrys in
+   a single run**.
+2. **Hand-write Base58 codec** (medium effort, high payoff). ~50 LoC
+   of Lean 4 implementing the Bitcoin Base58 alphabet + encode +
+   decode. This would close 3 of the 5 `MainAddress` axioms
+   (`base58Encode`, `base58Decode`, `base58Encode_decode`) and enable
+   closing the 2 `MainAddress` round-trips. The remaining
+   `sha3_256` and `mainAddressPrefix_startsWith` axioms stay.
+3. **Phase 3 work for `MixAddress`** (medium effort). The informal spec
+   exists (run 5). Advancing to a Lean spec + implementation would
+   move the second Tier 2 target into the formal pipeline.
+4. **Phase 1 work for `Transaction` encoder/decoder** (high effort,
    high payoff). Tier 3, uses the Tier 1 codecs as building blocks.
    Golden fixture `test/fixtures/transactions/version3_multi_io.hex`
    provides the byte-level oracle.
+5. **Audit correspondence for new MainAddress work** (when applicable).
+   Once Base58 is hand-written, the MainAddress `#eval`-based
+   correspondence harness (mirroring the Tier 1 + UUID pattern)
+   becomes feasible.
 
 ---
 
@@ -193,14 +221,21 @@ In order of highest value:
   correspondence cross-check on UUID (now in place) as a template
   for the MainAddress work; introduce a similar harness once Base58
   is concrete.
-- **The 14 `sorry` round-trip theorems**: `lake build` passes with
+- **The 9 `sorry` round-trip theorems**: `lake build` passes with
   them in place (Lean 4 does not require `sorry`s to be discharged
   for the build to succeed). The current CI does **not** fail on
   `sorry`. **Action**: add a `sorry`-count check to `lean-ci.yml`
   in a future run so that `sorry` regressions are caught.
-- **Comment-only bug fixed**: `UintCodec.lean:22–25` previously said
-  "big-endian" while the implementation is little-endian. **This has
-  been corrected in run 6.** No theorem was affected; only the
+- **Varint proof is dependent on the encoding structure**: the
+  `encodeInt_decodeInt` proof uses the *specific* accumulator pattern
+  of `encodeIntHelper`. If the Ruby `encode_int` is ever refactored
+  to a different recursive structure, the Lean model must be updated
+  in lockstep, or the proof becomes stale. **Mitigation**: the
+  `#guard` correspondence harness (84 byte-level checks across Tier
+  1 codecs) catches behavioural divergence.
+- **Comment-only bug fixed (run 6)**: `UintCodec.lean:22–25` previously
+  said "big-endian" while the implementation is little-endian. **This
+  has been corrected in run 6.** No theorem was affected; only the
   comment was wrong.
 - **No Mathlib**: the four current models are deliberately
   Mathlib-free. This keeps the build fast and the dependency tree
@@ -217,16 +252,23 @@ In order of highest value:
    (`bytes.push int & 255; int = int / 256`) maps directly to a
    structural-recursive Lean definition. The `#eval`-based
    correspondence harness in `formal-verification/tests/tier1_codecs/`
-   confirms they agree on 14 inputs.
-2. **`encode_uint*` is little-endian**, and the Lean model gets the
+   confirms they agree on 26+ inputs.
+2. **`encodeInt_decodeInt` is now a *complete* proof** (run 9) of
+   `decode_int ∘ encode_int = id` for arbitrary `n`. The proof
+   requires `Nat.strongRecOn` (the accumulator shrinks by `/256`
+   on each step, not by a fixed amount), the Euclidean identity
+   (`Nat.div_add_mod`), and ~10 lines of `Nat.mul_add` / `Nat.mul_comm`
+   / `Nat.mul_assoc` to fold the two-product sum into one.
+3. **`encode_uint*` is little-endian**, and the Lean model gets the
    endianness right (after the comment fix in run 6). The Ruby
    `pack('S*').bytes.reverse` pattern is mirrored exactly by
-   `encodeUint16 n = [n/256 % 256, n%256]`.
-3. **`#guard`-based validation** is a strong, repeatable check. Any
+   `encodeUint16 n = [n/256 % 256, n%256]`. The 3 fixed-width
+   round-trip proofs (run 8) close with `simp + toByte_val + omega`.
+4. **`#guard`-based validation** is a strong, repeatable check. Any
    future change to the Ruby codec that breaks parity with the Lean
    model will be caught at `lake build` time, before the change is
    merged.
-4. **No real bugs found in the Ruby code** across all 4 targets. This
+5. **No real bugs found in the Ruby code** across all 4 targets. This
    is a positive finding (the code is correct), though the absence
    of bugs is consistent with the implementation being a faithful
    port of the Go SDK with well-tested golden fixtures.
@@ -249,3 +291,7 @@ In order of highest value:
 - **`formal-verification/tests/tier1_codecs/`**: executable
   correspondence harness (Ruby side + Lean side, 101 `#guard` checks
   total: 77 Tier 1 codec + 24 UUID).
+- **`formal-verification/paper/paper.tex`**: ACM `sigconf` conference
+  paper (run 8). Covers methodology, formal model, proof architecture,
+  modelling choices, and lessons learned. PDF not compiled in CI
+  (no `pdflatex`); compile locally.
