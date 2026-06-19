@@ -17,8 +17,9 @@ module MixinBot
     end
 
     def test_tip_body_for_verify_uses_supplied_timestamp
-      body = MixinBot.api.tip_body_for_verify(1_700_000_000_000_000_000)
-      assert_equal 'TIP:VERIFY:1700000000000000000', body
+      timestamp = 1_700_000_000_000_000_000
+      body = MixinBot.api.tip_body_for_verify(timestamp)
+      assert_equal format('TIP:VERIFY:%032d', timestamp), body
     end
 
     def test_tip_body_for_withdrawal_create_concatenates_fields_in_order
@@ -79,9 +80,9 @@ module MixinBot
       end
     end
 
-    def test_encrypt_tip_pin_accepts_all_documented_actions
-      action = 'TIP:VERIFY:'
-      encrypted = MixinBot.api.encrypt_tip_pin('000000', action)
+    def test_encrypt_tip_pin_accepts_documented_verify_action
+      pin_key = OfflineConfig.session_private_key_hex
+      encrypted = MixinBot.api.encrypt_tip_pin(pin_key, 'TIP:VERIFY:')
       refute_nil encrypted
       refute_empty encrypted
     end
