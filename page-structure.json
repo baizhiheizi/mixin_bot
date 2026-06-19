@@ -1,1 +1,18 @@
-{"pages":[{"slug":"Home","title":"Home","level":1},{"slug":"Getting-Started","title":"Getting Started","level":1,"sidebar":["Prerequisites","Common commands"]},{"slug":"Configuration","title":"Configuration","level":1,"sidebar":["Keystores","Multiple bots"]},{"slug":"Architecture","title":"Architecture","level":1},{"slug":"API-Reference","title":"API Reference","level":1,"sidebar":["Profile & Users","Assets & Network","Transfers (Safe pipeline)","Transactions","Multisig","Messaging & Blaze","Snapshots & Outputs","NFTs & Inscriptions","Auth & Sessions","Pin & Tip","Withdrawals & Deposits","Legacy APIs (deprecated)"]},{"slug":"Safe-Pipeline","title":"Safe Pipeline","level":1},{"slug":"CLI","title":"CLI","level":1},{"slug":"Transactions","title":"Transactions","level":1},{"slug":"Utils-Crypto","title":"Utils & Crypto","level":1,"sidebar":["Crypto helpers","Address helpers"]},{"slug":"MVM","title":"MVM","level":1},{"slug":"Errors-Error-Handling","title":"Errors & Error Handling","level":1,"sidebar":["Retries & throttling","Local validation errors"]},{"slug":"Models","title":"Models","level":1},{"slug":"Development","title":"Development","level":1,"sidebar":["OpenSpec workflow","Docs & RDoc"]},{"slug":"For-Agents","title":"For Agents","level":1,"children":["AGENTS","llms"]}]}
+{
+  "pages": [
+    { "title": "Home", "slug": "Home", "parent": null },
+    { "title": "Getting Started", "slug": "Getting-Started", "parent": null, "sidebarSections": ["Prerequisites", "Common commands"] },
+    { "title": "Configuration", "slug": "Configuration", "parent": null, "sidebarSections": ["Keystores", "Multiple bots"] },
+    { "title": "Architecture", "slug": "Architecture", "parent": null },
+    { "title": "API Reference", "slug": "API-Reference", "parent": null, "sidebarSections": ["Profile & Users", "Assets & Network", "Transfers (Safe pipeline)", "Transactions", "Multisig", "Messaging & Blaze", "Snapshots & Outputs", "NFTs & Inscriptions", "Auth & Sessions", "Pin & Tip", "Withdrawals & Deposits", "Legacy APIs (deprecated)"] },
+    { "title": "Safe Pipeline", "slug": "Safe-Pipeline", "parent": null },
+    { "title": "CLI", "slug": "CLI", "parent": null },
+    { "title": "Transactions", "slug": "Transactions", "parent": null },
+    { "title": "Utils & Crypto", "slug": "Utils-Crypto", "parent": null, "sidebarSections": ["Crypto helpers", "Address helpers"] },
+    { "title": "MVM", "slug": "MVM", "parent": null },
+    { "title": "Errors & Error Handling", "slug": "Errors-Error-Handling", "parent": null, "sidebarSections": ["Retries & throttling", "Local validation errors"] },
+    { "title": "Models", "slug": "Models", "parent": null },
+    { "title": "Development", "slug": "Development", "parent": null, "sidebarSections": ["OpenSpec workflow", "Docs & RDoc"] },
+    { "title": "For Agents", "slug": "For-Agents", "parent": null }
+  ]
+}
