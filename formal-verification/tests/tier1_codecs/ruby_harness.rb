@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # 🔬 Lean Squad — automated formal verification for `baizhiheizi/mixin_bot`.
 #
 # Ruby correspondence harness for Tier 1 codecs.
@@ -67,18 +68,18 @@ UINT64_INPUTS = [
   4_294_967_295,
   4_294_967_296,
   2**62,
-  2**63 - 1,
+  (2**63) - 1,
   2**63,
-  2**64 - 1
+  (2**64) - 1
 ].freeze
 
-UUID_INPUTS = [
-  '965e5c6e-434c-3fa9-b780-c50f43cd955c',
-  '7ed9292d-7c95-4333-aa48-a8c640064186',
-  'a67c6e87-1c9e-4a1c-b81c-47a9f4f1bff1',
-  '00000000-0000-0000-0000-000000000000',
-  'ffffffff-ffff-ffff-ffff-ffffffffffff',
-  'c94ac88f-4671-3976-b60a-09064f1811e8'
+UUID_INPUTS = %w[
+  965e5c6e-434c-3fa9-b780-c50f43cd955c
+  7ed9292d-7c95-4333-aa48-a8c640064186
+  a67c6e87-1c9e-4a1c-b81c-47a9f4f1bff1
+  00000000-0000-0000-0000-000000000000
+  ffffffff-ffff-ffff-ffff-ffffffffffff
+  c94ac88f-4671-3976-b60a-09064f1811e8
 ].freeze
 
 # ----------------------------------------------------------------------
