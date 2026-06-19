@@ -7,6 +7,82 @@ metadata:
 
 # MixinBot Run Log
 
+## Run 2026-06-19 (workflow run 27841902128) — run 10
+
+Selected tasks: 1 (Research), 6 (Correspondence Review).
+
+### Completed
+
+- **Pre-flight**: Merged open PR #125 (run 9 — Varint round-trip +
+  CRITIQUE update) into working branch
+  `lean-squad/run-10-research-correspondence-d5fe5f7e686ad20e`
+  (commit `5afe7f9`). Verified Lean 4.31.0 + elan toolchain
+  installation succeeded.
+
+- **Task 1 (Research & Target Identification, incremental)**:
+  - `formal-verification/RESEARCH.md`:
+    - Status header updated: both Tier 1 codecs (Varint +
+      UintCodec) at Implementation phase; UUID also at
+      Implementation phase with 7 `sorry`; MainAddress at Lean
+      Spec phase (2 `sorry`, 5 `axiom`).
+    - **§10 Lessons Learned from Tier 1 Proof Completion
+      (runs 7–9)** — added 5 observations: (a) `Nat.strongRecOn`
+      is the cleanest pattern for variable-length codecs; (b)
+      `toByte_val` is the key reduction lemma for fixed-width
+      codecs; (c) `String.ofList` / `String.length` opacity is
+      the dominant blocker for UUID `sorry`s; (d) `#guard`
+      byte-level checks are now load-bearing validation; (e)
+      axiom-burden is migrating to sorry-burden as the Lean
+      model matures.
+    - **§11 Recommended Next Steps** — added 5 prioritised
+      steps incorporating CRITIQUE feedback (add Mathlib,
+      extend #guard harness to MainAddress, advance MixAddress,
+      hand-write Base58, begin Phase 1 research on Transaction).
+  - `formal-verification/TARGETS.md`:
+    - Tier 1 rows updated: Varint + UintCodec ✅ Implementation
+      phase (0 `sorry`, 0 `axiom`).
+    - Tier 2 rows updated: MainAddress at Lean Spec phase
+      (2 `sorry`, 5 `axiom`); MixAddress at Informal Spec
+      (Phase 2).
+    - Phasing plan extended through run 10.
+
+- **Task 6 (Correspondence Review, incremental)**:
+  - `formal-verification/CORRESPONDENCE.md`:
+    - Repository layout table reformatted with explicit `axiom`
+      column and total row: **9 `sorry` + 5 `axiom` + 101
+      `#guard`s** across 4 Lean files.
+    - Varint section: `encodeInt_decodeInt` and
+      `decodeInt_encodeIntHelper` marked as **proved in run 9**
+      via `Nat.strongRecOn` + `Nat.div_add_mod` + `Nat.mul_add`.
+      Impact-on-proofs section updated.
+    - UintCodec section: the three `encodeUintN_decodeUintN`
+      theorems marked as **proved in run 8** via `simp +
+      toByte_val + omega`. Impact-on-proofs section updated.
+    - Summary table: sorry/axiom counts updated; CI section
+      updated to reflect 9 `sorry` (was 14).
+    - Last Updated header updated.
+
+- **Task Final**: Updated `[lean-squad] Formal Verification
+  Status` issue #93 with the run 10 entry, the post-run-10
+  At a Glance table, and the 5 findings from §10 of RESEARCH.md.
+
+- **PR**: Created via `safeoutputs` workflow: branch
+  `lean-squad/run-10-research-correspondence-d5fe5f7e686ad20e`,
+  commit `5f2b4a2` (3 files changed, +177/-42 lines); patch file
+  at `/tmp/gh-aw/aw-lean-squad-run-10-research-correspondence-d5fe5f7e686ad20e.patch`
+  (~59 KB, 833 lines, draft).
+
+### Notes
+
+- This was a **documentation-only** run. No `.lean` files were
+  modified. `lake build` verified post-merge: 8 jobs, 0 errors.
+- All 101 `#guard` correspondence checks still pass on the live
+  Ruby output.
+- **9 `sorry` and 5 `axiom` remain** (unchanged from run 9 —
+  documentation-only).
+- Recommended next step unchanged: add Mathlib to `lakefile.toml`
+  to close 7 of 9 remaining `sorry` in under 200 LoC.
+
 ## Run 2026-06-19 (workflow run 27825890229) — run 9
 
 Selected tasks: 7 (Proof Utility Critique), 5 (Proof Assistance).
