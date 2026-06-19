@@ -14,7 +14,7 @@ metadata:
 
 1. `lib/mixin_bot/uuid.rb` — `UUID.unpacked` / `UUID.packed` round-trip. **Phase 4 (Implementation)** (run 7; 4 functional axioms discharged as concrete `def`s; 7 `sorry`, 0 `axiom` remain). **Executable correspondence harness**: 24 `#guard` byte-level checks in `FVSquad/Correspondence.lean` (4 per UUID × 6 fixtures), all pass on live Ruby.
 2. `lib/mixin_bot/utils/encoder.rb` — `encode_int` / `decode_int` varint round-trip. **Phase 3** (merged; 2 `sorry` remain). **Executable correspondence harness**: 26 `#guard` byte-level checks in `FVSquad/Correspondence.lean`, all pass on live Ruby.
-3. `lib/mixin_bot/utils/encoder.rb` — `encode_uint16/32/64` / `decode_uint16/32/64` round-trip. **Phase 3** (merged; 3 `sorry` remain). **Executable correspondence harness**: 45 `#guard` byte-level checks, all pass. **Endianness comment fixed in run 6** (was "big-endian", now "little-endian").
+3. `lib/mixin_bot/utils/encoder.rb` — `encode_uint16/32/64` / `decode_uint16/32/64` round-trip. **Phase 4 (Implementation)** (run 8; **3 `sorry` → 3 proved theorems** via `simp + toByte_val + omega`). **Executable correspondence harness**: 45 `#guard` byte-level checks, all pass. **Endianness comment fixed in run 6** (was "big-endian", now "little-endian").
 
 ## Tier 2 (Address formats — golden-tested)
 
@@ -68,13 +68,22 @@ codec.
 ## Critique
 
 `formal-verification/CRITIQUE.md` (run 6, updated run 7):
-honest assessment of proof utility. **14 `sorry` and 5 `axiom`
-remain** (Phase 4 / 5 work). Net unproved items: **23 → 14**
-(run 7). 5 prioritised gaps: (1) **add Mathlib to
+honest assessment of proof utility. **11 `sorry` and 5 `axiom`
+remain** (Phase 4 / 5 work). Net unproved items: **23 → 11**
+(run 8, with 3 UintCodec round-trips discharged). 5 prioritised gaps: (1) **add Mathlib to
 `lakefile.toml`** (closes 5 UUID + 2 MainAddress sorrys); (2)
 hand-write Base58 → MainAddress round-trips provable; (3)
-prove Varint round-trip; (4) prove UintCodec round-trips; (5)
+prove Varint round-trip; (4) prove UUID round-trips (now possible with Mathlib); (5)
 advance MixAddress to Phase 3.
+
+## Conference paper
+
+`formal-verification/paper/paper.tex` + `paper.bib` (run 8,
+branch `lean-squad/run-8-paper-d5fe5f7e686ad20e`, commit
+`77e82d9`). ACM `sigconf` 11pt, ~10 pages. PDF not compiled
+(no `pdflatex` in workflow runner); compile locally with
+`pdflatex paper.tex && bibtex paper && pdflatex paper.tex &&
+pdflatex paper.tex`.
 
 **Why**: Ruby codebase with golden fixtures from Go SDK = high-quality spec hints.
 **How to apply**: Pick the highest-tier unstarted target. Build incrementally.

@@ -1,2 +1,2 @@
-- [MixinBot FV Targets](mixin_bot_targets.md) — Tier 1 + Tier 2 status; UUID now Phase 4 (Implementation); runnable correspondence harness with 101 #guard checks (77 Tier 1 + 24 UUID, run 7)
-- [MixinBot Run Log](mixin_bot_run_log.md) — Per-run log of FV tasks completed for MixinBot (7 runs to date; run 7 = UUID axiom discharge + 24 UUID #guard checks)
+- [MixinBot FV Targets](mixin_bot_targets.md) — Tier 1 + Tier 2 status; UUID Phase 4, UintCodec now Phase 4 (run 8); runnable correspondence harness with 101 #guard checks
+- [MixinBot Run Log](mixin_bot_run_log.md) — Per-run log of FV tasks completed for MixinBot (8 runs; run 8 = 3 UintCodec round-trips proved + conference paper)
