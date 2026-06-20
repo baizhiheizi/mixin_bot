@@ -1,7 +1,6 @@
-# gh-aw-commands: {"payload_version":"v1","schema_version":"v1","compiler_version":"v0.79.6","commands":["lean-squad","repo-assist"],"workflows":["lean-squad","repo-assist"]}
+# gh-aw-commands: {"payload_version":"v1","schema_version":"v1","compiler_version":"v0.79.6","commands":["repo-assist"],"workflows":["repo-assist"]}
 # Routing summary (sorted):
 #   slash commands:
-#     /lean-squad -> lean-squad [discussion,discussion_comment,issue_comment,issues,pull_request,pull_request_comment,pull_request_review_comment] reaction=eyes
 #     /repo-assist -> repo-assist [discussion,discussion_comment,issue_comment,issues,pull_request,pull_request_comment,pull_request_review_comment] reaction=eyes
 #   labels:
 #     (none)
@@ -68,7 +67,7 @@ jobs:
       - name: Route slash command
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_SLASH_ROUTING: '{"lean-squad":[{"workflow":"lean-squad","events":["discussion","discussion_comment","issue_comment","issues","pull_request","pull_request_comment","pull_request_review_comment"],"ai_reaction":"eyes"}],"repo-assist":[{"workflow":"repo-assist","events":["discussion","discussion_comment","issue_comment","issues","pull_request","pull_request_comment","pull_request_review_comment"],"ai_reaction":"eyes"}]}'
+          GH_AW_SLASH_ROUTING: '{"repo-assist":[{"workflow":"repo-assist","events":["discussion","discussion_comment","issue_comment","issues","pull_request","pull_request_comment","pull_request_review_comment"],"ai_reaction":"eyes"}]}'
           GH_AW_LABEL_ROUTING: '{}'
         with:
           script: |
