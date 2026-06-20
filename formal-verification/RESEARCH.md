@@ -2,9 +2,14 @@
 
 > 🔬 *Lean Squad — automated formal verification for `baizhiheizi/mixin_bot`.*
 
-**Status**: Research complete; Tier 1 Lean specs (UUID, Varint, UintCodec) merged
-in PRs #95 / #96 with 7 `sorry` remaining for the round-trip proofs; this run
-adds Tier 2 (`MainAddress`).
+**Status**: Both Tier 1 codecs (Varint and UintCodec) now at **Implementation phase**
+(round-trip proofs closed via `Nat.strongRecOn` and `simp + toByte_val + omega`).
+UUID is also at Implementation phase with 7 `sorry` (blocked on `String.ofList` /
+`String.length` opacity without Mathlib). MainAddress is at Lean Spec phase
+(2 `sorry` + 5 `axiom`). **9 `sorry` and 5 `axiom` remain across 4 Lean files**;
+**101 byte-level `#guard` checks** confirm Ruby↔Lean agreement on all
+Tier 1 codecs + UUID. See `CRITIQUE.md` for the proof utility analysis and
+prioritised gaps.
 
 ## 1. Codebase Survey
 
@@ -167,6 +172,84 @@ The full informal specification lives in
 | `decode addr` rejects if checksum is wrong | error property | trivial | `decide` after modelling |
 | Burning address stability: `MainAddress.burning_address.address = ⟨golden⟩` | determinism | trivial | `decide` after one fixed computation |
 
+## 10. Lessons Learned from Tier 1 Proof Completion (runs 7–9)
+
+The Tier 1 round-trip proofs are now complete on the two byte-level codecs
+(`Varint.lean` and `UintCodec.lean`), with `UUID.lean` blocked on
+`String`-opacity issues rather than algorithmic ones. Five observations that
+shape the next round of work:
+
+1. **`Nat.strongRecOn` is the cleanest pattern for varint round-trips.**
+   `encodeInt n` recurses on `n / 256`; the natural induction is "every
+   smaller-than-`n` argument produces the right decoding". In Lean 4.31
+   without Mathlib, `Nat.strong_induction_on` is not available, but the
+   combinator `Nat.strongRecOn` works directly. The pattern is:
+   `strongRecOn k (fun k' ih => ...)` followed by `have hk : k' / 256 < k' :=
+   Nat.div_lt_of_lt_mul (Nat.lt_succ_self k') (by omega)`. This is reusable
+   for any LSB-first or MSB-first recursive integer codec.
+
+2. **`toByte_val` (a 1-line lemma) unblocks fixed-width codecs.** All three
+   `encodeUintN_decodeUintN` theorems (`N ∈ {16, 32, 64}`) discharge with
+   `simp [encodeUint, ..., toByte_val]; omega` once you prove
+   `(toByte n h).val = n`. The `omega` tactic handles the Euclidean identity
+   `n = (n / 2^24 % 256) * 2^24 + ... + n % 256` automatically. **Lesson**:
+   extract a small public reduction lemma (`toByte_val`) and the rest of
+   the proof collapses to `omega`. This pattern generalises to other
+   fixed-width byte codecs.
+
+3. **`String.ofList` / `String.length` opacity is the dominant blocker for
+   the remaining UUID `sorry`s.** Concretely, `(String.ofList cs).length =
+   cs.length` is **not** provable in `Init.Prelude` alone; it requires the
+   `String` module from Lean 4 stdlib (or Mathlib) which is *not* imported
+   by default in 4.31. With Mathlib, the 7 UUID `sorry`s would discharge in
+   well under 200 LoC; without Mathlib, they are stuck. **Recommendation**:
+   adding Mathlib to `lakefile.toml` is the **single highest-leverage
+   next step** — it would close 9 of the 9 remaining `sorry`s in two files.
+
+4. **`#guard` byte-level checks are now the load-bearing validation.**
+   `formal-verification/lean/FVSquad/Correspondence.lean` has 101
+   `#guard`s, all checked at `lake build` time. This is **stronger
+   evidence** than the hand proofs: it proves the Lean model and the
+   Ruby implementation produce byte-for-byte identical output on the
+   101 specific (input, output) pairs. The hand proofs (when present)
+   generalise this to *all* inputs. **Lesson**: even before the hand
+   proofs are closed, the `#guard` harness is a permanent regression
+   detector that catches any future Ruby or Lean drift in the codec
+   behaviour. Future runs should extend this pattern to `MainAddress`
+   (golden fixtures in `test/mixin_bot/test_address.rb`) and
+   `MixAddress` (`test/mixin_bot/test_mix_address.rb`).
+
+5. **Axiom-burden is migrating to sorry-burden as the Lean model matures.**
+   In run 6, `UUID.lean` had 9 axioms and 0 `sorry`s; in run 7 we
+   replaced 4 functional axioms with concrete `def`s (enabling `#guard`)
+   and converted 5 round-trip lemmas from `axiom` to `theorem`+`sorry`.
+   Net: same proof obligation, but now **machine-checkable** when Mathlib
+   arrives. The lesson: don't be afraid to convert `axiom` to `theorem`+`sorry`
+   when the body is in principle provable — it makes the gap visible
+   and aligns the file with future-proof intent.
+
+## 11. Recommended Next Steps (incorporating CRITIQUE feedback)
+
+Drawing from `CRITIQUE.md` (run 9):
+
+1. **Add Mathlib to `lakefile.toml`** — closes 9 `sorry` in UUID + MainAddress
+   for an estimated 175 LoC of proof work. The lakefile is currently
+   minimal (no Mathlib); switching to `math` is a 5-line change.
+2. **Extend the correspondence harness to `MainAddress`** — adds ~30
+   `#guard`s covering `encode`/`decode` round-trip on the existing
+   `test_address.rb` golden fixtures. This catches Ruby↔Lean drift on the
+   security-critical address codec.
+3. **Advance `MixAddress` to Phase 3** — the informal spec exists
+   (`formal-verification/specs/mix_address_informal.md`); translate to Lean.
+4. **Investigate whether a hand-written Base58 (~50 LoC) would unblock
+   the MainAddress round-trips** without requiring Mathlib. The
+   `base58Encode_decode` axiom is already in the spec as a single
+   property; if a concrete Base58 implementation is added, the round-trip
+   `sorry`s reduce to a fold over the alphabet table.
+5. **Begin Phase 1 research on the `Transaction` encoder/decoder**
+   (`lib/mixin_bot/transaction/{encoder,decoder}.rb`) — Tier 3, depends
+   on Tier 1 + Tier 2 codecs. Golden fixture already exists.
+
 ### Approach
 
 - Mirror the Ruby `encode` / `decode` as two pure Lean functions
@@ -203,5 +286,10 @@ the Lean model and the Ruby implementation.
 ---
 
 ## Last Updated
-- **Date**: 2026-06-16 00:35 UTC
-- **Commit**: `84bac72` (origin/main; PRs #95 / #96 carry the Tier 1 specs)
+- **Date**: 2026-06-19 (current run)
+- **Commit**: `5afe7f9` (post-run-9; PR #125 merged — Varint codec
+  Implementation phase; both Tier 1 codecs now `sorry`-free)
+- **Run**: 10 — Task 1 (Research incremental: §10 lessons from Tier 1 proof
+  completion + §11 recommended next steps incorporating CRITIQUE feedback) +
+  Task 6 (Correspondence Review incremental: Last Updated + repository layout
+  + run 9 advances)

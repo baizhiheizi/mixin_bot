@@ -10,19 +10,30 @@
 > - **Mismatch** — the Lean function is incorrect relative to the Ruby in a way that invalidates proofs. **None of the current specs have any mismatches.** If a mismatch is found, it must be fixed before any proved theorem relying on it is trusted.
 
 ## Last Updated
-- **Date**: 2026-06-17 20:45 UTC
-- **Commit**: run 7 (PR open) — UUID 9 axioms replaced with concrete defs + `sorry` theorems; 24 UUID `#guard` correspondence checks added to `Correspondence.lean` (77 → 101 total)
+- **Date**: 2026-06-19 (current run)
+- **Commit**: `5afe7f9` (post-run-9; PR #125 merged — Varint codec now at
+  Implementation phase; both Tier 1 codecs (Varint + UintCodec) are
+  `sorry`-free at Implementation phase; UUID still at Implementation
+  phase with 7 `sorry` on `String` operations; MainAddress at Lean Spec
+  phase with 2 `sorry` + 5 `axiom`)
+- **Run**: 10 — Task 6 (Correspondence Review incremental: run 9 advances
+  reflected in repository layout table and per-target Mapping sections;
+  Varint section updated to mark `encodeInt_decodeInt` /
+  `decodeInt_encodeIntHelper` as proved; UintCodec section likewise;
+  total `sorry` inventory 9 + `axiom` 5 across 4 Lean files; validation
+  evidence unchanged at 101 `#guard`s)
 
 ## Repository layout
 
-| Lean file | Ruby source | Tier | Phase | Theorems | `sorry` | Correspondence checks |
-|-----------|-------------|------|-------|----------|---------|----------------------|
-| `FVSquad/UUID.lean` | `lib/mixin_bot/uuid.rb` | T1 | 4 (implementation) | 7 + 0 axioms (was 2 + 9 axioms) | 7 | 24 (`#guard`s) |
-| `FVSquad/Varint.lean` | `lib/mixin_bot/utils/encoder.rb` (`encode_int`), `lib/mixin_bot/utils/decoder.rb` (`decode_int`) | T1 | 3 (Lean spec) | 6 + 7 examples | 2 | 26 (`#guard`s) |
-| `FVSquad/UintCodec.lean` | `lib/mixin_bot/utils/encoder.rb` (`encode_uint16/32/64`), `lib/mixin_bot/utils/decoder.rb` (`decode_uint16/32/64`) | T1 | 3 (Lean spec) | 6 + 10 examples | 3 | 45 (`#guard`s) |
-| `FVSquad/Correspondence.lean` | (all four) | T1 | 4 (executable harness) | 101 `#guard`s | 0 | 101 (`#guard`s) |
-| `FVSquad/MainAddress.lean` | `lib/mixin_bot/address.rb` (`MainAddress`, lines 159–212) | T2 | 3 (Lean spec) | 4 + 2 examples | 2 | 0 (axiom-only) |
-| `FVSquad/MixAddress.lean` | `lib/mixin_bot/address.rb` (`MixAddress`, lines 10–157) | T2 | 1 (research only) | — | — | — |
+| Lean file | Ruby source | Tier | Phase | Theorems | `sorry` | `axiom` | Correspondence checks |
+|-----------|-------------|------|-------|----------|---------|---------|----------------------|
+| `FVSquad/UUID.lean` | `lib/mixin_bot/uuid.rb` | T1 | 4 (Implementation) | 7 | 7 | 0 | 24 (`#guard`s) |
+| `FVSquad/Varint.lean` | `lib/mixin_bot/utils/encoder.rb` (`encode_int`), `lib/mixin_bot/utils/decoder.rb` (`decode_int`) | T1 | **4 (Implementation)** ✅ | 6 + 7 examples | **0** | 0 | 26 (`#guard`s) |
+| `FVSquad/UintCodec.lean` | `lib/mixin_bot/utils/encoder.rb` (`encode_uint16/32/64`), `lib/mixin_bot/utils/decoder.rb` (`decode_uint16/32/64`) | T1 | **4 (Implementation)** ✅ | 6 + 10 examples | **0** | 0 | 45 (`#guard`s) |
+| `FVSquad/Correspondence.lean` | (all four) | T1 | 4 (executable harness) | 101 `#guard`s | 0 | 0 | 101 (`#guard`s) |
+| `FVSquad/MainAddress.lean` | `lib/mixin_bot/address.rb` (`MainAddress`, lines 159–212) | T2 | 3 (Lean spec) | 4 + 2 examples | 2 | 5 | 0 (axiom-only) |
+| `FVSquad/MixAddress.lean` | `lib/mixin_bot/address.rb` (`MixAddress`, lines 10–157) | T2 | 2 (Informal spec) | — | — | — | — |
+| **Total** | | | | **~30 + 101** | **9** | **5** | **101** |
 
 ---
 
@@ -90,13 +101,13 @@ Informal spec: [`specs/varint_informal.md`](specs/varint_informal.md).
 | `Byte := Fin 256` | implicit in `.pack('C*')` and `<< 8` | n/a | abstraction | Same as UUID: `Fin 256` replaces the implicit byte constraint. |
 | `def encodeInt : Nat → List Byte` | `def encode_int(int); bytes = []; if int.zero?; bytes.push(0); else; loop do; break if int.zero?; bytes.push(int & 255); int = (int / (2**8)) \| 0; end; end; bytes.reverse; end` | `encoder.rb:53–69` | exact | Computes the same `List Byte` as the Ruby code on every non-negative `Nat`. The zero case (`bytes.push(0)`) is mirrored by `encodeInt 0 = [0]`. The little-endian-then-reverse pattern is implemented as a LSB-first accumulator in `encodeIntHelper`. |
 | `def decodeInt : List Byte → Nat` | `def decode_int(bytes); bytes.reduce(0) { \|sum, byte\| (sum << 8) + byte }; end` | `decoder.rb:42–46` | exact | Computes the same `Nat` as the Ruby code on every `List Byte`. The shift-and-add pattern is the big-endian interpretation of a list. **Note**: this is *big-endian decoding* (the leftmost byte is the most significant), which is consistent with the Ruby `reduce(0) { |s, b| s << 8 + b }`. The internal LSB-first encoding in `encodeIntHelper` is reversed in the recursion, so the *output* of `encodeInt` is big-endian (MSB first). |
-| `theorem encodeInt_decodeInt` (`sorry`) | round-trip | implicit | abstract proof | Headline property. |
+| `theorem encodeInt_decodeInt` (proved in run 9) | round-trip | implicit | **exact proof** | **Headline property.** Proved by `Nat.strongRecOn` + `Nat.div_add_mod` + `Nat.mul_add` algebra. Catches byte-order bugs, modulo off-by-ones, and missing carries for all non-negative `n`. |
 | `theorem encodeInt_zero` | (zero case) | `encoder.rb:57–58` | exact proof | `rfl`. |
 | `theorem encodeInt_zero_length` | (zero case) | `encoder.rb:57–58` | exact proof | `simp`. |
 | `theorem decodeInt_nil` | (empty input) | `decoder.rb:45` | exact proof | `rfl`. |
 | `theorem decodeInt_two_bytes` | (small input) | `decoder.rb:45` | exact proof | `simp`. |
 | 6× `example` (`native_decide`) | round-trip on specific `n` | implicit | exact proof | Concrete round-trips for `n ∈ {0, 1, 127, 128, 255, 256, 65535}`. These do *not* call the Lean `encodeInt` definition (which is not `native_decide`-friendly due to recursion) but rather evaluate the *axiom-free* model directly. |
-| `theorem decodeInt_encodeIntHelper` (`sorry`) | (helper property) | implicit | abstract proof | Key building block for the general round-trip. |
+| `theorem decodeInt_encodeIntHelper` (proved in run 9) | (helper property) | implicit | **exact proof** | **Key building block for the general round-trip.** Proved by `Nat.strongRecOn` on `k`, generalising `acc`. Inductive step uses `Nat.div_lt_of_lt_mul`, applies IH to `(k'+1) / 256` with new accumulator, then reduces via `Nat.div_add_mod (k'+1) 256` and `Nat.mul_add`. |
 
 ### Divergences
 
@@ -106,8 +117,16 @@ Informal spec: [`specs/varint_informal.md`](specs/varint_informal.md).
 
 ### Impact on proofs
 
-- `encodeInt_decodeInt` is the headline round-trip and is `sorry`. Once proved, it would establish that `decodeInt` is a left inverse of `encodeInt` for all `Nat` inputs. The seven `native_decide` examples provide strong empirical evidence that the proof is true; the only barrier to discharging the `sorry` is induction over the `encodeIntHelper` recursion, which is straightforward but laborious.
-- `decodeInt_encodeIntHelper` is the *lemma* that the general proof reduces to.
+- `encodeInt_decodeInt` is the headline round-trip — **proved in run 9** via
+  `Nat.strongRecOn` + `Nat.div_add_mod` + `Nat.mul_add` algebra. This
+  establishes that `decodeInt` is a left inverse of `encodeInt` for *all*
+  `Nat` inputs, catching byte-order bugs, modulo off-by-ones, and missing
+  carries. The seven `native_decide` examples provide strong empirical
+  confirmation on representative inputs.
+- `decodeInt_encodeIntHelper` is the *lemma* that the general proof reduces
+  to — **proved in run 9** via the same technique. The Varint codec is
+  now `sorry`-free and `axiom`-free, advancing from Lean Spec to
+  Implementation phase.
 
 ### Validation evidence
 
@@ -130,9 +149,9 @@ Informal spec: [`specs/uint_codec_informal.md`](specs/uint_codec_informal.md).
 | `private def toByte (n : Nat) (h : n < 256) : Byte` | implicit | n/a | abstraction | Helper that turns an arithmetic expression into a `Fin 256` with a proof obligation. The proofs in the call sites use `omega` to discharge the obligations. |
 | `def encodeUint : (N : Nat) → Bounded N → List Byte` (cases for 16, 32, 64) | `def encode_uint16(int); [int].pack('S*').bytes.reverse; end` (and 32/64 variants) | `encoder.rb:22–38` | exact (for the three named cases); the default `_N+1` case is unused | The Ruby code reverses the bytes of a big-endian `pack('S*')` (or `L*` / `Q*`) to get a *little-endian* list. The Lean `encodeUint16` computes `[n/256, n%256]` directly, which is the same little-endian list. **Endiness**: little-endian (low byte first). The Lean comments at lines 22–25 say "big-endian" but the *implementation* is little-endian; this is a comment-only error. |
 | `def decodeUint : (N : Nat) → List Byte → Nat` (cases for 16, 32, 64) | `def decode_uint16(bytes); bytes.reverse.pack('C*').unpack1('S*'); end` (and 32/64 variants) | `decoder.rb:24–40` | exact (for the three named cases); the default `_N+1` case returns 0 (it should be 0 in Ruby too — packing an empty list gives the all-zero value) | The Ruby code reverses the bytes, packs them big-endian, then unpacks as an unsigned integer. The Lean `decodeUint16` matches: `a * 256 + b` (where `a` is the low byte and `b` is the high byte, with `a` and `b` taken in the order `[a, b]` from the input list). For length-mismatched inputs, Ruby raises `ArgumentError` and the Lean model returns 0. |
-| `theorem encodeUint16_decodeUint16` (`sorry`) | round-trip | implicit | abstract proof | Headline property for 16-bit values. |
-| `theorem encodeUint32_decodeUint32` (`sorry`) | round-trip | implicit | abstract proof | Headline property for 32-bit values. |
-| `theorem encodeUint64_decodeUint64` (`sorry`) | round-trip | implicit | abstract proof | Headline property for 64-bit values. |
+| `theorem encodeUint16_decodeUint16` (proved in run 8) | round-trip | implicit | **exact proof** | **Headline property for 16-bit values.** Proved by `simp [encodeUint, encodeUint.encodeUintN, decodeUint, decodeUint.decodeUintN, toByte_val]; omega` after adding the public lemma `toByte_val : (toByte n h).val = n`. Catches any byte-order bug in the encoder. |
+| `theorem encodeUint32_decodeUint32` (proved in run 8) | round-trip | implicit | **exact proof** | **Headline property for 32-bit values.** Same proof technique as 16-bit; `omega` discharges the Euclidean identity `(n / 2^24 % 256) * 2^24 + ... + n % 256 = n` given `n < 2^32`. |
+| `theorem encodeUint64_decodeUint64` (proved in run 8) | round-trip | implicit | **exact proof** | **Headline property for 64-bit values.** Same proof technique as 32-bit. |
 | `theorem encodeUintN_length` (16/32/64) | `[int].pack('S*').bytes` length is fixed | `encoder.rb:25, 31, 37` | exact proof | `simp` only. |
 | 10× `example` (`native_decide`) | round-trip on specific `n` | implicit | exact proof | Concrete round-trips for `n ∈ {0, 1, 256, 65535}` (16-bit), `{0, 1, 4294967295}` (32-bit), `{0, 1, 4294967295}` (64-bit). |
 
@@ -144,8 +163,15 @@ Informal spec: [`specs/uint_codec_informal.md`](specs/uint_codec_informal.md).
 
 ### Impact on proofs
 
-- The three `encodeUintN_decodeUintN` round-trip theorems are `sorry`. The 10 `native_decide` examples are strong empirical evidence; the general proof reduces to a straightforward case-split on the `Bounded N` value and `omega` for the bit manipulations.
-- The `encodeUintN_length` theorems are `simp`-closed; they depend only on the implementation, not on the round-trip.
+- The three `encodeUintN_decodeUintN` round-trip theorems are **proved in
+  run 8** via `simp [encodeUint, encodeUint.encodeUintN, decodeUint,
+  decodeUint.decodeUintN, toByte_val]; omega` after adding the public
+  lemma `toByte_val : (toByte n h).val = n`. This establishes that
+  `decodeUint N ∘ encodeUint N = id` for all `N ∈ {16, 32, 64}` and all
+  well-formed `Bounded N` inputs, catching byte-order bugs in the
+  encoder (e.g., if the Ruby `pack('S*').bytes.reverse` was dropped).
+- The `encodeUintN_length` theorems are `simp`-closed; they depend only
+  on the implementation, not on the round-trip.
 
 ### Validation evidence
 
@@ -251,7 +277,7 @@ Discharging these axioms is *the* work of Phases 4–5 for each target.
 ### CI status
 
 - `.github/workflows/lean-ci.yml` exists and triggers on changes to `formal-verification/lean/**` (see `formal-verification/RESEARCH.md` §7 for the run history).
-- The CI runs `lake build` on the Lean files; the 14 `sorry` theorems across the four files are flagged by the build but do not fail it. Discharging them would shrink the `sorry` count to 0 and the CI would then be a true correctness check.
+- The CI runs `lake build` on the Lean files; the 9 `sorry` theorems across the four files (7 in UUID + 2 in MainAddress) are flagged by the build but do not fail it. Discharging them would shrink the `sorry` count to 0 and the CI would then be a true correctness check.
 
 ---
 
@@ -259,10 +285,17 @@ Discharging these axioms is *the* work of Phases 4–5 for each target.
 
 | Target | Level | Divergences | Impact on proofs | Validation evidence |
 |--------|-------|-------------|------------------|---------------------|
-| `UUID` | exact | 3 (present?, InvalidUuidFormatError, storage polymorphism) | low — concrete defs validated by 24 `#guard`s | 24 `#guard`s (run 7) |
-| `Varint` | exact | 1 (no ArgumentError raise) | low — `encodeInt` is a faithful translation | 7 `native_decide` examples + 26 `#guard`s |
-| `UintCodec` | exact (with comment-only bug) | 3 (`Bounded` subtype, endiness comment, length-mismatch handling) | low | 10 `native_decide` examples + 45 `#guard`s |
-| `MainAddress` | abstraction + 4 axioms | 5 (axioms, totalisation, defensive check, no `burning_address`, no init raise) | high — axioms carry the third-party impl | none yet (axiom-only) |
+| `UUID` | exact | 3 (present?, InvalidUuidFormatError, storage polymorphism) | low — concrete defs validated by 24 `#guard`s; 7 `sorry` on `String` operations | 24 `#guard`s (run 7) |
+| `Varint` | exact (run 9: round-trip proved) | 1 (no ArgumentError raise) | none — round-trip fully proved | 7 `native_decide` examples + 26 `#guard`s |
+| `UintCodec` | exact (run 8: all 3 round-trips proved) | 3 (`Bounded` subtype, endianness comment fixed run 6, length-mismatch handling) | none — round-trips fully proved | 10 `native_decide` examples + 45 `#guard`s |
+| `MainAddress` | abstraction + 5 axioms | 5 (axioms, totalisation, defensive check, no `burning_address`, no init raise) | high — axioms carry the third-party impl | none yet (axiom-only) |
+
+**Run 10 update**: Both Tier 1 codecs (Varint + UintCodec) are now
+`sorry`-free at Implementation phase. UUID is at Implementation phase
+with 7 `sorry` on `String` operations. MainAddress is at Lean Spec phase
+with 2 `sorry` + 5 `axiom`. Total: **9 `sorry` + 5 `axiom` across 4
+Lean files** (was 11 + 5 after run 8; was 14 + 5 after run 7; was
+9 + 14 after run 6).
 
 No mismatches. All four Lean models are sound approximations of the Ruby code; the UUID axioms have been discharged (run 7) in favour of concrete `#eval`-able definitions; the MainAddress axioms remain and are clearly documented.
 
