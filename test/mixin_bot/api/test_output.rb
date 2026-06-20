@@ -45,7 +45,7 @@ module MixinBot
       assert_equal 'fffe10', MixinBot.api.build_threshold_script(16)
     end
 
-    def test_build_threshold_script_255
+    def test_build_threshold_script_for_max_byte
       # 255 → "ff" (max two-digit hex) → "fffeff"
       assert_equal 'fffeff', MixinBot.api.build_threshold_script(255)
     end
