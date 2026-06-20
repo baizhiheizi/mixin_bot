@@ -35,9 +35,69 @@ def decodeInt : List Byte → Nat
   | []        => 0
   | b :: rest => (b.val : Nat) * 256 ^ rest.length + decodeInt rest
 
-/-- **Headline property**: `decodeInt` is a left inverse of `encodeInt`. -/
+/-- A key building block for the round-trip proof: `decodeInt` of
+    a list formed by `encodeIntHelper` satisfies a useful identity.
+
+Proof: by strong recursion on `k`, generalizing `acc`.
+- Base case `k = 0`: `encodeIntHelper 0 acc = acc`, and
+  `0 * 256^acc.length + decodeInt acc = decodeInt acc` by `Nat.zero_mul`
+  and `Nat.zero_add`.
+- Inductive case `k = k' + 1`: `encodeIntHelper (k' + 1) acc`
+  recursively calls itself with `(k' + 1) / 256` and prepends
+  `⟨(k' + 1) % 256, _⟩` to `acc`. Apply the induction hypothesis
+  (valid since `(k' + 1) / 256 < k' + 1`), then expand
+  `decodeInt (b :: acc) = b.val * 256^acc.length + decodeInt acc` and
+  simplify `256^(b::acc).length` to `256^(acc.length + 1) = 256^acc.length * 256`.
+  Combine the two terms and apply the Euclidean identity
+  `((k' + 1) / 256) * 256 + (k' + 1) % 256 = k' + 1`
+  (`Nat.div_add_mod`) to reduce to the goal. -/
+theorem decodeInt_encodeIntHelper (k : Nat) (acc : List Byte) :
+    decodeInt (encodeInt.encodeIntHelper k acc) =
+      k * 256 ^ acc.length + decodeInt acc := by
+  induction k using Nat.strongRecOn generalizing acc with
+  | _ k ih =>
+    match k with
+    | 0 =>
+      simp [encodeInt.encodeIntHelper]
+    | k' + 1 =>
+      simp only [encodeInt.encodeIntHelper]
+      have hdiv : (k' + 1) / 256 < k' + 1 := by
+        apply Nat.div_lt_of_lt_mul
+        · omega
+      let b : Byte := ⟨(k' + 1) % 256, by omega⟩
+      have ih' := ih ((k' + 1) / 256) hdiv (b :: acc)
+      rw [ih']
+      simp only [decodeInt]
+      rw [show (b :: acc).length = acc.length + 1 from rfl, Nat.pow_succ]
+      have hb : (b.val : Nat) = (k' + 1) % 256 := rfl
+      rw [hb]
+      rw [← Nat.mul_assoc ((k' + 1) / 256) (256^acc.length) 256]
+      rw [Nat.mul_comm ((k' + 1) / 256) (256^acc.length)]
+      rw [Nat.mul_assoc (256^acc.length) ((k' + 1) / 256) 256]
+      rw [Nat.mul_comm ((k' + 1) % 256) (256^acc.length)]
+      rw [← Nat.add_assoc]
+      have hmul : 256^acc.length * ((k' + 1) / 256 * 256) + 256^acc.length * ((k' + 1) % 256) = 256^acc.length * ((k' + 1) / 256 * 256 + (k' + 1) % 256) := by
+        rw [Nat.mul_comm ((k' + 1) / 256) 256, ← Nat.mul_add]
+      rw [hmul]
+      rw [Nat.mul_comm ((k' + 1) / 256) 256]
+      rw [Nat.div_add_mod (k' + 1) 256]
+      rw [Nat.mul_comm (k' + 1) (256^acc.length)]
+
+/-- **Headline property**: `decodeInt` is a left inverse of `encodeInt`.
+
+Proof: by case analysis on `n`. For `n = 0`, `encodeInt 0 = [0]` and
+`decodeInt [0] = 0 * 256^0 + 0 = 0`. For `n = n' + 1`, we unfold
+`encodeInt` to `encodeInt.encodeIntHelper (n' + 1) []` and apply the
+helper lemma `decodeInt_encodeIntHelper`, then simplify using
+`List.length_nil = 0`, `Nat.pow_zero = 1`, and `Nat.mul_one`. -/
 theorem encodeInt_decodeInt (n : Nat) : decodeInt (encodeInt n) = n := by
-  sorry
+  match n with
+  | 0 =>
+    simp [encodeInt, decodeInt]
+  | n' + 1 =>
+    rw [encodeInt]
+    rw [decodeInt_encodeIntHelper]
+    simp [decodeInt]
 
 /-- `encodeInt 0` is exactly `[0]`. -/
 theorem encodeInt_zero : encodeInt 0 = [0] := by
@@ -83,12 +143,5 @@ example : decodeInt (encodeInt 256) = 256 := by
 /-- Concrete example: round-trip for 65535 (uses two bytes). -/
 example : decodeInt (encodeInt 65535) = 65535 := by
   native_decide
-
-/-- A key building block for the round-trip proof: `decodeInt` of
-    a list formed by `encodeIntHelper` satisfies a useful identity. -/
-theorem decodeInt_encodeIntHelper (k : Nat) (acc : List Byte) :
-    decodeInt (encodeInt.encodeIntHelper k acc) =
-      k * 256 ^ acc.length + decodeInt acc := by
-  sorry
 
 end FVSquad.Varint
