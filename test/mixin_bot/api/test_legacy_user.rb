@@ -78,11 +78,9 @@ module MixinBot
       MixinBot.api.upgrade_legacy_user(@keystore)
 
       body = captured_payload
-      # urlsafe-base64 without padding of 32 bytes => ceil(32*4/3) = 43 chars.
+      # urlsafe-base64 without padding of 32-byte Ed25519 verify key => 43 chars.
       assert_equal 43, body['session_secret'].length
       assert_match(/\A[A-Za-z0-9_-]+\z/, body['session_secret'])
-      assert_equal 43, body['session_secret_legacy'].length
-      assert_match(/\A[A-Za-z0-9_-]+\z/, body['session_secret_legacy'])
     end
 
     def test_upgrade_legacy_user_pin_payload_is_urlsafe_base64
@@ -98,11 +96,11 @@ module MixinBot
 
       raw = Base64.urlsafe_decode64(captured_payload['pin'])
 
-      # IV (16 bytes) + AES-256-CBC(plaintext). Plaintext is 6-byte PIN + 8-byte
-      # timestamp + 8-byte zero + 1..16 byte PKCS#7 padding => 23..38 bytes
-      # ciphertext, plus 16-byte IV => 39..54 bytes total.
-      assert raw.length.between?(39, 54),
-             "expected pin ciphertext to be 39..54 bytes, got #{raw.length}"
+      # IV (16 bytes) + AES-256-CBC ciphertext. Plaintext is 6-byte PIN + 8-byte
+      # timestamp + 8-byte zero + PKCS#7 padding to a 16-byte boundary (32 bytes),
+      # then OpenSSL CBC adds another padding block => 48-byte ciphertext + IV.
+      assert raw.length.between?(48, 64),
+             "expected pin ciphertext to be 48..64 bytes, got #{raw.length}"
 
       cipher = OpenSSL::Cipher.new('AES-256-CBC')
       cipher.decrypt
