@@ -18,7 +18,7 @@ module MixinBot
         bytes = []
 
         bytes.concat Transaction::MAGIC
-        bytes.concat [0, @tx.version]
+        bytes.push(0, @tx.version)
         bytes.concat [@tx.asset].pack('H*').bytes
 
         bytes.concat encode_inputs
@@ -114,7 +114,7 @@ module MixinBot
 
         @tx.outputs.each do |output|
           type = output['type'] || 0
-          bytes.concat [0x00, type]
+          bytes.push(0x00, type)
 
           amount_bytes = MixinBot.utils.encode_int((output['amount'].to_d * 1e8).round)
           bytes.concat MixinBot.utils.encode_uint16 amount_bytes.size
