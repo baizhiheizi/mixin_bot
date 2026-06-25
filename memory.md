@@ -7,29 +7,30 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-06-24 05:14 UTC)
+## Current state (as of 2026-06-25 16:30 UTC)
 
 - **Repo activity**: predominantly automated workflows. Last human contributor commit (an-lee): 2026-05-27.
-- **CI is GREEN on `main`** (PR #133 + #131 merged in `4a95f97` + `2091e40`).
-- **Open issues**: 22 — 21 automated workflow-tracking + Monthly Activity (#99).
-- **Open PRs**: 5 repo-assist PRs visible: #138 (perf encoder), #141 (test inscription), #142 (test multisig), `repo-assist/test-network-2026-06-24` (this run), `repo-assist/test-legacy-user-2026-06-24` (this run). Last two not yet visible via GitHub MCP API (propagation lag).
+- **CI is GREEN on `main`** (PR #133 + #131 merged in `4a95f97` + `2091e40`; recent run on `main` was `e2825aa`).
+- **Open issues**: 19 — 18 automated workflow-tracking + Monthly Activity (#99).
+- **Open PRs**: 5 visible (#138 perf encoder, #141 test inscription, #142 test multisig, #145+#146 superseded by `repo-assist/fix-pr145-pr146-2026-06-24`) + 1 awaiting propagation (`repo-assist/test-small-modules-2026-06-25`).
 - **Monthly Activity issue**: [issue #99](https://github.com/baizhiheizi/mixin_bot/issues/99) for 2026-06 (active; updated this run).
-- **Test coverage progress**: 5 merged + 4 awaiting. Merged: `test_tip.rb` (#117), `test_chain.rb` (#123), `test_output.rb` (#126), `test_legacy_collectible.rb` (#131), rename fix (#133). Awaiting: `test_inscription.rb` (#141), `test_multisig.rb` (#142), `test_network.rb` (this run, 127 lines / 20 assertions), `test_legacy_user.rb` (this run, 186 lines / 13 assertions — first offline integration test that exercises real RSA + AES + Ed25519 against a fresh keypair).
+- **Test coverage progress**: 5 merged + 4 awaiting. Merged: `test_tip.rb` (#117), `test_chain.rb` (#123), `test_output.rb` (#126), `test_legacy_collectible.rb` (#131), rename fix (#133). Awaiting: #141, #142, `repo-assist/fix-pr145-pr146-2026-06-24` (supersedes #145+#146), `repo-assist/test-small-modules-2026-06-25` (this run, 250 lines / 27 assertions covering 6 modules).
+- **Ruby 4.0 audit (this run)**: grep-confirmed `legacy_user.rb` was the only file with the broken `oaep_label:` keyword form; fix already in `repo-assist/fix-pr145-pr146-2026-06-24`. `pin.rb` uses `JOSE::PKCS1.rsaes_oaep_decrypt` (not affected). No further audit work needed.
 
 ## Backlog cursor
 
 - **Task 2 cursor**: 0 — all open issues reviewed; no comment-worthy items this run.
 - **Task 3 cursor**: 0 — no user-reported bugs.
 - **Task 4 cursor**: empty — no actionable dependency updates, CI gaps, or build improvements identifiable. Dependabot PR Bundler workflow already handles deps; CI is lean with `bundler-cache: true`.
-- **Task 5/9 cursor**: 5 merged + 4 awaiting. Remaining untested modules: `address` (21 lines, 1 method), `blaze` (4386 bytes — harder offline), `computer_api` (1581 bytes), `deposit` (19 lines), `fiat` (12 lines), `pin_payload` (26 lines, 1 private method), `session` (14 lines), `turn` (12 lines).
+- **Task 5/9 cursor**: 5 merged + 4 awaiting. Remaining untested modules: `blaze` (144 lines, EventMachine-heavy), `computer_api` (60 lines, delegates to `MixinBot::Computer`). The smallest 6 (`address`, `deposit`, `fiat`, `pin_payload`, `session`, `turn`) are now covered by `test_small_modules.rb`.
 - **Task 8 cursor**: PR #138 awaiting. Next opportunity: `bytes.pack('C*')` calls at lines 40-41 of `encoder.rb`. Alternative: extend `bytes.concat` to `nfo.rb` (16 sites) and `invoice.rb` (10 sites).
 
-## Decisions / substitutions this run (2026-06-24, 05:14 UTC)
+## Decisions / substitutions this run (2026-06-25, 16:30 UTC)
 
-- Selected tasks: 2, 9, 4. Task 2: skipped (no user-facing issues). Task 4: substituted with Task 5 (engineering cursor empty).
-- Task 9: created `repo-assist/test-network-2026-06-24` — `test/mixin_bot/api/test_network.rb` (127 lines, 20 assertions) covering 4 top-level GET endpoints, CGI-escape behavior (`%2F` for slash, `+` for space, `%2B` for plus), `.compact` query-string behavior, 5 alias-equivalence tests.
-- Task 5 (substituted): created `repo-assist/test-legacy-user-2026-06-24` — `test/mixin_bot/api/test_legacy_user.rb` (186 lines, 13 assertions) exercising full `UpgradeLegacyUser` pipeline (RSA-OAEP + AES-256-CBC + Ed25519 derivation).
-- Both follow offline pattern. `bundle install` firewall-blocked; CI will run `rake test` + RuboCop on Ruby 3.2 / 3.3 / 4.0.
+- Selected tasks: 10, 5, 2. Task 5: created `repo-assist/test-small-modules-2026-06-25` — `test/mixin_bot/api/test_small_modules.rb` (250 lines, 27 assertions) covering 6 small modules. Task 10: forward pass — Ruby 4.0 audit grep. Task 2: no action (no user-reported issues).
+- Test file follows `test_network.rb` pattern: `WebMock.reset!` + `MixinApiStubs.register!` in setup, all default-stub endpoints (no new stub routes), `MixinBot.api.send(:private_method, ...)` for `tip_or_legacy_pin_payload`.
+- RuboCop run locally blocked by missing `rubocop-rake` plugin; CI will exercise both `rake test` and `rake rubocop` on Ruby 3.2 / 3.3 / 4.0.
+- `bundle install` firewall-blocked; syntax check via `ruby -c` passes for the new test file.
 
 ## Forward work candidates
 
