@@ -4,6 +4,8 @@ require 'test_helper'
 
 module MixinBot
   class TestMultisig < Minitest::Test
+    include WebMock::API
+
     REQUEST_ID = '11259e74-1b6c-47dc-b08e-d3e4fe54fb74'
     RAW_HEX = '85a7abcdef' * 20
     ASSET_ID = '965e5c6e-434c-3fa9-b780-c50f43cd955c'
@@ -33,9 +35,13 @@ module MixinBot
       }
     ].freeze
 
+    def setup
+      WebMock.reset!
+      MixinApiStubs.register!
+    end
+
     def test_create_safe_multisig_request_posts_to_safe_multisigs_path
-      res = MixinBot.api.create_safe_multisig_request(REQUEST_ID, RAW_HEX)
-      assert_kind_of Hash, res
+      MixinBot.api.create_safe_multisig_request(REQUEST_ID, RAW_HEX)
       assert_requested(:post, 'https://api.mixin.one/safe/multisigs', times: 1)
     end
 
@@ -80,7 +86,7 @@ module MixinBot
     def test_create_multisig_raw_tx_calls_safe_keys_endpoint
       trace_id = SecureRandom.uuid
       MixinBot.api.create_multisig_raw_tx(
-        asset_id: ASSET_ID,
+        _asset_id: ASSET_ID,
         senders: [MixinBot.config.app_id],
         receivers: [TEST_UID],
         threshold: 1,
@@ -98,7 +104,7 @@ module MixinBot
     def test_create_multisig_raw_tx_returns_a_hex_string
       trace_id = SecureRandom.uuid
       raw = MixinBot.api.create_multisig_raw_tx(
-        asset_id: ASSET_ID,
+        _asset_id: ASSET_ID,
         senders: [MixinBot.config.app_id],
         receivers: [TEST_UID],
         threshold: 1,
@@ -115,7 +121,7 @@ module MixinBot
     def test_create_multisig_raw_tx_decodes_round_trip
       trace_id = SecureRandom.uuid
       raw = MixinBot.api.create_multisig_raw_tx(
-        asset_id: ASSET_ID,
+        _asset_id: ASSET_ID,
         senders: [MixinBot.config.app_id],
         receivers: [TEST_UID],
         threshold: 1,
@@ -133,7 +139,7 @@ module MixinBot
       trace_id = SecureRandom.uuid
       extra_value = 'test of extra'
       raw = MixinBot.api.create_multisig_raw_tx(
-        asset_id: ASSET_ID,
+        _asset_id: ASSET_ID,
         senders: [MixinBot.config.app_id],
         receivers: [TEST_UID],
         threshold: 1,
@@ -151,7 +157,7 @@ module MixinBot
     def test_create_multisig_raw_tx_default_extra_is_empty
       trace_id = SecureRandom.uuid
       raw = MixinBot.api.create_multisig_raw_tx(
-        asset_id: ASSET_ID,
+        _asset_id: ASSET_ID,
         senders: [MixinBot.config.app_id],
         receivers: [TEST_UID],
         threshold: 1,
@@ -168,7 +174,7 @@ module MixinBot
       # so the test can pass an Integer (e.g. `1`) without raising.
       trace_id = SecureRandom.uuid
       raw = MixinBot.api.create_multisig_raw_tx(
-        asset_id: ASSET_ID,
+        _asset_id: ASSET_ID,
         senders: [MixinBot.config.app_id],
         receivers: [TEST_UID],
         threshold: 1,
