@@ -10,12 +10,15 @@ module MixinBot
         kl = keystore.with_indifferent_access
         priv = OpenSSL::PKey::RSA.new(kl[:private_key])
         token = Base64.decode64(kl[:pin_token])
+        # Use string keys with the dash form (`'oaep-label'`) for Ruby 4.0
+        # compatibility; the underscore form `oaep_label` is no longer
+        # recognized by the OpenSSL EVP_PKEY_CTX in Ruby 4.0.
         key_bytes = priv.decrypt(
           token,
-          rsa_padding_mode: 'oaep',
-          rsa_oaep_md: 'sha256',
-          rsa_mgf1_md: 'sha1',
-          oaep_label: kl[:session_id]
+          'rsa_padding_mode' => 'oaep',
+          'rsa_oaep_md' => 'sha256',
+          'rsa_mgf1_md' => 'sha1',
+          'oaep-label' => kl[:session_id]
         )
 
         pin_byte = kl[:pin].to_s.b
