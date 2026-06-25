@@ -76,12 +76,12 @@ module MixinBot
 
     def test_collectibles_default_state_is_unspent
       MixinBot.api.collectibles(members: [TEST_UID])
-      assert_requested(:get, %r{state=unspent})
+      assert_requested(:get, /state=unspent/)
     end
 
     def test_collectibles_supports_state_kwarg
       MixinBot.api.collectibles(members: [TEST_UID], state: :spent)
-      assert_requested(:get, %r{state=spent})
+      assert_requested(:get, /state=spent/)
     end
 
     # --- create_collectible_transfer validation ---
@@ -96,22 +96,19 @@ module MixinBot
       assert_match(/not a valid collectible/, error.message)
     end
 
-    def test_create_collectible_transfer_raises_bare_argument_error_for_empty_members
-      # The members guard raises the bare ::ArgumentError (NOT MixinBot::ArgumentError).
-      # Inside `module MixinBot`, unqualified `ArgumentError` resolves to
-      # MixinBot::ArgumentError, so the fully-qualified form is needed in tests.
+    def test_create_collectible_transfer_raises_argument_error_for_empty_members
       utxo = inscription_utxo
 
-      error = assert_raises(::ArgumentError) do
+      error = assert_raises(MixinBot::ArgumentError) do
         MixinBot.api.create_collectible_transfer(utxo, members: [])
       end
       assert_match(/members required/, error.message)
     end
 
-    def test_create_collectible_transfer_raises_bare_argument_error_for_nil_members
+    def test_create_collectible_transfer_raises_argument_error_for_nil_members
       utxo = inscription_utxo
 
-      error = assert_raises(::ArgumentError) do
+      error = assert_raises(MixinBot::ArgumentError) do
         MixinBot.api.create_collectible_transfer(utxo, members: nil)
       end
       assert_match(/members required/, error.message)
