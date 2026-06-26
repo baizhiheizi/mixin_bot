@@ -133,6 +133,7 @@ module MixinBot
       # build_raw_transaction's access_token guard does not trip.
       collectible = {
         'state' => 'unspent',
+        'amount' => 1,
         'receivers' => [MixinBot.config.app_id, TEST_UID],
         'receivers_threshold' => 1,
         'transaction_hash' => 'a' * 64,

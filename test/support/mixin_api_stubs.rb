@@ -327,9 +327,8 @@ module MixinApiStubs
       aid = path.delete_prefix('/assets/')
       return { 'data' => { 'asset_id' => aid, 'symbol' => 'TST' }, 'error' => nil }
     end
-    if method == :get && path == '/network/assets/top'
-      return { 'data' => [], 'error' => nil }
-    end
+    return { 'data' => [], 'error' => nil } if method == :get && path == '/network/assets/top'
+
     if method == :get && path.start_with?('/network/assets/')
       aid = path.delete_prefix('/network/assets/')
       return { 'data' => { 'asset_id' => aid, 'price_usd' => '1' }, 'error' => nil }
