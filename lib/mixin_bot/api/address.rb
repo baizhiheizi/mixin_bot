@@ -6,7 +6,7 @@ module MixinBot
       def safe_deposit_entries(**kwargs)
         path = '/safe/deposit/entries'
 
-        members = [kwargs[:members]] if kwargs[:members].is_a? String
+        members = Array(kwargs[:members])
 
         payload = {
           members:,
