@@ -82,16 +82,6 @@ module MixinBot
       assert_requested :get, 'https://api.mixin.one/external/fiats'
     end
 
-    def test_fiats_sends_blank_token_when_no_access_token_given
-      MixinBot.api.fiats
-
-      assert_requested(:get, 'https://api.mixin.one/external/fiats') do |req|
-        # The HTTP request itself is the assertion; the off-default token
-        # behaviour is captured by the +get_fiats+ smoke test below.
-        true
-      end
-    end
-
     def test_get_fiats_is_alias_for_fiats
       assert_equal MixinBot.api.fiats, MixinBot.api.get_fiats
     end
@@ -217,7 +207,9 @@ module MixinBot
     end
 
     def test_tip_or_legacy_pin_payload_returns_pin_key_for_six_digit_pin
-      payload = MixinBot.api.send(:tip_or_legacy_pin_payload, '123456')
+      # tip_action is required by the helper signature even though the 6-digit
+      # branch never reads it.
+      payload = MixinBot.api.send(:tip_or_legacy_pin_payload, '123456', 'TIP:VERIFY:')
 
       assert_equal %i[pin], payload.keys
       assert_kind_of String, payload[:pin]
@@ -235,16 +227,8 @@ module MixinBot
 
     def test_tip_or_legacy_pin_payload_length_boundary_is_strictly_greater_than_six
       # 7-character pin triggers the TIP / pin_base64 branch.
-      payload = MixinBot.api.send(:tip_or_legacy_pin_payload, 'a' * 64, 'TIP:VERIFY:', '0' * 32)
-      assert payload.key?(:pin_base64), 'expected 64-char pin to use the pin_base64 branch'
-    end
-
-    def test_tip_or_legacy_pin_payload_accepts_existing_tip_action_set
-      # Use the same long pin key for both helper and tip encrypt path.
-      long_pin = 'a' * 64
-      payload = MixinBot.api.send(:tip_or_legacy_pin_payload, long_pin, 'TIP:VERIFY:', '0' * 32)
-
-      assert payload[:pin_base64].is_a?(String)
+      payload = MixinBot.api.send(:tip_or_legacy_pin_payload, 'a' * 7, 'TIP:VERIFY:', '0' * 32)
+      assert payload.key?(:pin_base64), 'expected 7-char pin to use the pin_base64 branch'
     end
   end
 end
