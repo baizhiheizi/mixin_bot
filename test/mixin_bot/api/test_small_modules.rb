@@ -162,7 +162,7 @@ module MixinBot
     def test_pending_safe_deposits_passes_only_supplied_query_params
       MixinBot.api.pending_safe_deposits(asset: CNB_ASSET_ID, limit: 10, offset: 5)
 
-      assert_requested(:get, 'https://api.mixin.one/safe/deposits') do |req|
+      assert_requested(:get, %r{\Ahttps://api\.mixin\.one/safe/deposits\?}) do |req|
         # +.compact+ means omitted kwargs must NOT appear in the query string.
         uri = URI(req.uri)
         params = URI.decode_www_form(uri.query.to_s).to_h
@@ -173,7 +173,7 @@ module MixinBot
     def test_pending_safe_deposits_compacts_away_nil_query_params
       MixinBot.api.pending_safe_deposits(asset: CNB_ASSET_ID, limit: nil, offset: nil, destination: nil, tag: nil)
 
-      assert_requested(:get, 'https://api.mixin.one/safe/deposits') do |req|
+      assert_requested(:get, %r{\Ahttps://api\.mixin\.one/safe/deposits\?}) do |req|
         uri = URI(req.uri)
         params = URI.decode_www_form(uri.query.to_s).to_h
         params == { 'asset' => CNB_ASSET_ID }
@@ -183,7 +183,7 @@ module MixinBot
     def test_pending_safe_deposits_supports_destination_and_tag
       MixinBot.api.pending_safe_deposits(destination: 'dest-id', tag: 'tag-id')
 
-      assert_requested(:get, 'https://api.mixin.one/safe/deposits') do |req|
+      assert_requested(:get, %r{\Ahttps://api\.mixin\.one/safe/deposits\?}) do |req|
         uri = URI(req.uri)
         params = URI.decode_www_form(uri.query.to_s).to_h
         params == { 'destination' => 'dest-id', 'tag' => 'tag-id' }
@@ -217,8 +217,10 @@ module MixinBot
     end
 
     def test_tip_or_legacy_pin_payload_returns_pin_base64_for_long_pin
-      long_pin = 'a' * 64 # valid 32-byte hex key
-      payload = MixinBot.api.send(:tip_or_legacy_pin_payload, long_pin, 'TIP:VERIFY:', '0' * 32)
+      # A 128-char (64-byte) Ed25519 secret key — the smallest form
+      # +decode_key+ passes through to +JOSE::JWA::Ed25519.sign+.
+      pin_key = OfflineConfig.session_private_key_hex
+      payload = MixinBot.api.send(:tip_or_legacy_pin_payload, pin_key, 'TIP:VERIFY:', '0' * 32)
 
       assert_equal %i[pin_base64], payload.keys
       assert_kind_of String, payload[:pin_base64]
@@ -226,9 +228,10 @@ module MixinBot
     end
 
     def test_tip_or_legacy_pin_payload_length_boundary_is_strictly_greater_than_six
-      # 7-character pin triggers the TIP / pin_base64 branch.
-      payload = MixinBot.api.send(:tip_or_legacy_pin_payload, 'a' * 7, 'TIP:VERIFY:', '0' * 32)
-      assert payload.key?(:pin_base64), 'expected 7-char pin to use the pin_base64 branch'
+      # Any pin with length > 6 takes the TIP / pin_base64 branch.
+      pin_key = OfflineConfig.session_private_key_hex
+      payload = MixinBot.api.send(:tip_or_legacy_pin_payload, pin_key, 'TIP:VERIFY:', '0' * 32)
+      assert payload.key?(:pin_base64), 'expected long pin to use the pin_base64 branch'
     end
   end
 end
