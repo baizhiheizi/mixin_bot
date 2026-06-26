@@ -1,30 +1,23 @@
 ---
-name: Documentation Updater
-description: Automatically reviews and updates documentation based on recent code changes
 on:
-  schedule: daily
-  workflow_dispatch:
   permissions:
     pull-requests: read
+  schedule: daily
   steps:
-    - id: check
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        MAX_OPEN_PRS=8
-        if [[ "$GITHUB_EVENT_NAME" != "schedule" ]]; then exit 0; fi
-        COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "[docs]"' --json number --jq 'length')
-        [[ "$COUNT" -lt "$MAX_OPEN_PRS" ]]
-      # exits 0 if not scheduled or <MAX_OPEN_PRS open PRs, 1 if ≥MAX_OPEN_PRS
-
-runs-on: [self-hosted, linux]
-runs-on-slim: "self-hosted"
-
-imports:
-  - shared/engine-minimax.md
-
+  - env:
+      GH_TOKEN: ${{ github.token }}
+    id: check
+    run: |
+      MAX_OPEN_PRS=8
+      if [[ "$GITHUB_EVENT_NAME" != "schedule" ]]; then exit 0; fi
+      COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "[docs]"' --json number --jq 'length')
+      [[ "$COUNT" -lt "$MAX_OPEN_PRS" ]]
+  workflow_dispatch: null
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
 if: needs.pre_activation.outputs.check_result == 'success'
-
 network:
   allowed:
   - defaults
@@ -33,31 +26,32 @@ network:
   - python
   - rust
   - java
-
-permissions:
-  contents: read
-  issues: read
-  pull-requests: read
-
-tools:
-  github:
-    toolsets: [default]
-  edit:
-  bash: true
-
-timeout-minutes: 30
-
+imports:
+- shared/engine-minimax.md
 safe-outputs:
   create-pull-request:
-    expires: 2d
-    title-prefix: "[docs] "
-    labels: [documentation, automation]
     draft: false
+    expires: 2d
+    labels:
+    - documentation
+    - automation
     protected-files: fallback-to-issue
-
-source: githubnext/agentics/workflows/doc-updater.md@e15e57b40918dbca11b350c55d02ab61934afa75
+    title-prefix: "[docs] "
+description: Automatically reviews and updates documentation based on recent code changes
+name: Documentation Updater
+runs-on:
+- self-hosted
+- linux
+runs-on-slim: self-hosted
+source: githubnext/agentics/workflows/doc-updater.md@1c6668b751c51af8571f01204ceffb19362e0f66
+timeout-minutes: 30
+tools:
+  bash: true
+  edit: null
+  github:
+    toolsets:
+    - default
 ---
-
 # Documentation Updater
 
 You are an AI documentation agent that automatically updates project documentation based on recent code changes and merged pull requests.
