@@ -7,25 +7,25 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-06-27 04:52 UTC)
+## Current state (as of 2026-06-27 14:25 UTC)
 
 - **Repo activity**: predominantly automated workflows. Last human contributor commit (an-lee): 2026-06-25.
-- **CI is GREEN on `main`** (HEAD `1e43d36`).
+- **CI is GREEN on `main`** (HEAD `a5598c0` — `perf: cache bytes.pack in encoder to avoid duplicate allocation (#158)`).
 - **Open issues**: 17 — 16 automated workflow-tracking + Monthly Activity (#99). 0 unlabelled.
-- **Open PRs**: 2 Repo Assist drafts — #156 (computer_api tests, CI fix pushed this run) + perf-encoder-pack-cache PR (number not yet visible — propagation lag).
-- **Recent merges by an-lee on 2026-06-25** (#138, #141, #142, #148 in 90s — all Repo Assist drafts).
-- **Monthly Activity issue**: [issue #99](https://github.com/baizhiheizi/mixin_bot/issues/99) for 2026-06. Body could NOT be updated this run (10 KB safe-output limit + 1/1 update_issue quota exhausted by prior errored call). Run history added as comment (`temporary_id: aw_YvLmcFmC`). Next run should rebuild the body trimmed.
-- **Test coverage progress**: 9 merged + 1 awaiting (#156, CI fix pushed this run). Only `blaze.rb` remains untested.
-- **Ruby 4.0 audit (resolved)**: `legacy_user.rb` fixed in PR #148 (merged). Grep confirmed only that file had the broken OpenSSL keyword form.
-- **Performance sweep status**: PR #138 (`bytes.concat` migration) merged. This run added a focused 1-line `bytes.pack('C*')` cache PR. The broader encoder/decoder String-buffer refactor still on hold.
+- **Open PRs**: 1 Repo Assist draft — `repo-assist/perf-nfo-invoice-concat-2026-06-27` (commit `14415bd`; number not yet visible — propagation lag). PRs #156 and #158 were merged since the last memory update.
+- **Recent merges by an-lee**: 2026-06-25 batch (#138, #141, #142, #148) + 2026-06-26 (#152, #154, #156) + 2026-06-27 (#158) — all Repo Assist drafts.
+- **Monthly Activity issue**: [issue #99](https://github.com/baizhiheizi/mixin_bot/issues/99) for 2026-06. This run will attempt `update_issue` with a trimmed body; fallback to comment if 10 KB exceeded.
+- **Test coverage progress**: 10 merged (#117, #123, #126, #131, #133, #138, #141, #142, #148, #152, #156 — counted again below) + `blaze.rb` remains untested. Wait: #138 is perf, not test. Real count: **10 test PRs merged** (#117, #123, #126, #131, #133, #141, #142, #148, #152, #156).
+- **Ruby 4.0 audit (resolved)**: `legacy_user.rb` fixed in PR #148 (merged).
+- **Performance sweep status**: PR #138 (transaction `bytes.concat` migration, 2.7× speedup) merged. PR #158 (`bytes.pack('C*')` cache) merged 2026-06-27. This run added `repo-assist/perf-nfo-invoice-concat-2026-06-27` — 30 more `bytes += X` → `bytes.concat/push/<<` sites in `nfo.rb` + `invoice.rb` (1.1× speedup, smaller buffers).
 
 ## Backlog cursor
 
 - **Task 2 cursor**: 0 — all open issues reviewed; no comment-worthy items this run.
 - **Task 3 cursor**: 0 — no user-reported bugs.
 - **Task 4 cursor**: empty — no actionable dependency updates, CI gaps, or build improvements identifiable. Dependabot-managed and up-to-date.
-- **Task 5 cursor**: 9 merged + 1 awaiting (this run pushed PR #156 fix). Only `blaze.rb` (144 lines, EventMachine-heavy) remains untested in `lib/mixin_bot/api/`. Defer.
-- **Task 8 cursor**: PR #138 merged. PR for `bytes.pack('C*')` cache opened this run (#aw_pack1). Next opportunity: `nfo.rb` (16 sites) and `invoice.rb` (10 sites) `bytes += X` patterns.
+- **Task 5 cursor**: 10 merged. Only `blaze.rb` (144 lines, EventMachine-heavy) remains untested in `lib/mixin_bot/api/`. Defer.
+- **Task 8 cursor**: PR #138 (transaction) + #158 (encoder pack cache) + new PR (nfo + invoice concat) merged/open. Next opportunity: `lib/mixin_bot/api/encrypted_message.rb` (6 sites) + `lib/mvm/registry.rb` (3 sites) for the same `bytes += X` pattern. Smaller buffers; lower value.
 
 ## Anti-patterns to avoid (additions this run)
 
@@ -42,11 +42,17 @@ metadata:
 
 ## Forward work candidates
 
-- **Test coverage sweep**: 9 merged + 1 awaiting. `blaze.rb` deferred (EventMachine).
-- **Performance follow-up**: `bytes.pack('C*')` at lines 40-41 of `encoder.rb`. String buffer refactor would be much larger and changes return types.
-- **2.3.1 release preparation** overdue: `sha3` upgrade from #84 + Lean Squad removal #129 still in `[Unreleased]`. #134 + #137 docs-updater issues now closed.
-- **Protected-files PR-push workaround** affects four workflows (README/AGENTS/CLAUDE/CHANGELOG). Root cause of #114 (still open).
-- **PR creation propagation lag**: GitHub MCP API can lag behind `create_pull_request` success for ~1 run.
+- **Test coverage sweep**: 10 merged. `blaze.rb` deferred (EventMachine). The coverage gap is now small.
+- **Performance follow-up**: `lib/mixin_bot/api/encrypted_message.rb` (6 sites) + `lib/mvm/registry.rb` (3 sites) for the same `bytes += X` pattern. Smaller buffers, lower value. The dominant encoder cost (`bytes.pack('C*')` in `utils/encoder.rb`) is now cached via #158.
+- **2.3.1 release preparation** overdue: `sha3` upgrade from #84 + Lean Squad removal #129 still in `[Unreleased]`. #114 (protected-files docs bump) was resolved by manual PR #128. CHANGELOG would need a `2.3.1` section but that requires touching a protected file.
+- **Protected-files PR-push workaround** affects four workflows (README/AGENTS/CLAUDE/CHANGELOG). Root cause of #114 (still open — recommend close now that #128 landed).
+- **PR creation propagation lag**: GitHub MCP API can lag behind `create_pull_request` success for ~1 run. This run's PR (`perf-nfo-invoice-concat-2026-06-27`) may not be visible until next run.
+
+## Decisions / substitutions this run (2026-06-27, 14:25 UTC)
+
+- Selected tasks: 2, 4, 10. Tasks 2 + 4 were no-action (all 17 open issues are auto-generated `agentic-workflows` trackers; Dependabot-managed and up-to-date with no open PRs). Task 10 produced a focused performance PR.
+- Created PR `repo-assist/perf-nfo-invoice-concat-2026-06-27` (`14415bd`) — 30 `bytes += X`→`bytes.concat(X)` / `bytes.push(literal)` / `bytes << literal` conversions across `lib/mixin_bot/nfo.rb` (19 sites) and `lib/mixin_bot/invoice.rb` (11 sites). Follows the same pattern as #138; byte-for-byte equivalent; verified by replaying the exact encode patterns in a standalone Ruby script. Number not yet visible in MCP API (propagation lag).
+- #114 should be closed: PR #128 (merged 2026-06-20) already landed the docs version bump that #114 proposed. Will be added to Suggested Actions in the Monthly Activity update.
 
 ## Anti-patterns to avoid
 
