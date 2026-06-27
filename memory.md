@@ -7,24 +7,32 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-06-26 15:33 UTC)
+## Current state (as of 2026-06-27 04:52 UTC)
 
 - **Repo activity**: predominantly automated workflows. Last human contributor commit (an-lee): 2026-06-25.
-- **CI is GREEN on `main`** (HEAD `e2825aa`).
-- **Open issues**: 17 — 16 automated workflow-tracking + Monthly Activity (#99).
-- **Open PRs**: 0 (#152 and #154 closed since last run).
+- **CI is GREEN on `main`** (HEAD `1e43d36`).
+- **Open issues**: 17 — 16 automated workflow-tracking + Monthly Activity (#99). 0 unlabelled.
+- **Open PRs**: 2 Repo Assist drafts — #156 (computer_api tests, CI fix pushed this run) + perf-encoder-pack-cache PR (number not yet visible — propagation lag).
 - **Recent merges by an-lee on 2026-06-25** (#138, #141, #142, #148 in 90s — all Repo Assist drafts).
-- **Monthly Activity issue**: [issue #99](https://github.com/baizhiheizi/mixin_bot/issues/99) for 2026-06 (active; updated this run).
-- **Test coverage progress**: 9 merged + 1 awaiting. Merged: `test_tip.rb` (#117), `test_chain.rb` (#123), `test_output.rb` (#126), `test_legacy_collectible.rb` (#131), rename fix (#133), `test_inscription.rb` (#141), `test_multisig.rb` (#142), `test_network.rb`+`test_legacy_user.rb`+`legacy_user.rb` Ruby-4.0 fix (#148), `lib/mixin_bot/transaction/encoder.rb` `bytes.concat` (#138). Awaiting: `test_computer_api.rb` (2026-06-26, 18 assertions, 1 module).
+- **Monthly Activity issue**: [issue #99](https://github.com/baizhiheizi/mixin_bot/issues/99) for 2026-06. Body could NOT be updated this run (10 KB safe-output limit + 1/1 update_issue quota exhausted by prior errored call). Run history added as comment (`temporary_id: aw_YvLmcFmC`). Next run should rebuild the body trimmed.
+- **Test coverage progress**: 9 merged + 1 awaiting (#156, CI fix pushed this run). Only `blaze.rb` remains untested.
 - **Ruby 4.0 audit (resolved)**: `legacy_user.rb` fixed in PR #148 (merged). Grep confirmed only that file had the broken OpenSSL keyword form.
+- **Performance sweep status**: PR #138 (`bytes.concat` migration) merged. This run added a focused 1-line `bytes.pack('C*')` cache PR. The broader encoder/decoder String-buffer refactor still on hold.
 
 ## Backlog cursor
 
 - **Task 2 cursor**: 0 — all open issues reviewed; no comment-worthy items this run.
 - **Task 3 cursor**: 0 — no user-reported bugs.
-- **Task 4 cursor**: empty — no actionable dependency updates, CI gaps, or build improvements identifiable. Dependabot PR #154 closed (merged or superseded).
-- **Task 5 cursor**: 9 merged + 1 awaiting (this run). Only `blaze.rb` (144 lines, EventMachine-heavy) remains untested in `lib/mixin_bot/api/`. Defer — would require real WebSocket or extensive EventMachine stubbing.
-- **Task 8 cursor**: PR #138 merged. Next opportunity: `bytes.pack('C*')` at lines 40-41 of `encoder.rb`. `nfo.rb` (16 sites) and `invoice.rb` (10 sites) have the same `bytes += X` pattern.
+- **Task 4 cursor**: empty — no actionable dependency updates, CI gaps, or build improvements identifiable. Dependabot-managed and up-to-date.
+- **Task 5 cursor**: 9 merged + 1 awaiting (this run pushed PR #156 fix). Only `blaze.rb` (144 lines, EventMachine-heavy) remains untested in `lib/mixin_bot/api/`. Defer.
+- **Task 8 cursor**: PR #138 merged. PR for `bytes.pack('C*')` cache opened this run (#aw_pack1). Next opportunity: `nfo.rb` (16 sites) and `invoice.rb` (10 sites) `bytes += X` patterns.
+
+## Anti-patterns to avoid (additions this run)
+
+- **Do not call `Integer(int, base)` with a Ruby Integer as the first arg** — only accepts String when base is given; raises `"base specified for non string value"`. Either omit the base for Integer input or coerce to String first. This bit PR #156's computer_user_id_to_bytes tests.
+- **Do not pass UUID strings (e.g. `'7ed9292d-...-0186'`) to `Computer.user_id_to_bytes`** — production calls `Integer(uid, 10)` which requires String parseable as base-10. UUIDs aren't. Tests must use integer-ID strings like `'1'`.
+- **`safeoutputs update_issue` body has 10 KB hard limit and 1-call-per-run quota** — the prior errored call counts against the quota. To avoid losing the run-history update entirely, post a comment as a fallback (issue #99 used this pattern this run). The next run should rebuild the body with trimmed older entries to stay under 10 KB.
+- **Do not push a PR-touching fix to a branch that wasn't re-cut under the current run** — `push_to_pull_request_branch` works for any tracked PR's branch (verified this run with PR #156). No new branch needed; commits land on the existing `repo-assist/test-computer-api-2026-06-26-59c71141f22e9f0c` branch.
 
 ## Decisions / substitutions this run (2026-06-26, 15:33 UTC)
 
