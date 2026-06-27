@@ -33,8 +33,9 @@ module MixinBot
 
         bytes.concat(@tx.aggregated.nil? ? encode_signatures : encode_aggregated_signature)
 
-        @tx.hash = SHA3::Digest::SHA3_256.hexdigest bytes.pack('C*')
-        @tx.hex = bytes.pack('C*').unpack1('H*')
+        packed = bytes.pack('C*')
+        @tx.hash = SHA3::Digest::SHA3_256.hexdigest packed
+        @tx.hex = packed.unpack1('H*')
 
         @tx
       end
