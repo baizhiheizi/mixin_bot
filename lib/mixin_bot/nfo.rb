@@ -39,10 +39,10 @@ module MixinBot
 
     def unique_token_id
       bytes = []
-      bytes += MixinBot::UUID.new(hex: chain).packed.bytes
-      bytes += [nm_class].pack('H*').bytes
-      bytes += MixinBot::UUID.new(hex: collection).packed.bytes
-      bytes += MixinBot.utils.encode_int token
+      bytes.concat MixinBot::UUID.new(hex: chain).packed.bytes
+      bytes.concat [nm_class].pack('H*').bytes
+      bytes.concat MixinBot::UUID.new(hex: collection).packed.bytes
+      bytes.concat MixinBot.utils.encode_int token
 
       md5 = Digest::MD5.new
       md5.update bytes.pack('c*')
@@ -67,33 +67,33 @@ module MixinBot
     def encode
       bytes = []
 
-      bytes += prefix.bytes
-      bytes += [version]
+      bytes.concat prefix.bytes
+      bytes.push(version)
 
       if mask.zero?
-        bytes += [0]
+        bytes << 0
       else
-        bytes += [1]
-        bytes += MixinBot.utils.encode_uint64 mask
-        bytes += MixinBot::UUID.new(hex: chain).packed.bytes
+        bytes << 1
+        bytes.concat MixinBot.utils.encode_uint64 mask
+        bytes.concat MixinBot::UUID.new(hex: chain).packed.bytes
 
         class_bytes = [nm_class].pack('H*').bytes
-        bytes += MixinBot.utils.encode_int class_bytes.size
-        bytes += class_bytes
+        bytes.concat MixinBot.utils.encode_int class_bytes.size
+        bytes.concat class_bytes
 
         collection_bytes = collection.split('-').pack('H* H* H* H* H*').bytes
-        bytes += MixinBot.utils.encode_int collection_bytes.size
-        bytes += collection_bytes
+        bytes.concat MixinBot.utils.encode_int collection_bytes.size
+        bytes.concat collection_bytes
 
         # token_bytes = memo[:token].split('-').pack('H* H* H* H* H*').bytes
         token_bytes = MixinBot.utils.encode_int token
-        bytes += MixinBot.utils.encode_int token_bytes.size
-        bytes += token_bytes
+        bytes.concat MixinBot.utils.encode_int token_bytes.size
+        bytes.concat token_bytes
       end
 
       extra_bytes = [extra].pack('H*').bytes
-      bytes += MixinBot.utils.encode_int extra_bytes.size
-      bytes += extra_bytes
+      bytes.concat MixinBot.utils.encode_int extra_bytes.size
+      bytes.concat extra_bytes
 
       @raw = bytes.pack('C*')
       @hex = raw.unpack1('H*')

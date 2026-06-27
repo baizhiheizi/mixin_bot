@@ -141,29 +141,29 @@ module MixinBot
     def encode
       bytes = []
 
-      bytes += MixinBot::UUID.new(hex: trace_id).packed.bytes
-      bytes += MixinBot::UUID.new(hex: asset_id).packed.bytes
+      bytes.concat MixinBot::UUID.new(hex: trace_id).packed.bytes
+      bytes.concat MixinBot::UUID.new(hex: asset_id).packed.bytes
 
       amount_string = amount.to_d.to_s('F')
       amount_bytes = amount_string.bytes
-      bytes += MixinBot.utils.encode_int(amount_bytes.size)
-      bytes += amount_bytes
+      bytes.concat MixinBot.utils.encode_int(amount_bytes.size)
+      bytes.concat amount_bytes
 
       extra_bytes = extra.bytes
-      bytes += MixinBot.utils.encode_uint16(extra_bytes.size)
-      bytes += extra_bytes
+      bytes.concat MixinBot.utils.encode_uint16(extra_bytes.size)
+      bytes.concat extra_bytes
 
       references_count = (index_references || []).size + (hash_references || []).size
-      bytes += MixinBot.utils.encode_int(references_count)
+      bytes.concat MixinBot.utils.encode_int(references_count)
 
       index_references&.each do |index|
-        bytes += MixinBot.utils.encode_int(1)
-        bytes += MixinBot.utils.encode_int(index)
+        bytes.concat MixinBot.utils.encode_int(1)
+        bytes.concat MixinBot.utils.encode_int(index)
       end
 
       hash_references&.each do |hash|
-        bytes += MixinBot.utils.encode_int(0)
-        bytes += [hash].pack('H*').bytes
+        bytes.concat MixinBot.utils.encode_int(0)
+        bytes.concat [hash].pack('H*').bytes
       end
 
       bytes
