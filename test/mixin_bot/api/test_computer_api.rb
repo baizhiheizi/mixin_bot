@@ -97,7 +97,7 @@ module MixinBot
     # ===== Pure helpers (delegate) =======================================
 
     def test_computer_user_id_to_bytes_packs_positive_integer_as_big_endian_q
-      bytes = MixinBot.api.computer_user_id_to_bytes(42)
+      bytes = MixinBot.api.computer_user_id_to_bytes('42')
       assert_equal "\x00\x00\x00\x00\x00\x00\x00\x2A".b, bytes
     end
 
@@ -107,7 +107,7 @@ module MixinBot
     end
 
     def test_computer_user_id_to_bytes_rejects_negative_input
-      assert_raises(ArgumentError) { MixinBot.api.computer_user_id_to_bytes(-1) }
+      assert_raises(ArgumentError) { MixinBot.api.computer_user_id_to_bytes('-1') }
     end
 
     def test_encode_operation_memo_is_one_byte_operation_plus_extra
@@ -154,7 +154,7 @@ module MixinBot
     end
 
     def test_build_system_call_extra_without_fid_packs_uid_cid_and_zero_flag
-      uid = '7ed9292d-7c95-4333-aa48-a8c640064186'
+      uid = '1'
       cid = 'a67c6e87-1c9e-4a1c-b81c-47a9f4f1bff1'
       extra = MixinBot.api.build_system_call_extra(uid, cid, skip_process: false, fid: nil)
       # 8 bytes (uid) + 16 bytes (cid) + 1 byte (skip_process flag) = 25 bytes.
@@ -163,14 +163,14 @@ module MixinBot
     end
 
     def test_build_system_call_extra_with_skip_process_emits_one_byte_flag
-      uid = '7ed9292d-7c95-4333-aa48-a8c640064186'
+      uid = '1'
       cid = 'a67c6e87-1c9e-4a1c-b81c-47a9f4f1bff1'
       extra = MixinBot.api.build_system_call_extra(uid, cid, skip_process: true, fid: nil)
       assert_equal "\x01".b, extra.byteslice(24, 1).b
     end
 
     def test_build_system_call_extra_with_fid_appends_packed_fid
-      uid = '7ed9292d-7c95-4333-aa48-a8c640064186'
+      uid = '1'
       cid = 'a67c6e87-1c9e-4a1c-b81c-47a9f4f1bff1'
       fid = '11111111-2222-3333-4444-555555555555'
       extra = MixinBot.api.build_system_call_extra(uid, cid, skip_process: false, fid:)
