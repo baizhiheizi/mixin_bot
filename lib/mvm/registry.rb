@@ -53,9 +53,9 @@ module MVM
 
     def contract_from_multisig(user_ids, threshold)
       bytes = []
-      bytes += MixinBot.utils.encode_uint16(user_ids.length)
-      bytes += [user_ids.sort.join.gsub('-', '')].pack('H*').bytes
-      bytes += MixinBot.utils.encode_uint16(threshold)
+      bytes.concat(MixinBot.utils.encode_uint16(user_ids.length))
+      bytes.concat([user_ids.sort.join.gsub('-', '')].pack('H*').bytes)
+      bytes.concat(MixinBot.utils.encode_uint16(threshold))
 
       hash = Eth::Util.bin_to_prefixed_hex(Eth::Util.keccak256(bytes.pack('C*')))
       @rpc.call @registry, 'contracts', hash.to_i(16)
