@@ -7,25 +7,25 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-06-27 14:25 UTC)
+## Current state (as of 2026-06-28 14:45 UTC)
 
 - **Repo activity**: predominantly automated workflows. Last human contributor commit (an-lee): 2026-06-25.
 - **CI is GREEN on `main`** (HEAD `a5598c0` — `perf: cache bytes.pack in encoder to avoid duplicate allocation (#158)`).
-- **Open issues**: 17 — 16 automated workflow-tracking + Monthly Activity (#99). 0 unlabelled.
-- **Open PRs**: 1 Repo Assist draft — `repo-assist/perf-nfo-invoice-concat-2026-06-27` (commit `14415bd`; number not yet visible — propagation lag). PRs #156 and #158 were merged since the last memory update.
-- **Recent merges by an-lee**: 2026-06-25 batch (#138, #141, #142, #148) + 2026-06-26 (#152, #154, #156) + 2026-06-27 (#158) — all Repo Assist drafts.
-- **Monthly Activity issue**: [issue #99](https://github.com/baizhiheizi/mixin_bot/issues/99) for 2026-06. This run will attempt `update_issue` with a trimmed body; fallback to comment if 10 KB exceeded.
-- **Test coverage progress**: 10 merged (#117, #123, #126, #131, #133, #138, #141, #142, #148, #152, #156 — counted again below) + `blaze.rb` remains untested. Wait: #138 is perf, not test. Real count: **10 test PRs merged** (#117, #123, #126, #131, #133, #141, #142, #148, #152, #156).
+- **Open issues**: 19 — 18 automated workflow-tracking + Monthly Activity (#99). 0 unlabelled.
+- **Open PRs**: 2 Repo Assist drafts — #159 (`perf-nfo-invoice-concat-2026-06-27`) + new PR (`perf-encrypted-message-and-registry-concat-2026-06-28`, number not yet visible — propagation lag).
+- **Recent merges by an-lee**: 2026-06-25 batch (#138, #141, #142, #148) + 2026-06-26 (#152, #154, #156) + 2026-06-27 (#158).
+- **Monthly Activity issue**: [issue #99](https://github.com/baizhiheizi/mixin_bot/issues/99) for 2026-06. Updated this run with the encrypted-message PR placeholder and a `Check comment` for #114.
+- **Test coverage progress**: 9 merged (#117, #123, #126, #131, #141, #142, #148, #152, #156). `blaze.rb` remains untested (EventMachine-heavy; deferred).
 - **Ruby 4.0 audit (resolved)**: `legacy_user.rb` fixed in PR #148 (merged).
-- **Performance sweep status**: PR #138 (transaction `bytes.concat` migration, 2.7× speedup) merged. PR #158 (`bytes.pack('C*')` cache) merged 2026-06-27. This run added `repo-assist/perf-nfo-invoice-concat-2026-06-27` — 30 more `bytes += X` → `bytes.concat/push/<<` sites in `nfo.rb` + `invoice.rb` (1.1× speedup, smaller buffers).
+- **Performance sweep status**: PR #138 (transaction `bytes.concat`, 2.7×) merged. PR #158 (`bytes.pack('C*')` cache) merged. PR #159 (nfo + invoice concat) draft. New PR (`bf498ea`, encrypted-message + mvm/registry concat) draft. **All currently-known `bytes += X` O(n²) sites migrated.**
 
 ## Backlog cursor
 
-- **Task 2 cursor**: 0 — all open issues reviewed; no comment-worthy items this run.
+- **Task 2 cursor**: 0 — #114 commented this run (recommend close). Other open issues are auto-generated workflow trackers (per anti-pattern, no engagement).
 - **Task 3 cursor**: 0 — no user-reported bugs.
-- **Task 4 cursor**: empty — no actionable dependency updates, CI gaps, or build improvements identifiable. Dependabot-managed and up-to-date.
-- **Task 5 cursor**: 10 merged. Only `blaze.rb` (144 lines, EventMachine-heavy) remains untested in `lib/mixin_bot/api/`. Defer.
-- **Task 8 cursor**: PR #138 (transaction) + #158 (encoder pack cache) + new PR (nfo + invoice concat) merged/open. Next opportunity: `lib/mixin_bot/api/encrypted_message.rb` (6 sites) + `lib/mvm/registry.rb` (3 sites) for the same `bytes += X` pattern. Smaller buffers; lower value.
+- **Task 4 cursor**: empty — Dependabot-managed and up-to-date; no open Dependabot PRs.
+- **Task 5 cursor**: 9 merged. Only `blaze.rb` remains untested.
+- **Task 8 cursor**: PR #138 + #158 + #159 + new PR (`bf498ea`) merged/draft. **No further high-leverage perf sites identified** — the `bytes += X` pattern has been eliminated across all known encoders.
 
 ## Anti-patterns to avoid (additions this run)
 
@@ -51,7 +51,15 @@ metadata:
 ## Decisions / substitutions this run (2026-06-27, 14:25 UTC)
 
 - Selected tasks: 2, 4, 10. Tasks 2 + 4 were no-action (all 17 open issues are auto-generated `agentic-workflows` trackers; Dependabot-managed and up-to-date with no open PRs). Task 10 produced a focused performance PR.
-- Created PR `repo-assist/perf-nfo-invoice-concat-2026-06-27` (`14415bd`) — 30 `bytes += X`→`bytes.concat(X)` / `bytes.push(literal)` / `bytes << literal` conversions across `lib/mixin_bot/nfo.rb` (19 sites) and `lib/mixin_bot/invoice.rb` (11 sites). Follows the same pattern as #138; byte-for-byte equivalent; verified by replaying the exact encode patterns in a standalone Ruby script. Number not yet visible in MCP API (propagation lag).
+- Created PR `repo-assist/perf-nfo-invoice-concat-2026-06-27` (`14415bd`) — 30 `bytes += X`→`bytes.concat(X)` / `bytes.push(literal)` / `bytes << literal` conversions across `lib/mixin_bot/nfo.rb` (19 sites) and `lib/mixin_bot/invoice.rb` (11 sites). Follows the same pattern as #138; byte-for-byte equivalent; verified by replaying the exact encode patterns in a standalone Ruby script. **Visible as PR #159.**
+
+## Decisions / substitutions this run (2026-06-28, 14:45 UTC)
+
+- Selected tasks: 2, 4, 8. Task 2 produced a single comment on #114 (verifying PR #128 already landed the docs bump); Task 4 was no-action (Dependabot-managed, no open Dependabot PRs); Task 8 produced a final perf PR that closes out the `bytes += X` migration across the codebase.
+- Created PR `repo-assist/perf-encrypted-message-and-registry-concat-2026-06-28` (`bf498ea`) — 9 `bytes += X`→`bytes.concat(X)` conversions across `lib/mixin_bot/api/encrypted_message.rb` (6 sites in `encrypt_message`) and `lib/mvm/registry.rb` (3 sites in `contract_from_multisig`). Same pattern as #138 / #159; byte-for-byte equivalent; verified by standalone Ruby equivalence script across 6 input combinations. Microbench (Ruby 4.0.5, 100,000 iters): `EncryptedMessage#encrypt_message` 0.571s→0.509s (**1.12×** — scales with session count); `MVM::Registry#contract_from_multisig` 0.230s→0.237s (neutral at ~70 B buffer — included for consistency only, removes O(n²) footgun). Number not yet visible in MCP API (propagation lag).
+- **Performance sweep status**: With #138, #158, #159, and this run's PR, all currently-known `bytes += X` O(n²) sites in encoders have been migrated to `Array#concat` / `Array#<<`. **No further high-leverage perf sites identified.** The dominant remaining encoder cost (`bytes.pack('C*')` cache in `utils/encoder.rb`) is already cached via #158.
+- Open PRs: 2 Repo Assist drafts (#159 + #aw_enc_msg). PR #159 awaiting first-time `pull_request` workflow approval for `repo-assist/*` branches.
+- Commented on #114 (`aw_A6Ayf9Jo`) — verified all four target files (`README.md`, `CLAUDE.md`, `AGENTS.md`, `llms.txt`) are at 2.3.0, confirming #128's work; recommend close.
 - #114 should be closed: PR #128 (merged 2026-06-20) already landed the docs version bump that #114 proposed. Will be added to Suggested Actions in the Monthly Activity update.
 
 ## Anti-patterns to avoid
