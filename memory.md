@@ -7,77 +7,86 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-06-28 14:45 UTC)
+## Current state (as of 2026-06-29 06:05 UTC)
 
-- **Repo activity**: predominantly automated workflows. Last human contributor commit (an-lee): 2026-06-25.
 - **CI is GREEN on `main`** (HEAD `a5598c0` — `perf: cache bytes.pack in encoder to avoid duplicate allocation (#158)`).
-- **Open issues**: 19 — 18 automated workflow-tracking + Monthly Activity (#99). 0 unlabelled.
-- **Open PRs**: 2 Repo Assist drafts — #159 (`perf-nfo-invoice-concat-2026-06-27`) + new PR (`perf-encrypted-message-and-registry-concat-2026-06-28`, number not yet visible — propagation lag).
-- **Recent merges by an-lee**: 2026-06-25 batch (#138, #141, #142, #148) + 2026-06-26 (#152, #154, #156) + 2026-06-27 (#158).
-- **Monthly Activity issue**: [issue #99](https://github.com/baizhiheizi/mixin_bot/issues/99) for 2026-06. Updated this run with the encrypted-message PR placeholder and a `Check comment` for #114.
-- **Test coverage progress**: 9 merged (#117, #123, #126, #131, #141, #142, #148, #152, #156). `blaze.rb` remains untested (EventMachine-heavy; deferred).
-- **Ruby 4.0 audit (resolved)**: `legacy_user.rb` fixed in PR #148 (merged).
-- **Performance sweep status**: PR #138 (transaction `bytes.concat`, 2.7×) merged. PR #158 (`bytes.pack('C*')` cache) merged. PR #159 (nfo + invoice concat) draft. New PR (`bf498ea`, encrypted-message + mvm/registry concat) draft. **All currently-known `bytes += X` O(n²) sites migrated.**
+- **Open issues**: 19 — all automated workflow trackers + Monthly Activity (#99). 0 unlabelled.
+- **Open PRs**: 3 Repo Assist drafts — #159 (nfo+invoice perf), #163 (encrypted-message + mvm/registry perf), and a new test PR (number not yet visible — propagation lag).
+- **Test coverage progress**: 9 merged (#117, #123, #126, #131, #141, #142, #148, #152, #156). Draft +46 tests for `BotAuth` + `UrlScheme` this run. `blaze.rb` remains untested.
+- **Ruby 4.0 audit (resolved)**: `legacy_user.rb` fixed in PR #148.
+- **Performance sweep**: PR #138 + #158 + #159 + #163 merged/draft. **All `bytes += X` sites migrated.**
 
-## Backlog cursor
+## Cursors
 
-- **Task 2 cursor**: 0 — #114 commented this run (recommend close). Other open issues are auto-generated workflow trackers (per anti-pattern, no engagement).
+- **Task 2 cursor**: 0 — #114 commented 2026-06-28 (recommend close). Others are auto-generated trackers.
 - **Task 3 cursor**: 0 — no user-reported bugs.
-- **Task 4 cursor**: empty — Dependabot-managed and up-to-date; no open Dependabot PRs.
-- **Task 5 cursor**: 9 merged. Only `blaze.rb` remains untested.
-- **Task 8 cursor**: PR #138 + #158 + #159 + new PR (`bf498ea`) merged/draft. **No further high-leverage perf sites identified** — the `bytes += X` pattern has been eliminated across all known encoders.
+- **Task 4 cursor**: empty — Dependabot-managed, up-to-date.
+- **Task 5 cursor**: 9 merged test PRs; +1 draft this run (+46 tests).
+- **Task 8 cursor**: All `bytes += X` migrated.
 
 ## Anti-patterns to avoid (additions this run)
 
-- **Do not call `Integer(int, base)` with a Ruby Integer as the first arg** — only accepts String when base is given; raises `"base specified for non string value"`. Either omit the base for Integer input or coerce to String first. This bit PR #156's computer_user_id_to_bytes tests.
-- **Do not pass UUID strings (e.g. `'7ed9292d-...-0186'`) to `Computer.user_id_to_bytes`** — production calls `Integer(uid, 10)` which requires String parseable as base-10. UUIDs aren't. Tests must use integer-ID strings like `'1'`.
-- **`safeoutputs update_issue` body has 10 KB hard limit and 1-call-per-run quota** — the prior errored call counts against the quota. To avoid losing the run-history update entirely, post a comment as a fallback (issue #99 used this pattern this run). The next run should rebuild the body with trimmed older entries to stay under 10 KB.
-- **Do not push a PR-touching fix to a branch that wasn't re-cut under the current run** — `push_to_pull_request_branch` works for any tracked PR's branch (verified this run with PR #156). No new branch needed; commits land on the existing `repo-assist/test-computer-api-2026-06-26-59c71141f22e9f0c` branch.
+- **Do not call `Integer(int, base)` with Ruby Integer as first arg** — only String parseable; bit PR #156.
+- **Do not pass UUID strings to `Computer.user_id_to_bytes`** — production calls `Integer(uid, 10)` requiring String base-10.
+- **`safeoutputs update_issue` body has 10 KB hard limit** — trim older run-history entries to stay under. Body for #99 is now ~8.4 KB.
+- **`UrlScheme::scheme_send` double-encodes data**: `Base64.strict_encode64(data)` → wrapped in `URI.encode_www_form_component` (yields `aGVsbG8%3D`) → then `URI.encode_www_form(q)` percent-encodes the `%` to `%25`. Recovery needs `URI.decode_www_form_component` after the form decode.
+- **`UrlScheme::scheme_apps` `:action:` is overridden by `params: { action: ... }`** because `{ action: kw }.merge(params)` collapses shared symbol keys. Caller-visible quirk — possibly worth focused bug-fix PR.
+- **Do not require `require 'mixin_bot'` directly when unit-testing single files in this sandbox** — top-level `mixin_bot.rb` requires `lib/mvm.rb`, which requires `eth`. The `eth` gem activates deps that conflict with Ruby 4.0's bundled `bigdecimal`/`openssl`. Either stub `Kernel#require` to no-op `eth`, or `require` only the leaf module file (e.g. `require 'mixin_bot/bot_auth'`, `require 'mixin_bot/url_scheme'`).
+- **For BotAuth tests, pre-populate the cache** — `Client#sign_request` short-circuits to the cached `shared_key` when present. The 32-byte pre-populated cache makes `sign_request` fully exercisable offline; the short-cache branch (< 32 bytes) is verified via `NotFoundError`.
+- **For UrlScheme tests, assert actual encoded behaviour** — see double-encoding quirk above.
 
-## Decisions / substitutions this run (2026-06-26, 15:33 UTC)
+## Decisions this run (2026-06-29, 06:05 UTC)
 
-- Selected tasks: 9, 3, 2. Task 9 produced a new test PR. Tasks 2 and 3 were no-action (all open issues are auto-generated workflow trackers; no bug/help wanted labels).
-- Created PR `repo-assist/test-computer-api-2026-06-26` (`f7160d7`) — 18 tests for `ComputerApi` (7 HTTP delegations stubbed against `computer.mixin.one`, plus 5 pure helper structural tests + 6 edge cases). Number not yet visible in MCP API (propagation lag, see anti-pattern).
-- Updated Suggested Actions in #99: removed merged PRs #152, #154; added new test PR placeholder (`#aw_computer1`); test coverage sweep now 9 merged + 1 awaiting.
+- Selected tasks: 2, 4, 5. Task 2 + Task 4 no-action (auto-trackers; Dependabot managed). Task 5 produced focused test PR.
+- Created PR `repo-assist/test-bot-auth-url-scheme-2026-06-29` (`927af9e`) — `test_bot_auth.rb` (21 tests) + `test_url_scheme.rb` (25 tests) = **46 new offline unit tests covering `BotAuth` + `UrlScheme`**. Follows the `test_chain.rb` / `test_small_modules.rb` pattern. Two subtle production quirks pinned down.
+- Standalone Ruby verification (with the `eth` require stubbed): every assertion in both test files re-ran against the actual production modules. `MapCache` round-trips correctly; `sign_request` produces a signature whose Base64-urlsafe-decode prefix is `app_id.b` and tail is `HMAC-SHA256(shared_key, "<ts><method><uri><body>")`. `UrlScheme.scheme_*` builders produce URLs whose `URI.decode_www_form(query)` form recovers expected key/values. `scheme_send` data round-trip requires one `URI.decode_www_form_component` after the form decode. `scheme_apps` action precedence matches `Hash#merge` semantics.
+- Open PRs: 3 Repo Assist drafts (#159, #163, in-flight test PR). #159 + #163 awaiting first-time `pull_request` workflow approval for `repo-assist/*` branches.
+- Test coverage sweep: 9 merged + 1 in-flight (+46 tests). `blaze.rb` deferred.
+- Updated Monthly Activity (#99): replaced `#aw_enc_msg` placeholder with concrete #163 (now visible); added new test PR placeholder (`#aw_test1`); kept #114 → recommend close; kept the 2.3.1 release goal. Trimmed older run-history entries to stay under the 10 KB `update_issue` limit.
+
+## Previous decisions (2026-06-28)
+
+- Selected tasks: 2, 4, 8. Task 2 commented on #114; Task 4 no-action; Task 8 produced PR #163 (`bf498ea`) — 9 `bytes += X`→`bytes.concat(X)` across `encrypted_message.rb` + `mvm/registry.rb`. 1.12× speedup for `encrypt_message`, neutral for `contract_from_multisig`. **Performance sweep complete.**
+
+## Previous decisions (2026-06-27)
+
+- Selected tasks: 2, 4, 10. Task 2 + Task 4 no-action; Task 10 produced PR #159 (`14415bd`) — 30 mechanical `bytes += X`→`bytes.concat/push/<<` in `nfo.rb` + `invoice.rb`. ~1.1× speedup.
+
+## Previous decisions (2026-06-26)
+
+- Selected tasks: 9, 3, 2. Task 9 produced PR #156 (`test_computer_api.rb`, 18 assertions) — **merged 2026-06-27**. Tasks 2 + 3 no-action.
+
+## Earlier history (2026-06-16 through 2026-06-25)
+
+- **2026-06-25**: Task 5 produced PR #152 (`test_small_modules.rb`, 27 assertions) — **merged**. Task 10 forward-pass: PR #148 (Ruby 4.0 `legacy_user.rb` fix) **merged**.
+- **2026-06-24**: Task 6 produced PR #148 — **merged**. Tasks 9 + 5 produced #145 + #146 (both superseded by #148).
+- **2026-06-23**: Task 9 produced PR #142 (`test_multisig.rb`) — **merged**. Task 8 produced PR #141 (`test_inscription.rb`) — **merged**.
+- **2026-06-22**: Task 8 produced PR #138 (`bytes += X` migration in `Transaction::Encoder`, 70 sites) — **merged 2026-06-25**.
+- **2026-06-20**: Task 3 produced PR #133 (`fix-rubocop-variable-number`) — **merged**.
+- **2026-06-19**: Task 5 produced PR #123 (`test_chain.rb`) — **merged**. Task 10 produced PR #126 (`test-output-threshold-script`) — **merged**.
+- **2026-06-18**: Task 9 produced PR #117 (`test-tip-bodies`) — **merged**. Task 5 created issue #114 (docs-version-bump, since superseded by manual PR #128).
+- **2026-06-16**: Created Monthly Activity Summary issue #99.
 
 ## Forward work candidates
 
-- **Test coverage sweep**: 10 merged. `blaze.rb` deferred (EventMachine). The coverage gap is now small.
-- **Performance follow-up**: `lib/mixin_bot/api/encrypted_message.rb` (6 sites) + `lib/mvm/registry.rb` (3 sites) for the same `bytes += X` pattern. Smaller buffers, lower value. The dominant encoder cost (`bytes.pack('C*')` in `utils/encoder.rb`) is now cached via #158.
-- **2.3.1 release preparation** overdue: `sha3` upgrade from #84 + Lean Squad removal #129 still in `[Unreleased]`. #114 (protected-files docs bump) was resolved by manual PR #128. CHANGELOG would need a `2.3.1` section but that requires touching a protected file.
-- **Protected-files PR-push workaround** affects four workflows (README/AGENTS/CLAUDE/CHANGELOG). Root cause of #114 (still open — recommend close now that #128 landed).
-- **PR creation propagation lag**: GitHub MCP API can lag behind `create_pull_request` success for ~1 run. This run's PR (`perf-nfo-invoice-concat-2026-06-27`) may not be visible until next run.
+- **`blaze.rb` test coverage**: the only remaining untested API module; 144 lines, EventMachine-heavy.
+- **2.3.1 release preparation**: `sha3` + Lean Squad removal in `[Unreleased]`; 5 PRs (#138, #158, #159, #163, in-flight test PR) unreleased. Requires protected-files workaround.
+- **Two `UrlScheme` quirks noted in the new test PR** (see anti-patterns): worth focused bug-fix PRs after maintainer review.
+- **Documentation gap**: `lib/mixin_bot/api/blaze.rb` has minimal rdoc on the websocket-message encoder methods.
+- **Consider splitting `lib/mixin_bot/api/message.rb`** — at 211 lines it mixes HTTP-push (`send_message`), pull/ack (`acknowledge_message`), WebSocket encoder (`write_ws_message` / `ws_message`), and message-build helpers (`plain_text`, `plain_image`, etc.). The WebSocket encoder pair belongs naturally with `Blaze`.
 
-## Decisions / substitutions this run (2026-06-27, 14:25 UTC)
-
-- Selected tasks: 2, 4, 10. Tasks 2 + 4 were no-action (all 17 open issues are auto-generated `agentic-workflows` trackers; Dependabot-managed and up-to-date with no open PRs). Task 10 produced a focused performance PR.
-- Created PR `repo-assist/perf-nfo-invoice-concat-2026-06-27` (`14415bd`) — 30 `bytes += X`→`bytes.concat(X)` / `bytes.push(literal)` / `bytes << literal` conversions across `lib/mixin_bot/nfo.rb` (19 sites) and `lib/mixin_bot/invoice.rb` (11 sites). Follows the same pattern as #138; byte-for-byte equivalent; verified by replaying the exact encode patterns in a standalone Ruby script. **Visible as PR #159.**
-
-## Decisions / substitutions this run (2026-06-28, 14:45 UTC)
-
-- Selected tasks: 2, 4, 8. Task 2 produced a single comment on #114 (verifying PR #128 already landed the docs bump); Task 4 was no-action (Dependabot-managed, no open Dependabot PRs); Task 8 produced a final perf PR that closes out the `bytes += X` migration across the codebase.
-- Created PR `repo-assist/perf-encrypted-message-and-registry-concat-2026-06-28` (`bf498ea`) — 9 `bytes += X`→`bytes.concat(X)` conversions across `lib/mixin_bot/api/encrypted_message.rb` (6 sites in `encrypt_message`) and `lib/mvm/registry.rb` (3 sites in `contract_from_multisig`). Same pattern as #138 / #159; byte-for-byte equivalent; verified by standalone Ruby equivalence script across 6 input combinations. Microbench (Ruby 4.0.5, 100,000 iters): `EncryptedMessage#encrypt_message` 0.571s→0.509s (**1.12×** — scales with session count); `MVM::Registry#contract_from_multisig` 0.230s→0.237s (neutral at ~70 B buffer — included for consistency only, removes O(n²) footgun). Number not yet visible in MCP API (propagation lag).
-- **Performance sweep status**: With #138, #158, #159, and this run's PR, all currently-known `bytes += X` O(n²) sites in encoders have been migrated to `Array#concat` / `Array#<<`. **No further high-leverage perf sites identified.** The dominant remaining encoder cost (`bytes.pack('C*')` cache in `utils/encoder.rb`) is already cached via #158.
-- Open PRs: 2 Repo Assist drafts (#159 + #aw_enc_msg). PR #159 awaiting first-time `pull_request` workflow approval for `repo-assist/*` branches.
-- Commented on #114 (`aw_A6Ayf9Jo`) — verified all four target files (`README.md`, `CLAUDE.md`, `AGENTS.md`, `llms.txt`) are at 2.3.0, confirming #128's work; recommend close.
-- #114 should be closed: PR #128 (merged 2026-06-20) already landed the docs version bump that #114 proposed. Will be added to Suggested Actions in the Monthly Activity update.
-
-## Anti-patterns to avoid
+## Standing anti-patterns
 
 - Do not comment on `github-actions[bot]`-generated issues.
-- Do not duplicate Lean Squad output (#129 removed).
-- Do not close auto-managed issues like #90.
-- Do not bump action versions in dormant `lean-ci.yml` (#129 removed it).
-- Do not re-propose duplicate-PR investigation (#95/#96 closed/merged).
+- Do not duplicate Lean Squad output (#129 removed it).
+- Do not bump action versions in dormant `lean-ci.yml`.
 - Do not bundle CHANGELOG/version bump into docs-only PR.
 - **Do not attempt another PR touching `README.md`, `AGENTS.md`, `CLAUDE.md`, or `CHANGELOG.md` via `create_pull_request`** until protected-files workaround in place.
 - **Do not retry `create_pull_request` more than once for same content** — API can lag; double-creation is harder to clean up.
-- Do not add "Lean Squad Tier 3" goal to #99 — gone in #129. Use 2.3.1 release-prep instead.
-- **Do not call `assert_raises(ArgumentError)` (unqualified) in tests inside `module MixinBot`** when production raises custom `MixinBot::ArgumentError` — Ruby resolves unqualified to custom class. Use `MixinBot::ArgumentError` explicitly for custom, `::ArgumentError` for bare Ruby.
-- **Do not introduce `bytes <<` String-buffer optimization to `encoder.rb` as sweeping refactor** — changes return types of helpers and `encode_uint16/32/64`. If pursuing, focused separate benchmarked PR.
-- **Do not use `WebMock.after_request` for request body capture** — class-level hook persists across tests. Use `to_return do |request|` block for per-stub local capture.
-- **Do not assume `CGI.escape` encodes spaces as `%20`** — encodes as `+` (form-encoding). `URI.encode_www_form_component` encodes as `%20`.
-- **Do not use `MixinBot.api.method(:x) == MixinBot.api.method(:y)` for alias equivalence** — cleaner pattern is calling both and asserting results match (`test_chain.rb` style).
-- **Do not use `WebMock.reset!` without `MixinApiStubs.register!` afterward** — resets clear all stubs including the `any`-matcher fallback.
-- **Do not push the same content under two branch suffixes for the same fix** — if a re-cut is needed, close the previous PR first. (`fix-pr145-pr146-2026-06-24` had two branches — `-f9b54f10d1beb82d` and `-e756f51217a2fffe` — both opened; the first was closed when the second merged.)
-- **For computer_api delegation tests, use the ComputerApi → MixinBot::Computer wiring pattern** — the module is a thin pass-through, so asserting `MixinBot.api.foo == MixinBot::Computer.foo` is a stronger test than asserting request shape alone. Use WebMock to stub `https://computer.mixin.one/<path>` (no fallback stub exists in `MixinApiStubs`).
+- **Do not call `assert_raises(ArgumentError)` (unqualified) inside `module MixinBot`** when production raises custom `MixinBot::ArgumentError`.
+- **Do not use `WebMock.after_request` for request body capture** — class-level hook persists across tests. Use `to_return do |request|` block.
+- **Do not assume `CGI.escape` encodes spaces as `%20`** — encodes as `+`. `URI.encode_www_form_component` encodes as `%20`.
+- **Do not use `MixinBot.api.method(:x) == MixinBot.api.method(:y)` for alias equivalence** — cleaner pattern is calling both and asserting results match.
+- **Do not use `WebMock.reset!` without `MixinApiStubs.register!` afterward**.
+- **Do not push the same content under two branch suffixes for the same fix** — close the previous branch first.
+- **For computer_api delegation tests, use the ComputerApi → MixinBot::Computer wiring pattern**.
