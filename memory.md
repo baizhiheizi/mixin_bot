@@ -7,21 +7,21 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-06-29 06:05 UTC)
+## Current state (as of 2026-06-30 15:34 UTC)
 
 - **CI is GREEN on `main`** (HEAD `a5598c0` — `perf: cache bytes.pack in encoder to avoid duplicate allocation (#158)`).
-- **Open issues**: 19 — all automated workflow trackers + Monthly Activity (#99). 0 unlabelled.
-- **Open PRs**: 3 Repo Assist drafts — #159 (nfo+invoice perf), #163 (encrypted-message + mvm/registry perf), and a new test PR (number not yet visible — propagation lag).
-- **Test coverage progress**: 9 merged (#117, #123, #126, #131, #141, #142, #148, #152, #156). Draft +46 tests for `BotAuth` + `UrlScheme` this run. `blaze.rb` remains untested.
+- **Open issues**: 18 — 1 closed since 2026-06-29 (most likely an auto-generated `[aw]` that hit its expiry). 0 unlabelled.
+- **Open PRs**: 2 Repo Assist drafts — #159 (nfo+invoice perf) + #163 (encrypted-message + mvm/registry perf). **The `repo-assist/test-bot-auth-url-scheme-2026-06-29` branch and its test PR never made it to GitHub** (no corresponding PR exists at run 28455454926). Likely failed silently at the `create_pull_request` step in the 2026-06-29 run — don't re-attempt with same branch suffix.
+- **Test coverage progress**: 9 merged (#117, #123, #126, #131, #141, #142, #148, #152, #156). The in-flight BotAuth + UrlScheme tests from last run are now lost; the work needs to be re-done on a fresh branch.
 - **Ruby 4.0 audit (resolved)**: `legacy_user.rb` fixed in PR #148.
 - **Performance sweep**: PR #138 + #158 + #159 + #163 merged/draft. **All `bytes += X` sites migrated.**
 
 ## Cursors
 
 - **Task 2 cursor**: 0 — #114 commented 2026-06-28 (recommend close). Others are auto-generated trackers.
-- **Task 3 cursor**: 0 — no user-reported bugs.
+- **Task 3 cursor**: 0 — no user-reported bugs; `UrlScheme` quirks require maintainer review.
 - **Task 4 cursor**: empty — Dependabot-managed, up-to-date.
-- **Task 5 cursor**: 9 merged test PRs; +1 draft this run (+46 tests).
+- **Task 5 cursor**: 9 merged test PRs; the +46-test attempt for BotAuth + UrlScheme on 2026-06-29 was lost (PR never published). **Re-attempt with fresh branch** `repo-assist/test-bot-auth-url-scheme-retry-2026-06-30-XXXX` next time Task 5 / Task 9 is selected.
 - **Task 8 cursor**: All `bytes += X` migrated.
 
 ## Anti-patterns to avoid (additions this run)
@@ -35,7 +35,20 @@ metadata:
 - **For BotAuth tests, pre-populate the cache** — `Client#sign_request` short-circuits to the cached `shared_key` when present. The 32-byte pre-populated cache makes `sign_request` fully exercisable offline; the short-cache branch (< 32 bytes) is verified via `NotFoundError`.
 - **For UrlScheme tests, assert actual encoded behaviour** — see double-encoding quirk above.
 
-## Decisions this run (2026-06-29, 06:05 UTC)
+## Decisions this run (2026-06-30, 15:34 UTC)
+
+- Selected tasks: 2, 4, 3. **All three are no-action this run.**
+- Task 2 no-action: 18 open issues = 16 `[aw]`-prefixed automated workflow trackers (per memory standing anti-pattern, never comment) + `[repo-assist] Monthly Activity` #99 (mine) + `[repo-assist]` #114 docs bump (already commented 2026-06-28 with `recommend close`) + 1 `[lean-squad]` (#93; per memory, do not duplicate Lean Squad output). No human engagement anywhere.
+- Task 4 no-action: Dependabot is managed and up-to-date; CI uses `actions/checkout@v7` + `concurrency: cancel-in-progress: true`; no actionable engineering investments identified. #114 is the open docs/protected-files representative — already on the suggested-actions list for closure.
+- Task 3 no-action: no user-reported bugs in the open issue set. The two `UrlScheme` quirks documented in last run's tests (`scheme_send` double-encoding; `scheme_apps` action precedence via `Hash#merge`) require maintainer discussion before any fix PR per anti-patterns.
+- Updated Monthly Activity #99: replaced the stale `#aw_test1` placeholder (it never materialised as a real PR) with a note that the test-bot-auth-url-scheme branch was never published; kept review/close suggestions for #159, #163, #114; kept the 2.3.1 release goal. Trimmed the 2026-06-29 run entry to flag the lost test PR. Body now ~9.0 KB (safe under the 10 KB limit).
+- **Discovered anti-pattern**: `safeoutputs create_pull_request` can silently fail / not land a PR. When a run claims to have created a draft PR, **always verify the branch exists at `git ls-remote origin` or via `list_branches`** at the start of the next run, before referencing the PR in MEMORY.md. Today's discovery: the 2026-06-29 run's `repo-assist/test-bot-auth-url-scheme-2026-06-29` branch was claimed-published in memory but never landed — the work needs to be redone.
+
+## Previous decisions (2026-06-29, 06:05 UTC) [superseded — the claimed test PR was never published; see 2026-06-30 entry above] 
+
+- (See below — recorded but PR creation likely failed silently.)
+
+## Previous decisions (2026-06-29, 06:05 UTC)
 
 - Selected tasks: 2, 4, 5. Task 2 + Task 4 no-action (auto-trackers; Dependabot managed). Task 5 produced focused test PR.
 - Created PR `repo-assist/test-bot-auth-url-scheme-2026-06-29` (`927af9e`) — `test_bot_auth.rb` (21 tests) + `test_url_scheme.rb` (25 tests) = **46 new offline unit tests covering `BotAuth` + `UrlScheme`**. Follows the `test_chain.rb` / `test_small_modules.rb` pattern. Two subtle production quirks pinned down.
@@ -69,9 +82,10 @@ metadata:
 
 ## Forward work candidates
 
+- **`BotAuth` + `UrlScheme` test coverage — RETRY**: the 46-test branch from 2026-06-29 was never published (silent `create_pull_request` failure). Re-do on a fresh branch (e.g. `repo-assist/test-bot-auth-url-scheme-retry-2026-06-30-XXXX`) when Task 5 or Task 9 is selected next. Uses the off-the-shelf `eth` require stub + cache-populated `BotAuth::MapCache` pattern documented in anti-patterns.
 - **`blaze.rb` test coverage**: the only remaining untested API module; 144 lines, EventMachine-heavy.
-- **2.3.1 release preparation**: `sha3` + Lean Squad removal in `[Unreleased]`; 5 PRs (#138, #158, #159, #163, in-flight test PR) unreleased. Requires protected-files workaround.
-- **Two `UrlScheme` quirks noted in the new test PR** (see anti-patterns): worth focused bug-fix PRs after maintainer review.
+- **2.3.1 release preparation**: `sha3` + Lean Squad removal in `[Unreleased]`; 4 PRs (#138, #158, #159, #163) unreleased. Requires protected-files workaround.
+- **Two `UrlScheme` quirks noted in prior runs** (see anti-patterns): worth focused bug-fix PRs after maintainer review.
 - **Documentation gap**: `lib/mixin_bot/api/blaze.rb` has minimal rdoc on the websocket-message encoder methods.
 - **Consider splitting `lib/mixin_bot/api/message.rb`** — at 211 lines it mixes HTTP-push (`send_message`), pull/ack (`acknowledge_message`), WebSocket encoder (`write_ws_message` / `ws_message`), and message-build helpers (`plain_text`, `plain_image`, etc.). The WebSocket encoder pair belongs naturally with `Blaze`.
 
@@ -90,3 +104,4 @@ metadata:
 - **Do not use `WebMock.reset!` without `MixinApiStubs.register!` afterward**.
 - **Do not push the same content under two branch suffixes for the same fix** — close the previous branch first.
 - **For computer_api delegation tests, use the ComputerApi → MixinBot::Computer wiring pattern**.
+- **Do not assume a `create_pull_request` call published a PR** — always verify the branch exists at start of next run before relying on the PR number. `safeoutputs create_pull_request` can silently drop the PR (the 2026-06-29 run's test PR is the first known case).
