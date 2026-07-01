@@ -126,8 +126,8 @@ module MixinBot
         ciphertext = encrypter.update(Base64.urlsafe_decode64(data)) + encrypter.final + encrypter.auth_tag
 
         bytes = [1]
-        bytes += [sessions.size].pack('v*').bytes
-        bytes += JOSE::JWA::Ed25519.pk_to_curve25519(pk).bytes
+        bytes.concat([sessions.size].pack('v*').bytes)
+        bytes.concat(JOSE::JWA::Ed25519.pk_to_curve25519(pk).bytes)
 
         sessions.each do |session|
           aes_key = JOSE::JWA::X25519.shared_secret(
@@ -143,12 +143,12 @@ module MixinBot
           iv = encrypter.random_iv
           encrypter.iv = iv
 
-          bytes += (MixinBot::UUID.new(hex: session['session_id']).packed + iv).bytes
-          bytes += encrypter.update(key + padtext).bytes
+          bytes.concat((MixinBot::UUID.new(hex: session['session_id']).packed + iv).bytes)
+          bytes.concat(encrypter.update(key + padtext).bytes)
         end
 
-        bytes += nounce.bytes
-        bytes += ciphertext.bytes
+        bytes.concat(nounce.bytes)
+        bytes.concat(ciphertext.bytes)
 
         Base64.urlsafe_encode64 bytes.pack('C*'), padding: false
       end
