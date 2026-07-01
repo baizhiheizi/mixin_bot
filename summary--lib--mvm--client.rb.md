@@ -1,0 +1,1 @@
+MVM::Client Faraday HTTP client. SERVER_SCHEME='https'. Constructor takes host. Methods get/post return parsed body. Middleware: json request/retry/raise_error/logger/json response.
