@@ -60,7 +60,6 @@ GEM
     crack (1.0.1)
       bigdecimal
       rexml
-    date (3.5.1)
     docile (1.4.1)
     drb (2.2.3)
     ecdsa (1.2.0)
@@ -144,9 +143,6 @@ GEM
       coderay (~> 1.1)
       method_source (~> 1.0)
       reline (>= 0.6.0)
-    psych (5.3.1)
-      date
-      stringio
     public_suffix (7.0.5)
     racc (1.8.1)
     rainbow (3.1.1)
@@ -156,14 +152,19 @@ GEM
       rake-compiler-dock (= 1.12.0)
     rbnacl (7.1.2)
       ffi (~> 1)
+    rbs (4.0.3)
+      logger
+      prism (>= 1.6.0)
+      tsort
     rbsecp256k1 (6.0.0)
       mini_portile2 (~> 2.8)
       pkg-config (~> 1.5)
       rubyzip (~> 2.3)
     rbtree (0.4.6)
-    rdoc (7.2.0)
+    rdoc (8.0.0)
       erb
-      psych (>= 4.0.0)
+      prism (>= 1.6.0)
+      rbs (>= 4.0.0)
       tsort
     regexp_parser (2.12.0)
     reline (0.6.3)
@@ -201,7 +202,6 @@ GEM
     simplecov_json_formatter (0.1.4)
     sorted_set (1.1.0)
       rbtree
-    stringio (3.2.0)
     thor (1.5.0)
     tsort (0.2.0)
     tzinfo (2.0.6)
