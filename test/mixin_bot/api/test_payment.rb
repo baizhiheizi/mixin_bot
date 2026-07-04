@@ -61,10 +61,11 @@ module MixinBot
     end
 
     def test_safe_pay_url_encodes_amount_without_scientific_notation_regression
-      # Regression guard for https://github.com/baizhiheizi/mixin_bot/issues/...
-      # The implementation uses `amount` directly in string interpolation, which
-      # for very small floats (e.g. 0.00000001) renders as "1.0e-08". This is
-      # *not* what the Mixin web UI accepts in the amount query param.
+      # Regression guard. Previously the implementation interpolated `amount`
+      # directly into the URL, so tiny floats such as `0.00000001` rendered
+      # as `amount=1.0e-08` — which the Mixin web UI's URL parser rejects.
+      # The fix mirrors `MixinBot::Utils::Address#build_safe_recipient`'s
+      # `format('%.8f', amount.to_d.to_r).gsub(/\.?0+\z/, '')` pattern.
       url = MixinBot.api.safe_pay_url(
         members: [USER_A],
         threshold: 1,
@@ -75,13 +76,12 @@ module MixinBot
 
       uri = URI(url)
       params = URI.decode_www_form(uri.query.to_s).to_h
+      rendered = params['amount'].to_s
 
-      # +1.0e-08+ would break Mixin's URL parser; the implementation should
-      # either preserve a string amount or normalise via BigDecimal. Until
-      # that's fixed, this test documents the current behaviour — change it
-      # to refute when the bug is resolved upstream.
-      assert_includes params['amount'].to_s, '1.0e-08',
-                      'expected amount= to currently render in scientific notation (bug); update this test when fixed'
+      refute_includes rendered, 'e',
+                      'amount= must not render in scientific notation; the Mixin web UI rejects "1.0e-08"'
+      assert_equal '0.00000001', rendered,
+                   'amount= should render as the decimal representation of 0.00000001'
     end
 
     # ===== Defaults ========================================================
