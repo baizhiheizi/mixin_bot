@@ -66,13 +66,6 @@ else
     end
   end)
 
-  # Blaze WebSocket entrypoint — keep default tests offline.
-  MixinBot::API::Message.prepend(Module.new do
-    def write_ws_message(params:, action: 'CREATE_MESSAGE')
-      { 'id' => SecureRandom.uuid, 'action' => action, 'params' => params }
-    end
-  end)
-
   # Offline stubs omit UTXO + kernel data needed for real one-time-key signing.
   MixinBot::API::Transaction.prepend(Module.new do
     def sign_safe_transaction(**kwargs)

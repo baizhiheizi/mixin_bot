@@ -60,7 +60,7 @@ module MixinBot
       # (matches Go url.Values.Encode in modern Go stdlib), so the keys
       # come out in the same order they were supplied to +scheme_pay+.
       assert_equal(
-        "mixin://pay?" \
+        'mixin://pay?' \
         "asset=#{ETH_ASSET_ID}&trace=abcd1234&amount=0.1&recipient=#{TEST_UID}&memo=thanks",
         url
       )

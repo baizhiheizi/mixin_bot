@@ -22,7 +22,7 @@ module MixinBot
   class TestBlaze < Minitest::Test
     CONV = '00000000-0000-0000-0000-000000000001'
     RECIPIENT = '00000000-0000-0000-0000-000000000002'
-    UUID_PATTERN = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i.freeze
+    UUID_PATTERN = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
 
     # Captures everything +.send+ hands it, then returns self so the helpers
     # can chain. +sent+ holds the raw byte arrays exactly as +write_ws_message+
@@ -300,11 +300,11 @@ module MixinBot
     def test_group_app_button_uses_same_category_as_single_button_form
       MixinBot.api.blaze_send_app_button(
         @socket, conversation_id: CONV, recipient_id: RECIPIENT,
-        label: 'a', action: 'a', color: '#000'
+                 label: 'a', action: 'a', color: '#000'
       )
       MixinBot.api.blaze_send_group_app_button(
         @socket, conversation_id: CONV, recipient_id: RECIPIENT,
-        buttons: [{ label: 'b', action: 'b', color: '#000' }]
+                 buttons: [{ label: 'b', action: 'b', color: '#000' }]
       )
 
       cats = @socket.envelopes.map { |e| e['params']['category'] }

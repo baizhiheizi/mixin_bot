@@ -21,6 +21,8 @@ module MixinBot
   # path is verified only on the "no session" failure case — that exercises
   # +fetch_user_sessions+ without depending on a real Curve25519 agreement.
   class TestBotAuth < Minitest::Test
+    include WebMock::API
+
     # ===== BotAuth::MapCache ==============================================
 
     def test_map_cache_put_and_get_round_trips
@@ -119,14 +121,15 @@ module MixinBot
     def test_sign_request_signature_changes_with_each_input_field
       cache = MixinBot::BotAuth::MapCache.new
       cache.put(TEST_UID, ([0xBB].pack('C*') * 32).b)
+      cache.put(TEST_UID_2, ([0xCC].pack('C*') * 32).b)
       client = MixinBot::BotAuth::Client.new(MixinBot.api, cache: cache)
 
       base = client.sign_request('100', TEST_UID, 'GET', '/u')
       diff_method = client.sign_request('100', TEST_UID, 'POST', '/u')
-      diff_uri = client.sign_request('100', TEST_UID, 'GET',  '/v')
+      diff_uri = client.sign_request('100', TEST_UID, 'GET', '/v')
       diff_ts = client.sign_request('101', TEST_UID, 'GET', '/u')
       diff_uid = client.sign_request('100', TEST_UID_2, 'GET', '/u')
-      diff_body = client.sign_request('100', TEST_UID, 'GET', '/u', '')
+      diff_body = client.sign_request('100', TEST_UID, 'GET', '/u', 'payload')
 
       tokens = [base, diff_method, diff_uri, diff_ts, diff_uid, diff_body]
       assert_equal tokens.uniq.size, tokens.size,
@@ -155,7 +158,7 @@ module MixinBot
 
       token = client.sign_request('100', TEST_UID, 'GET', '/u')
 
-      assert_match(/\A[A-Za-z0-9_\-]+\z/, token)
+      assert_match(/\A[A-Za-z0-9_-]+\z/, token)
       refute_match(/=/, token, 'expected urlsafe_base64 WITHOUT padding')
     end
 
