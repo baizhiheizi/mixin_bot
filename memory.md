@@ -7,23 +7,33 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-07-09 15:58 UTC)
+## Current state (as of 2026-07-11 14:15 UTC)
 
-- **CI on `main`** is GREEN at `da25d87` (PR #176 — the safe_pay_url scientific-notation fix, **merged 2026-07-04**).
-- **Open issues**: 6 — 0 unlabelled. 4 `[aw]` workflow-failure/no-op/detection trackers (#178, #177, #112, #90) — skip per anti-pattern; #114 (docs version bump PR draft, recommend close); #169 (Monthly Activity).
+- **CI on `main`** is GREEN at `1d5cbc9` (maintainer landed `fix(test): restore CI by fixing Blaze and BotAuth offline tests` 2026-07-10). The Cursor co-author signature suggests `@an-lee` used Cursor to land this; CI had drifted post-#176.
+- **Open issues**: 3 — 0 unlabelled. 2 `[aw]` workflow trackers (#112 No-Op Runs, #90 Detection Runs) — skip per anti-pattern; #169 (Monthly Activity).
 - **Open PRs**: 0.
-- **Test coverage**: comprehensive. Every module under `lib/mixin_bot/api/` has a corresponding test file. 13 test PRs merged this cycle (#117, #123, #126, #131, #141, #142, #148, #152, #156, #167, #168, #171, #172).
+- **Test coverage**: comprehensive. Every module under `lib/mixin_bot/api/` has a corresponding test file (the 7 single-method modules are exercised by `test_small_modules.rb`). 13 test PRs merged this cycle (#117, #123, #126, #131, #141, #142, #148, #152, #156, #167, #168, #171, #172).
 - **Performance sites**: exhausted (#138, #158, #159, #163).
-- **Bug fixes landed**: PR #176 (safe_pay_url amount scientific notation, the long-running 2026-07-04 branch that survived silent-push).
-- **Selected tasks** at run 29030966288: 10, 2, 3.
+- **Bug fixes landed**: PR #176 (safe_pay_url amount scientific notation).
+- **Selected tasks** at run 29155709210: 5, 3, 4. All no-action — closeout run.
 
 ## Cursors
 
 - **Task 2 cursor**: 0 — #114 commented 2026-06-28 (recommend close). No other user-facing open issues.
 - **Task 3 cursor**: 0 — no user-reported bugs in current open issues.
 - **Task 4 cursor**: empty — Dependabot-managed, CI clean.
-- **Task 5 cursor**: 13 merged test PRs. **Seventh** observed `create_pull_request` silent failure.
+- **Task 5 cursor**: 13 merged test PRs. **Seventh** observed `create_pull_request` silent failure. rdoc density uniformly near zero across `lib/mixin_bot/api/*.rb` (10/41 modules have **zero** `#` rdoc lines), so adding rdoc to `blaze.rb` would be inconsistent — confirmed borderline noise.
 - **Task 8 cursor**: All `bytes += X` migrated.
+
+## Critical 2026-07-11 14:15 UTC run
+
+**Selected tasks**: Task 5, Task 3, Task 4. All no-action — genuinely quiet repo.
+
+- **Task 3** (Issue Fix): no user-reported bugs in current open issues. 3 open issues = 2 `[aw]` workflow trackers (skip) + #169 (Monthly Activity). **No-action.**
+- **Task 4** (Engineering Investments): Dependabot-managed; CI green at `1d5cbc9`; gemspec deps current; action versions current (last bump `bump the github-actions group with 2 updates (#181)`). **No-action.**
+- **Task 5** (Coding Improvements): no clearly beneficial, low-risk improvements identifiable. The standing rdoc gap on `blaze.rb`/`message.rb` confirmed borderline — 10 of 41 API modules have zero rdoc density, so targeting those two would be inconsistent. CHANGELOG is protected (per anti-pattern); bundle install fails locally in this sandbox (cannot run `rake test`); 7 documented silent PR-creation failures make any new PR risky. **No-action.**
+
+**Task 11**: Posted this run as `add_comment` on Monthly Activity #169.
 
 ## Critical 2026-07-09 15:58 UTC run
 
@@ -46,20 +56,25 @@ metadata:
 - `lib/mixin_bot/api/payment.rb:14-17` — added one line: `amount = format('%.8f', amount.to_d.to_r).gsub(/\.?0+\z/, '')` after `mix_address` is built. Mirrors `MixinBot::Utils::Address#build_safe_recipient`'s existing amount formatting.
 - `test/mixin_bot/api/test_payment.rb:64-86` — `test_safe_pay_url_encodes_amount_without_scientific_notation_regression` flipped from `assert_includes '1.0e-08'` (pin the bug) to `refute_includes 'e'` + `assert_equal '0.00000001'` (pin the fix).
 
-## Anti-patterns (verified, 2026-07-09)
+## Anti-patterns (verified, 2026-07-11)
 
 - **`MixinBot::API::Payment#safe_pay_url` scientific-notation bug** — **FIXED in main via PR #176 (commit `da25d87`)**. Now uses `format('%.8f', amount.to_d.to_r).gsub(/\.?0+\z/, '')` mirroring `build_safe_recipient`.
 - **The original `test_payment.rb` passed `trace:` instead of `trace_id:`** — silently ignored because the method reads `kwargs[:trace_id]`. Test `test_safe_pay_url_does_not_pass_unknown_kwargs_through` pins this regression.
 - **`update_issue` on Monthly Activity #169 intermittently silently fails** — verified across runs 28566120129, 28599951608, 28694823573, 29030966288. Recovery pattern: post consolidated run history via `add_comment`. The body's "Suggested Actions" stays stale; the comments are the canonical trail.
+- **rdoc density is uniformly near-zero across `lib/mixin_bot/api/*.rb`** — 10/41 modules have zero rdoc lines, including `blaze.rb` (0/144) and `auth.rb` (0/105), `tip.rb` (0/116), `legacy_collectible.rb` (0/139). Targeting only the two called out in memory (`blaze.rb`/`message.rb`) would be inconsistent — confirmed as borderline noise, do not propose.
+- **`bundle install` fails in the repo-assist sandbox** with HTTP 403 from rubygems.org (run 29155709210). Local `rake test` verification is not available; PR creation must rely on CI verification per standing workflow rule.
 
-## Decisions this run (2026-07-09, 15:58 UTC)
+## Decisions this run (2026-07-11, 14:15 UTC)
 
-- Selected tasks: 10, 2, 3. All no-action — closeout run.
-- Task 10: forward candidate (PR #176) verified merged at `da25d87`. Branch + bundle + patch can be cleaned up.
-- Task 11: `add_comment` on #169 with consolidated history including the PR #176 merge celebration. Skipped `update_issue` per persistent anti-pattern.
+- Selected tasks: 5, 3, 4. All no-action — closeout run.
+- Task 5: rdoc gap on `blaze.rb` confirmed borderline noise; no improvement proposed.
+- Task 3: no user-reported bugs.
+- Task 4: Dependabot-managed, CI green, deps current.
+- Task 11: `add_comment` on #169 with this run's history.
 
 ## Earlier runs (condensed)
 
+- **2026-07-09 15:58 UTC** — Selected: 10, 2, 3. All no-action. Task 10: PR #176 verified merged at `da25d87`. Task 11: `add_comment` on #169.
 - **2026-07-04 04:35 UTC** — Selected: 3, 8, 2. Task 3 produced PR #176 (merged 2026-07-04, da25d87).
 - **2026-07-02 15:25 UTC** — Selected: 2, 9, 3. Task 9: payment-test branch (`e6d0956`, 12 tests). **Eventually published as PR #172, merged 2026-07-03.** Task 11: `update_issue` silently failed.
 - **2026-07-02 05:35 UTC** — Selected: 4, 10, 9. Task 9: blaze-test branch (`e0919db`, 18 tests). **Eventually published as PR #171, merged 2026-07-03.** Task 11: `update_issue` silently failed.
