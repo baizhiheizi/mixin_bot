@@ -7,16 +7,16 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-07-14)
+## Current state (as of 2026-07-16)
 
-- **CI on `main`** GREEN at `1d5cbc9` (maintainer-fix 2026-07-10, Cursor co-author). Latest: dependabot bumps #180, #181; PR #176 fix(payment) merged at `da25d87`.
+- **CI on `main`** GREEN at `1f4c967` (Dependabot bump #183 websocket-driver 0.8.0→0.8.1). Previous fix #182 maintainer-fix at `1d5cbc9` (2026-07-10, Cursor co-author).
 - **Open issues**: 4 — 0 unlabelled. 3 `[aw]` workflow trackers (#182 Agentic Wiki Writer, #112 No-Op, #90 Detection — skip per anti-pattern); #169 (Monthly Activity).
-- **Open PRs**: 0.
-- **Issue #114 closed** 2026-07-10 05:57 UTC by `@an-lee` (`completed`). Maintainer landed the protected-files version bump manually after the workflow hit the AGENTS.md/CLAUDE.md/README.md wall.
+- **Open PRs**: 0. 0 Dependabot alerts. 0 code-scanning analyses.
+- **Issue #114 closed** 2026-07-10 05:57 UTC by `@an-lee` (`completed`). Maintainer landed the protected-files version bump manually. **Removed from Suggested Actions list** at run 29508234630.
 - **Test coverage**: comprehensive — every module under `lib/mixin_bot/api/` has a test file (single-method modules via `test_small_modules.rb`). 13 test PRs this cycle (#117, #123, #126, #131, #141, #142, #148, #152, #156, #167, #168, #171, #172).
-- **Performance sites**: exhausted (#138, #158, #159, #163). Reconfirmed at run 29341110852 — no remaining `bytes += X`; `bytes.pack('C*')` already cached where it matters.
+- **Performance sites**: exhausted (#138, #158, #159, #163). Reconfirmed at runs 29341110852 and 29508234630 — no remaining `bytes += X`; `bytes.pack('C*')` already cached where it matters.
 - **Bug fixes landed**: PR #176 (safe_pay_url scientific notation).
-- **Selected tasks** at run 29341110852: 8, 10, 3. All no-action.
+- **Selected tasks** at run 29508234630: 1, 4, 2. All no-action.
 
 ## Cursors
 
@@ -28,6 +28,7 @@ metadata:
 
 ## Recent runs
 
+- **2026-07-16** (run 29508234630) — Selected: 1, 4, 2. All no-action. Task 1 fallback to Task 2 (0 unlabelled); Task 2 no user-facing issues; Task 4 Dependabot-managed, 0 open PRs, 0 alerts. Task 11: `add_comment` on #169 (`aw_p9IMIr6C`) — refreshed Suggested Actions to remove closed-#114. CI green at `1f4c967`.
 - **2026-07-14** (run 29341110852) — Selected: 8, 10, 3. All no-action. Reconfirmed perf exhaustion via grep; forward candidates still blocked (CHANGELOG protected, UrlScheme quirks intentional); no fixable user-reported issues. Task 11: `add_comment` on #169 (`aw_1vbUEQX4`). Detected: #114 closed by maintainer.
 - **2026-07-11** (run 29155709210) — Selected: 5, 3, 4. All no-action. rdoc gap borderline.
 - **2026-07-09** (run 29030966288) — Selected: 10, 2, 3. All no-action. Confirmed PR #176 merged.
