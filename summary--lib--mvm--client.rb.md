@@ -1,1 +1,3 @@
-MVM::Client Faraday HTTP client. SERVER_SCHEME='https'. Constructor takes host. Methods get/post return parsed body. Middleware: json request/retry/raise_error/logger/json response.
+# Summary: lib/mvm/client.rb
+`size: 1982`
+`MVM::Client` Faraday wrapper with JSON, retry, raise_error, logger, JSON response middleware. Methods: `get(path, **)` and `post(path, **)` return parsed body hash.

@@ -1,118 +1,125 @@
 {
   "Home": {
     "sourceFiles": [
-      { "path": "README.md", "hash": "auto" },
-      { "path": "lib/mixin_bot.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/version.rb", "hash": "auto" },
+      { "path": "README.md", "hash": "16309" },
+      { "path": "lib/mixin_bot.rb", "hash": "6076" },
+      { "path": "lib/mixin_bot/version.rb", "hash": "373" },
       { "path": "CLAUDE.md", "hash": "auto" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "Getting-Started": {
     "sourceFiles": [
-      { "path": "lib/mixin_bot.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/api/transfer.rb", "hash": "auto" },
-      { "path": "CLAUDE.md", "hash": "auto" }
+      { "path": "lib/mixin_bot.rb", "hash": "6076" },
+      { "path": "lib/mixin_bot/api/transfer.rb", "hash": "7300" },
+      { "path": "mixin_bot.gemspec", "hash": "1635" },
+      { "path": "Rakefile", "hash": "1493" },
+      { "path": "README.md", "hash": "16309" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "Configuration": {
     "sourceFiles": [
-      { "path": "lib/mixin_bot/configuration.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/cli.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/api.rb", "hash": "auto" }
+      { "path": "lib/mixin_bot/configuration.rb", "hash": "6192" },
+      { "path": "lib/mixin_bot/cli.rb", "hash": "5128" },
+      { "path": "lib/mixin_bot/api.rb", "hash": "11981" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "Architecture": {
     "sourceFiles": [
-      { "path": "lib/mixin_bot/api.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/client.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/models/api_envelope.rb", "hash": "auto" }
+      { "path": "lib/mixin_bot/api.rb", "hash": "11981" },
+      { "path": "lib/mixin_bot/client.rb", "hash": "5000" },
+      { "path": "lib/mixin_bot/models/api_envelope.rb", "hash": "1596" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "API-Reference": {
     "sourceFiles": [
-      { "path": "lib/mixin_bot/api.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/api/transfer.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/api/blaze.rb", "hash": "auto" }
+      { "path": "lib/mixin_bot/api.rb", "hash": "11981" },
+      { "path": "lib/mixin_bot/api/transfer.rb", "hash": "7300" },
+      { "path": "lib/mixin_bot/api/blaze.rb", "hash": "4386" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "Safe-Pipeline": {
     "sourceFiles": [
-      { "path": "lib/mixin_bot/api/transfer.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/transaction.rb", "hash": "auto" }
+      { "path": "lib/mixin_bot/api/transfer.rb", "hash": "7300" },
+      { "path": "lib/mixin_bot/transaction.rb", "hash": "1366" },
+      { "path": "lib/mixin_bot/utils/encoder.rb", "hash": "1803" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "CLI": {
     "sourceFiles": [
-      { "path": "lib/mixin_bot/cli.rb", "hash": "auto" }
+      { "path": "lib/mixin_bot/cli.rb", "hash": "5128" },
+      { "path": "README.md", "hash": "16309" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "Transactions": {
     "sourceFiles": [
-      { "path": "lib/mixin_bot/transaction.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/transaction/encoder.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/utils/encoder.rb", "hash": "auto" }
+      { "path": "lib/mixin_bot/transaction.rb", "hash": "1366" },
+      { "path": "lib/mixin_bot/transaction/encoder.rb", "hash": "8174" },
+      { "path": "lib/mixin_bot/utils/encoder.rb", "hash": "1803" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "Utils-Crypto": {
     "sourceFiles": [
-      { "path": "lib/mixin_bot/utils.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/utils/crypto.rb", "hash": "auto" }
+      { "path": "lib/mixin_bot/utils.rb", "hash": "1578" },
+      { "path": "lib/mixin_bot/utils/crypto.rb", "hash": "13432" },
+      { "path": "lib/mixin_bot/utils/address.rb", "hash": "1552" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "MVM": {
     "sourceFiles": [
-      { "path": "lib/mvm.rb", "hash": "auto" },
-      { "path": "lib/mvm/client.rb", "hash": "auto" }
+      { "path": "lib/mvm.rb", "hash": "2930" },
+      { "path": "lib/mvm/client.rb", "hash": "1982" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "Errors-Error-Handling": {
     "sourceFiles": [
-      { "path": "lib/mixin_bot/errors.rb", "hash": "auto" },
-      { "path": "lib/mixin_bot/client.rb", "hash": "auto" }
+      { "path": "lib/mixin_bot/errors.rb", "hash": "7533" },
+      { "path": "lib/mixin_bot/client.rb", "hash": "5000" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "Models": {
     "sourceFiles": [
-      { "path": "lib/mixin_bot/models/api_envelope.rb", "hash": "auto" }
+      { "path": "lib/mixin_bot/models/api_envelope.rb", "hash": "1596" },
+      { "path": "lib/mixin_bot/models.rb", "hash": "341" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "Development": {
     "sourceFiles": [
-      { "path": "CLAUDE.md", "hash": "auto" },
-      { "path": "Rakefile", "hash": "auto" }
+      { "path": "Rakefile", "hash": "1493" },
+      { "path": "mixin_bot.gemspec", "hash": "1635" },
+      { "path": "CLAUDE.md", "hash": "auto" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   },
   "For-Agents": {
     "sourceFiles": [
-      { "path": ".github/agentic-wiki/PAGES.md", "hash": "auto" }
+      { "path": ".github/agentic-wiki/PAGES.md", "hash": "15528" }
     ],
-    "templateHash": "auto",
-    "generatedAt": "2026-07-01T00:00:00Z"
+    "templateHash": "15528",
+    "generatedAt": "2026-07-17T18:21:00Z"
   }
 }

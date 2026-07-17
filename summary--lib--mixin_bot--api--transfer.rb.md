@@ -1,1 +1,3 @@
-<!-- hash: 7300 -->create_transfer dispatches legacy/safe. create_safe_transfer: build_utxos→build→verify→sign→submit.
+# Summary: lib/mixin_bot/api/transfer.rb
+`size: 7300`
+Defines `create_transfer` (dispatches to legacy if `pin`+`opponent_id`, else Safe), `send_transaction` aliases, `create_safe_transfer` (5-stage Safe pipeline: build_utxos -> build_safe_transaction -> create_safe_transaction_request -> sign_safe_transaction -> send_safe_transaction), and `build_utxos` (selects up to 256 ascending-sorted unspent outputs, raises `UtxoInsufficientError` if short).

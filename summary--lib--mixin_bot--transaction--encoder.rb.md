@@ -1,0 +1,3 @@
+# Summary: lib/mixin_bot/transaction/encoder.rb
+`size: 8174`
+`Transaction::Encoder` builds canonical Safe transaction bytes: MAGIC, version byte, asset UUID, encode_inputs (count + per-input hash/index/genesis/deposit/mint), encode_outputs, optional encode_references (>=REFERENCES_TX_VERSION), extra length+bytes (max MAX_EXTRA_SIZE), then per-input or aggregated signatures. Sets @tx.hash (SHA3-256) and @tx.hex.

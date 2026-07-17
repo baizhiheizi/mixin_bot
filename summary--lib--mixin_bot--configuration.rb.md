@@ -1,1 +1,3 @@
-<!-- hash: 6192 -->CONFIGURABLE_ATTRS=app_id, client_secret, session_id, session_private_key, server_public_key, spend_key, pin, api_host, blaze_host, debug. Aliases: client_id→app_id, private_key→session_private_key, pin_token→server_public_key. Setters expand 32-byte Ed25519 seeds.
+# Summary: lib/mixin_bot/configuration.rb
+`size: 6192`
+`MixinBot::Configuration` with attrs: app_id, client_secret, session_id, session_private_key, server_public_key, spend_key, pin, api_host, blaze_host, session_private_key_curve25519, server_public_key_curve25519, debug. Auto key conversion (32-byte seed -> 64-byte keypair, Ed25519 -> Curve25519). Aliases: client_id->app_id, private_key->session_private_key, pin_token->server_public_key. `valid?` requires app_id, session_id, session_private_key, server_public_key.

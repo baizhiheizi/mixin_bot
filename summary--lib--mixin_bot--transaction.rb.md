@@ -1,1 +1,3 @@
-<!-- hash: 1366 -->SAFE_TX_VERSION=0x05, MAX_EXTRA_SIZE=512, MAGIC=[0x77,0x77]. encode→Encoder, decode→Decoder.
+# Summary: lib/mixin_bot/transaction.rb
+`size: 1366`
+`MixinBot::Transaction` model with attrs: version, asset, inputs, outputs, extra, signatures, aggregated, references, hex, hash. Constants: SAFE_TX_VERSION=0x05, REFERENCES_TX_VERSION=0x04, MAGIC=[0x77,0x77], MAX_EXTRA_SIZE=512, AGGREGATED_SIGNATURE_PREFIX=0xFF01, masks. Methods: `encode` (delegates to `Transaction::Encoder`), `decode` (Decoder), `to_h`.

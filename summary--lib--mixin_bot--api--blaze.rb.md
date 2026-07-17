@@ -1,1 +1,3 @@
-MixinBot::API::Blaze. blaze opens Faye::WebSocket to wss://<blaze_host>/ with Mixin-Blaze-1 protocol, 60s ping. start_blaze_connect yields Faye events; reconnects on close when reconnect:true. blaze_send_plain_text/recall_message/post/contact/app_card/app_button/group_app_button wrap categories PLAIN_TEXT, MESSAGE_RECALL, PLAIN_CONTACT, APP_CARD, APP_BUTTON_GROUP.
+# Summary: lib/mixin_bot/api/blaze.rb
+`size: 4386`
+Blaze WebSocket helpers. `blaze` opens a Faye::WebSocket::Client with Bearer auth and ping:60. `start_blaze_connect(reconnect: true, &block)` yields the socket and dispatches on_open/on_message/on_error/on_close. Send helpers: `blaze_send_plain_text`, `blaze_send_recall_message`, `blaze_send_post`, `blaze_send_contact`, `blaze_send_app_card`, `blaze_send_app_button`, `blaze_send_group_app_button` (categories: PLAIN_TEXT, MESSAGE_RECALL, PLAIN_CONTACT, APP_CARD, APP_BUTTON_GROUP).

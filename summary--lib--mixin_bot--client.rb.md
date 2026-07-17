@@ -1,1 +1,3 @@
-<!-- hash: 5000 -->Faraday client. get, post, fetch_get, fetch_post, fetch_post_array. Signs JWT via access_token. Returns ApiEnvelope.
+# Summary: lib/mixin_bot/client.rb
+`size: 5000`
+Faraday HTTP client. Methods: `get`, `post`, `fetch_get`, `fetch_post`, `fetch_post_array`. Middleware: JSON, retry (max 2 on ConnectionFailed/TimeoutError), optional logger when debug. Private: `authorization_headers`, `sign_token`, `parse_response!` (returns `MixinBot::Models::ApiEnvelope` or raises via `ErrorMapper`), `http_error_status?` (401/403/429 or >=500), `raise_http_status_error!`.

@@ -1,1 +1,3 @@
-<!-- hash: 11981 -->API composes ~30 domain modules via include. Helpers: access_token, encode/decode_raw_transaction, _native variants.
+# Summary: lib/mixin_bot/api.rb
+`size: 11981`
+`MixinBot::API` composes ~30 domain modules via `include`. Initializer accepts kwargs (or uses global config) and builds a `MixinBot::Client`. Top-level methods: `access_token`, `encode_raw_transaction`, `decode_raw_transaction`, `encode_raw_transaction_native`/`decode_raw_transaction_native` (uses external `mixin` CLI), `generate_trace_from_hash`, `client_id`. Private helpers: `warn_legacy_mixin_api!`, `ensure_mixin_command_exist`.
