@@ -7,9 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-07-20
+
+### Added
+
+- **Blaze WebSocket User-Agent** — the client now sends a `User-Agent` header on Blaze WebSocket connections.
+
 ### Changed
 
 - **`sha3` dependency** — upgraded from `~> 1.0` to `~> 2.2` (sha3 2.x renames `SHA3::Digest::SHA256` to `SHA3::Digest::SHA3_256`; hash output is unchanged).
+
+### Fixed
+
+- **Payment URL formatting** — `safe_pay_url` now formats amounts without scientific notation for very small or large values.
+
+### Performance
+
+- **Encoder allocations** — replaced `Array` splat patterns with `Array#concat` in `Transaction::Encoder`, `Nfo`, `InvoiceEntry`, `EncryptedMessage`, and `MVM::Registry` to avoid O(n²) reallocation.
+- **Bytes pack caching** — cached `bytes.pack` results in transaction encoders to reduce duplicate allocations.
 
 ## [2.3.0] - 2026-05-27
 
