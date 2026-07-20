@@ -7,16 +7,17 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-07-16)
+## Current state (as of 2026-07-20)
 
-- **CI on `main`** GREEN at `1f4c967` (Dependabot bump #183 websocket-driver 0.8.0→0.8.1). Previous fix #182 maintainer-fix at `1d5cbc9` (2026-07-10, Cursor co-author).
-- **Open issues**: 4 — 0 unlabelled. 3 `[aw]` workflow trackers (#182 Agentic Wiki Writer, #112 No-Op, #90 Detection — skip per anti-pattern); #169 (Monthly Activity).
+- **CI on `main`** GREEN at `d9e7ea1` (Merge branch 'main' of https://github.com/baizhiheizi/mixin_bot). Latest commit `8576a0a` "bump v2.4.0" — maintainer landed the protected-files version bump manually (AGENTS.md still references `v2.3.0`; can only be fixed via maintainer workaround).
+- **Version**: `lib/mixin_bot/version.rb` → `VERSION = '2.4.0'`; CHANGELOG.md `## [2.4.0] - 2026-07-20` includes Blaze User-Agent (#183-area b63b680), sha3 2.x upgrade, safe_pay_url scientific-notation fix (#176), and 2 perf PRs (#158, #159 area). **The "2.3.1 release" pending action is now stale — it shipped as 2.4.0.**
+- **Open issues**: 7 — 0 unlabelled. 4 `[aw]` workflow trackers (#190 Repo Assist failed, #189 Documentation Updater failed, #188 Repo Assist failed, #187 Agentic Wiki Writer failed), 2 `[aw]` aggregator issues (#112 No-Op, #90 Detection), and #169 (Monthly Activity). All workflow-tracker issues are auto-generated; skip per anti-pattern.
 - **Open PRs**: 0. 0 Dependabot alerts. 0 code-scanning analyses.
-- **Issue #114 closed** 2026-07-10 05:57 UTC by `@an-lee` (`completed`). Maintainer landed the protected-files version bump manually. **Removed from Suggested Actions list** at run 29508234630.
+- **Issue #114 closed** 2026-07-10 05:57 UTC by `@an-lee` (`completed`).
 - **Test coverage**: comprehensive — every module under `lib/mixin_bot/api/` has a test file (single-method modules via `test_small_modules.rb`). 13 test PRs this cycle (#117, #123, #126, #131, #141, #142, #148, #152, #156, #167, #168, #171, #172).
-- **Performance sites**: exhausted (#138, #158, #159, #163). Reconfirmed at runs 29341110852 and 29508234630 — no remaining `bytes += X`; `bytes.pack('C*')` already cached where it matters.
+- **Performance sites**: exhausted (#138, #158, #159, #163).
 - **Bug fixes landed**: PR #176 (safe_pay_url scientific notation).
-- **Selected tasks** at run 29508234630: 1, 4, 2. All no-action.
+- **Selected tasks** at run 29753015350: 3, 5, 2. All no-action.
 
 ## Cursors
 
@@ -28,6 +29,7 @@ metadata:
 
 ## Recent runs
 
+- **2026-07-20** (run 29753015350) — Selected: 3, 5, 2. All no-action. Task 3 no user-reported bugs; Task 5 no clearly beneficial improvement (test coverage comprehensive, perf exhausted, AGENTS.md version drift is protected file); Task 2 no user-facing issues. **Detected state delta**: 2.4.0 released (2.3.1 suggestion now stale); 4 new Dependabot PRs merged (#183 #184 #185 #186); 4 new `[aw]` workflow-failure issues opened (#190 #189 #188 #187). Task 11: `add_comment` on #169 — refreshed Suggested Actions to remove stale 2.3.1 goal. CI green at `d9e7ea1`.
 - **2026-07-16** (run 29508234630) — Selected: 1, 4, 2. All no-action. Task 1 fallback to Task 2 (0 unlabelled); Task 2 no user-facing issues; Task 4 Dependabot-managed, 0 open PRs, 0 alerts. Task 11: `add_comment` on #169 (`aw_p9IMIr6C`) — refreshed Suggested Actions to remove closed-#114. CI green at `1f4c967`.
 - **2026-07-14** (run 29341110852) — Selected: 8, 10, 3. All no-action. Reconfirmed perf exhaustion via grep; forward candidates still blocked (CHANGELOG protected, UrlScheme quirks intentional); no fixable user-reported issues. Task 11: `add_comment` on #169 (`aw_1vbUEQX4`). Detected: #114 closed by maintainer.
 - **2026-07-11** (run 29155709210) — Selected: 5, 3, 4. All no-action. rdoc gap borderline.
