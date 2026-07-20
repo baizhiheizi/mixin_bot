@@ -10,7 +10,7 @@ module MixinBot
         Faye::WebSocket::Client.new(
           format('wss://%<host>s/', host: config.blaze_host),
           ['Mixin-Blaze-1'],
-          headers: { 'Authorization' => authorization },
+          headers: { 'Authorization' => authorization, 'User-Agent' => "mixin_bot/#{MixinBot::VERSION}" },
           ping: 60
         )
       end
