@@ -1,18 +1,1 @@
-{
-  "pages": [
-    { "title": "Home", "slug": "Home", "parent": null },
-    { "title": "Getting Started", "slug": "Getting-Started", "parent": null, "sidebarSections": ["Prerequisites", "Common commands"] },
-    { "title": "Configuration", "slug": "Configuration", "parent": null, "sidebarSections": ["Keystores", "Multiple bots"] },
-    { "title": "Architecture", "slug": "Architecture", "parent": null },
-    { "title": "API Reference", "slug": "API-Reference", "parent": null, "sidebarSections": ["Profile & Users", "Assets & Network", "Transfers (Safe pipeline)", "Transactions", "Multisig", "Messaging & Blaze", "Snapshots & Outputs", "NFTs & Inscriptions", "Auth & Sessions", "Pin & Tip", "Withdrawals & Deposits", "Legacy APIs (deprecated)"] },
-    { "title": "Safe Pipeline", "slug": "Safe-Pipeline", "parent": null },
-    { "title": "CLI", "slug": "CLI", "parent": null },
-    { "title": "Transactions", "slug": "Transactions", "parent": null },
-    { "title": "Utils & Crypto", "slug": "Utils-Crypto", "parent": null, "sidebarSections": ["Crypto helpers", "Address helpers"] },
-    { "title": "MVM", "slug": "MVM", "parent": null },
-    { "title": "Errors & Error Handling", "slug": "Errors-Error-Handling", "parent": null, "sidebarSections": ["Retries & throttling", "Local validation errors"] },
-    { "title": "Models", "slug": "Models", "parent": null },
-    { "title": "Development", "slug": "Development", "parent": null, "sidebarSections": ["OpenSpec workflow", "Docs & RDoc"] },
-    { "title": "For Agents", "slug": "For-Agents", "parent": null }
-  ]
-}
+[{"t":"Home","s":"Home"},{"t":"Getting Started","s":"Getting-Started","sb":["Prerequisites","Common commands"]},{"t":"Configuration","s":"Configuration","sb":["Keystores","Multiple bots"]},{"t":"Architecture","s":"Architecture"},{"t":"API Reference","s":"API-Reference","sb":["Profile & Users","Assets & Network","Transfers (Safe pipeline)","Transactions","Multisig","Messaging & Blaze","Snapshots & Outputs","NFTs & Inscriptions","Auth & Sessions","Pin & Tip","Withdrawals & Deposits","Legacy APIs (deprecated)"]},{"t":"Safe Pipeline","s":"Safe-Pipeline"},{"t":"CLI","s":"CLI"},{"t":"Transactions","s":"Transactions"},{"t":"Utils & Crypto","s":"Utils-Crypto","sb":["Crypto helpers","Address helpers"]},{"t":"MVM","s":"MVM"},{"t":"Errors & Error Handling","s":"Errors-Error-Handling","sb":["Retries & throttling","Local validation errors"]},{"t":"Models","s":"Models"},{"t":"Development","s":"Development","sb":["OpenSpec workflow","Docs & RDoc"]},{"t":"For Agents","s":"For-Agents"}]
