@@ -7,17 +7,14 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-07-20)
+## Current state (as of 2026-07-22)
 
-- **CI on `main`** GREEN at `d9e7ea1` (Merge branch 'main' of https://github.com/baizhiheizi/mixin_bot). Latest commit `8576a0a` "bump v2.4.0" — maintainer landed the protected-files version bump manually (AGENTS.md still references `v2.3.0`; can only be fixed via maintainer workaround).
-- **Version**: `lib/mixin_bot/version.rb` → `VERSION = '2.4.0'`; CHANGELOG.md `## [2.4.0] - 2026-07-20` includes Blaze User-Agent (#183-area b63b680), sha3 2.x upgrade, safe_pay_url scientific-notation fix (#176), and 2 perf PRs (#158, #159 area). **The "2.3.1 release" pending action is now stale — it shipped as 2.4.0.**
-- **Open issues**: 7 — 0 unlabelled. 4 `[aw]` workflow trackers (#190 Repo Assist failed, #189 Documentation Updater failed, #188 Repo Assist failed, #187 Agentic Wiki Writer failed), 2 `[aw]` aggregator issues (#112 No-Op, #90 Detection), and #169 (Monthly Activity). All workflow-tracker issues are auto-generated; skip per anti-pattern.
-- **Open PRs**: 0. 0 Dependabot alerts. 0 code-scanning analyses.
-- **Issue #114 closed** 2026-07-10 05:57 UTC by `@an-lee` (`completed`).
-- **Test coverage**: comprehensive — every module under `lib/mixin_bot/api/` has a test file (single-method modules via `test_small_modules.rb`). 13 test PRs this cycle (#117, #123, #126, #131, #141, #142, #148, #152, #156, #167, #168, #171, #172).
+- **CI on `main`** GREEN at `d9e7ea1` (latest known state). Latest release is v2.4.0 from 2026-07-20; `AGENTS.md` still references v2.3.0 and requires a maintainer-side protected-file edit.
+- **Open issues**: 9 — 0 unlabelled. User-facing backlog remains empty; open items are auto-generated `[aw]` workflow trackers/aggregators, #169 (Monthly Activity), and #192 (protected-file documentation update).
+- **Open PRs**: 0. 0 Dependabot alerts. No actionable dependency, CI, build, performance, testing, or bug-fix work identified this run.
+- **Test coverage**: comprehensive — every module under `lib/mixin_bot/api/` has a test file (single-method modules via `test_small_modules.rb`).
 - **Performance sites**: exhausted (#138, #158, #159, #163).
-- **Bug fixes landed**: PR #176 (safe_pay_url scientific notation).
-- **Selected tasks** at run 29753015350: 3, 5, 2. All no-action.
+- **Selected tasks** at run 29930337930: 9, 4, 3. Task 9 no-action (coverage comprehensive); Task 4 no-action (no dependency/CI/build opportunity); Task 3 no-action (no fixable user-reported bugs). Task 11 refreshed #169 with current July suggested actions and run history.
 
 ## Cursors
 
@@ -43,6 +40,10 @@ metadata:
 - **2026-06-25** — PR #152 (test_small_modules.rb, 27 assertions) merged. PR #148 merged.
 - **2026-06-22** — PR #138 (`bytes += X` migration, 70 sites) merged 2026-06-25.
 - **2026-06-16** — Created Monthly Activity #99.
+
+## Recent runs
+
+- **2026-07-22** (run 29930337930) — Selected: 9, 4, 3. Task 9 no-action: test coverage comprehensive. Task 4 no-action: no open Dependabot alerts/PRs or actionable engineering investment. Task 3 no-action: no fixable user-reported bug/help-wanted issue. Task 11 refreshed #169; current suggested actions are #192 protected-file docs update, AGENTS.md version drift, silent PR publication failures, and optional stale branch cleanup.
 
 ## Forward work candidates
 
