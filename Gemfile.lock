@@ -193,7 +193,7 @@ GEM
       rake (~> 13)
     securerandom (0.4.1)
     sha3 (2.2.4)
-    simplecov (1.0.1)
+    simplecov (1.0.2)
     sorted_set (1.1.0)
       rbtree
     thor (1.5.0)
