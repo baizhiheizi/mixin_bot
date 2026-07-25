@@ -7,11 +7,11 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-07-22)
+## Current state (as of 2026-07-25)
 
-- **CI on `main`** GREEN at `d9e7ea1` (latest known state). Latest release is v2.4.0 from 2026-07-20; `AGENTS.md` still references v2.3.0 and requires a maintainer-side protected-file edit.
-- **Open issues**: 9 — 0 unlabelled. User-facing backlog remains empty; open items are auto-generated `[aw]` workflow trackers/aggregators, #169 (Monthly Activity), and #192 (protected-file documentation update).
-- **Open PRs**: 0. 0 Dependabot alerts. No actionable dependency, CI, build, performance, testing, or bug-fix work identified this run.
+- **CI on `main`** GREEN at `18da721` (latest). Latest release is v2.4.0 from 2026-07-20; `AGENTS.md`, `CLAUDE.md`, `README.md` still reference v2.3.0 and require maintainer-side protected-file edits.
+- **Open issues**: 3 — 0 unlabelled. User-facing backlog remains empty: open items are #169 (Monthly Activity, this file's host), #112 ([aw] No-Op Runs), #90 ([aw] Detection Runs). **#192 closed** by `github-actions[bot]` on 2026-07-23 as `not_planned`; the documentation drift it proposed remains.
+- **Open PRs**: 0. 0 Dependabot alerts. 3 Dependabot PRs merged since 2026-07-22: #194 (simplecov 1.0.2), #195 (github-actions group), #196 (websocket-driver 0.8.2). No actionable dependency, CI, build, performance, testing, or bug-fix work identified this run.
 - **Test coverage**: comprehensive — every module under `lib/mixin_bot/api/` has a test file (single-method modules via `test_small_modules.rb`).
 - **Performance sites**: exhausted (#138, #158, #159, #163).
 - **Selected tasks** at run 29930337930: 9, 4, 3. Task 9 no-action (coverage comprehensive); Task 4 no-action (no dependency/CI/build opportunity); Task 3 no-action (no fixable user-reported bugs). Task 11 refreshed #169 with current July suggested actions and run history.
@@ -43,11 +43,13 @@ metadata:
 
 ## Recent runs
 
+- **2026-07-25** (run 30143077695) — Selected: 2, 3, 8. Task 2 no-action (0 user-facing issues — `is:issue is:open -label:agentic-workflows -label:automation -label:repo-assist` returned 0 hits); Task 3 no-action (no `bug`/`help wanted`/`good first issue` labelled); Task 8 no-action (reconfirmed via grep: 0 `bytes += X`, no TODO/FIXME/HACK, all `bytes.pack('C*')` sites operate on distinct shifted slices — no caching benefit). Task 11: `add_comment` on #169 (`aw_MBQQK4Tq`) — refreshed Suggested Actions: dropped closed-#192 (drift folded into existing AGENTS.md/CLAUDE.md/README.md item), kept silent-PR-failure investigation + stale-branch cleanup. CI green at `18da721`. Detected: 3 Dependabot PRs merged since 2026-07-22 (#194, #195, #196); #192 closed by `github-actions[bot]` as `not_planned` on 2026-07-23.
 - **2026-07-22** (run 29930337930) — Selected: 9, 4, 3. Task 9 no-action: test coverage comprehensive. Task 4 no-action: no open Dependabot alerts/PRs or actionable engineering investment. Task 3 no-action: no fixable user-reported bug/help-wanted issue. Task 11 refreshed #169; current suggested actions are #192 protected-file docs update, AGENTS.md version drift, silent PR publication failures, and optional stale branch cleanup.
 
 ## Forward work candidates
 
-- **2.3.1 release prep**: `sha3` (#84) in `[Unreleased]`; 4 perf + 13 test + 1 fix PRs merged since 2.3.0. Requires protected-files workaround for `CHANGELOG.md` + `VERSION`.
+- **2.4.1 release prep** (low priority): if minor changes accumulate; protected-files workaround needed for `CHANGELOG.md` + `VERSION` bump.
+- **Documentation version drift**: `AGENTS.md`, `CLAUDE.md`, `README.md` still reference v2.3.0; gem is at v2.4.0. All three files are protected — safeoutputs rejects `create_pull_request`/`update_issue` for them. Maintainer-side edit required (same workaround used for #114).
 - **Stale branch cleanup** (optional): `repo-assist/{fix-pr145-pr146,test-legacy-user,test-network}-2026-06-24-*` likely merged into `main` via #167/#168 area.
 - **UrlScheme quirks**: `params: {action:}` overrides + double-encoded `data` are intentional (matches Go, pinned in `test_url_scheme.rb`).
 
