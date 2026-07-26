@@ -7,14 +7,14 @@ metadata:
 
 # Repo Assist Memory — baizhiheizi/mixin_bot
 
-## Current state (as of 2026-07-25)
+## Current state (as of 2026-07-26)
 
 - **CI on `main`** GREEN at `18da721` (latest). Latest release is v2.4.0 from 2026-07-20; `AGENTS.md`, `CLAUDE.md`, `README.md` still reference v2.3.0 and require maintainer-side protected-file edits.
 - **Open issues**: 3 — 0 unlabelled. User-facing backlog remains empty: open items are #169 (Monthly Activity, this file's host), #112 ([aw] No-Op Runs), #90 ([aw] Detection Runs). **#192 closed** by `github-actions[bot]` on 2026-07-23 as `not_planned`; the documentation drift it proposed remains.
 - **Open PRs**: 0. 0 Dependabot alerts. 3 Dependabot PRs merged since 2026-07-22: #194 (simplecov 1.0.2), #195 (github-actions group), #196 (websocket-driver 0.8.2). No actionable dependency, CI, build, performance, testing, or bug-fix work identified this run.
 - **Test coverage**: comprehensive — every module under `lib/mixin_bot/api/` has a test file (single-method modules via `test_small_modules.rb`).
 - **Performance sites**: exhausted (#138, #158, #159, #163).
-- **Selected tasks** at run 29930337930: 9, 4, 3. Task 9 no-action (coverage comprehensive); Task 4 no-action (no dependency/CI/build opportunity); Task 3 no-action (no fixable user-reported bugs). Task 11 refreshed #169 with current July suggested actions and run history.
+- **Selected tasks** at run 30187567875: 1, 3, 2. Task 1 substituted to Task 2 (all open issues already labelled); Task 2 no-action (only automated workflow aggregators and the monthly summary); Task 3 no-action (no fixable user-reported bug/help-wanted issue). Task 11 refreshed #169 with current July suggested actions and run history. Verified current branches include the three stale Repo Assist branches and no open pull requests.
 
 ## Cursors
 
@@ -43,6 +43,7 @@ metadata:
 
 ## Recent runs
 
+- **2026-07-26** (run 30187567875) — Selected: 1, 3, 2. Task 1 substituted to Task 2 because all 3 open issues were labelled; Task 2 no-action because #90 and #112 are automated workflow aggregators and #169 is the monthly summary; Task 3 no-action because no `bug`/`help wanted`/`good first issue` issue or user-reported bug exists. Task 11 refreshed #169 with the exact July structure, current suggested actions, and this run's history. Verified 0 open PRs, the three stale Repo Assist branches, and version drift in AGENTS.md/CLAUDE.md/README.md versus v2.4.0.
 - **2026-07-25** (run 30143077695) — Selected: 2, 3, 8. Task 2 no-action (0 user-facing issues — `is:issue is:open -label:agentic-workflows -label:automation -label:repo-assist` returned 0 hits); Task 3 no-action (no `bug`/`help wanted`/`good first issue` labelled); Task 8 no-action (reconfirmed via grep: 0 `bytes += X`, no TODO/FIXME/HACK, all `bytes.pack('C*')` sites operate on distinct shifted slices — no caching benefit). Task 11: `add_comment` on #169 (`aw_MBQQK4Tq`) — refreshed Suggested Actions: dropped closed-#192 (drift folded into existing AGENTS.md/CLAUDE.md/README.md item), kept silent-PR-failure investigation + stale-branch cleanup. CI green at `18da721`. Detected: 3 Dependabot PRs merged since 2026-07-22 (#194, #195, #196); #192 closed by `github-actions[bot]` as `not_planned` on 2026-07-23.
 - **2026-07-22** (run 29930337930) — Selected: 9, 4, 3. Task 9 no-action: test coverage comprehensive. Task 4 no-action: no open Dependabot alerts/PRs or actionable engineering investment. Task 3 no-action: no fixable user-reported bug/help-wanted issue. Task 11 refreshed #169; current suggested actions are #192 protected-file docs update, AGENTS.md version drift, silent PR publication failures, and optional stale branch cleanup.
 
