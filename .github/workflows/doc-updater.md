@@ -2,7 +2,7 @@
 on:
   permissions:
     pull-requests: read
-  schedule: daily
+  schedule: weekly on wednesday around 03:00 utc+8
   steps:
   - env:
       GH_TOKEN: ${{ github.token }}
@@ -52,6 +52,7 @@ tools:
     toolsets:
     - default
 ---
+
 # Documentation Updater
 
 You are an AI documentation agent that automatically updates project documentation based on recent code changes and merged pull requests.

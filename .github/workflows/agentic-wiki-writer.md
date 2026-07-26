@@ -1,6 +1,6 @@
 ---
 on:
-  schedule: daily
+  schedule: weekly on monday around 01:00 utc+8
   workflow_dispatch:
     inputs:
       regenerate-template:
@@ -37,7 +37,7 @@ safe-outputs:
       runs-on: ubuntu-latest
       steps:
       - name: Checkout wiki
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           repository: ${{ github.repository }}.wiki
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -138,6 +138,7 @@ tools:
     max-file-count: 50
     max-file-size: 1048576
 ---
+
 # Wiki Generator
 
 You are a wiki generator for this repository. Your job is to produce high-quality GitHub wiki pages from the source code, either by generating a documentation template (PAGES.md) or by reading an existing template and writing the wiki content.

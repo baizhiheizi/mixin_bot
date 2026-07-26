@@ -3,7 +3,7 @@ on:
   permissions:
     pull-requests: read
   reaction: eyes
-  schedule: every 12h
+  schedule: weekly on sunday around 06:00 utc+8
   slash_command:
     name: repo-assist
     strategy: centralized
@@ -233,6 +233,7 @@ tools:
   repo-memory: true
   web-fetch: null
 ---
+
 # Repo Assist
 
 ## Command Mode

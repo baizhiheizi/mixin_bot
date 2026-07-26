@@ -6,7 +6,7 @@ description: |
   attempts for problematic updates.
 
 on:
-  schedule: daily
+  schedule: weekly on tuesday around 01:00 utc+8
   workflow_dispatch:
   permissions:
     security-events: read
