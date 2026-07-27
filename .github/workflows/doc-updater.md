@@ -28,6 +28,15 @@ network:
   - java
 imports:
 - shared/engine-minimax.md
+models:
+  providers:
+    anthropic:
+      models:
+        MiniMax-M3:
+          cost:
+            input: 3.0
+            output: 15.0
+            cache_read: 0.3
 safe-outputs:
   create-pull-request:
     draft: false

@@ -13,6 +13,15 @@ permissions:
   pull-requests: read
 imports:
 - shared/engine-minimax.md
+models:
+  providers:
+    anthropic:
+      models:
+        MiniMax-M3:
+          cost:
+            input: 3.0
+            output: 15.0
+            cache_read: 0.3
 safe-outputs:
   create-pull-request:
     allowed-files:
@@ -32,6 +41,7 @@ safe-outputs:
           required: true
           type: string
       output: Wiki pages pushed successfully
+      max: 5
       permissions:
         contents: write
       runs-on: ubuntu-latest
