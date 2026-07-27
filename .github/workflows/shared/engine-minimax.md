@@ -1,5 +1,7 @@
 ---
-max-ai-credits: 1000
+# -1: disable AWF AI-credits budget. MiniMax-M3 is unknown to the built-in
+# pricing table; a positive budget rejects it with unknown_model_ai_credits.
+max-ai-credits: -1
 max-daily-ai-credits: -1
 engine:
   id: claude
