@@ -13,6 +13,13 @@ permissions:
   pull-requests: read
 imports:
 - shared/engine-minimax.md
+# gh-aw v0.83.1 pins AWF v0.27.38, which silently drops `models.providers`
+# (requires AWF v0.27.42+) and the v0.83.1 validator rejects
+# `models.default-ai-credits-pricing`. The .lock.yml files carry a
+# hand-patched jq step that injects defaultAiCreditsPricing into
+# awf-config.json so the API proxy accepts the MiniMax-M3 model. Keep
+# the `models.providers` block above so that upgrading gh-aw/AWF makes
+# this work without manual lock-file edits.
 models:
   providers:
     anthropic:
