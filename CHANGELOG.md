@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-08-08
+
+### Fixed
+
+- **CLI keystore path** — `File.expand_path` is now applied to the `--keystore` / `-k` value so `~` (and other relative paths) resolve correctly before `File.file?`. Previously `mixinbot` would treat the literal `~/...` string as JSON content and report "failed to parse keystore JSON".
+
 ## [2.4.0] - 2026-07-20
 
 ### Added

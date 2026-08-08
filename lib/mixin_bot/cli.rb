@@ -47,9 +47,10 @@ module MixinBot
         return @api_instance
       end
 
+      keystore_path = File.expand_path(options[:keystore])
       raw =
-        if File.file?(options[:keystore])
-          File.read(options[:keystore])
+        if File.file?(keystore_path)
+          File.read(keystore_path)
         else
           options[:keystore]
         end

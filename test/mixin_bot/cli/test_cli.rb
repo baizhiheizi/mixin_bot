@@ -2,6 +2,7 @@
 
 require 'test_helper'
 require 'json'
+require 'tmpdir'
 
 module MixinBot
   class TestCLI < Minitest::Test
@@ -64,6 +65,36 @@ module MixinBot
       spend = cli.api_instance.config.spend_key
       refute_nil spend
       assert_equal OfflineConfig.spend_key_hex, spend.unpack1('H*')
+    end
+
+    def test_setup_api_expands_tilde_in_keystore_path
+      Dir.mktmpdir do |home|
+        path = File.join(home, 'keystore.json')
+        File.write(path, @keystore_json)
+        # File.expand_path resolves `~` via ENV['HOME'] in the C runtime,
+        # bypassing Dir.home, so we must override the env var.
+        with_env('HOME', home) do
+          cli = CLI.new
+          cli.instance_variable_set(:@options, {
+                                      keystore: '~/keystore.json',
+                                      apihost: 'api.mixin.one',
+                                      pretty: false,
+                                      output: 'json'
+                                    })
+          cli.send(:setup_api_instance!)
+          spend = cli.api_instance.config.spend_key
+          refute_nil spend
+          assert_equal OfflineConfig.spend_key_hex, spend.unpack1('H*')
+        end
+      end
+    end
+
+    def with_env(key, value)
+      previous = ENV.fetch(key, nil)
+      ENV[key] = value
+      yield
+    ensure
+      ENV[key] = previous
     end
 
     def test_nftmemo
