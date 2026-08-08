@@ -1,8 +1,5 @@
 ---
-# -1: disable AWF AI-credits budget. MiniMax-M3 is unknown to the built-in
-# pricing table; a positive budget rejects it with unknown_model_ai_credits.
 max-ai-credits: -1
-max-daily-ai-credits: -1
 engine:
   id: claude
   env:
@@ -18,9 +15,9 @@ models:
       models:
         MiniMax-M3:
           cost:
-            input: 1.20
-            output: 4.80
-            cache_read: 0.24
+            input: 1.2e-6
+            output: 4.8e-6
+            cache_read: 0.24e-6
 network:
   allowed:
     - defaults
