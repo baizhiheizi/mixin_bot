@@ -73,7 +73,7 @@ jobs:
         uses: rubygems/configure-rubygems-credentials@v2.1.0
         with:
           api-token: ${{ secrets.RUBYGEMS_API_KEY }}
-          trusted-publisher: false
+          audience: ''
 
       - name: Publish to RubyGems
         if: github.event_name == 'push' || inputs.dry_run != true
