@@ -1,3 +1,2 @@
-# Summary: lib/mixin_bot/cli.rb
-`size: 5128`
-`MixinBot::CLI < Thor` with class_options `-a/--apihost`, `-o/--output`, `-r/--pretty`. Subcommands include version, call, list, api, transfer, legacy-transfer, safetransfer, authcode, encrypt, verifypin, updatetip, saferegister, pay, utils call/list, unique, generatetrace, decodetx, nftmemo, rsa, ed25519, schema, and node (registered only when `mixin` binary is present). Helper `setup_api_instance!` parses `-k/--keystore` JSON. Interactive methods (Blaze) are excluded from `call`.
+hash: wc:5177
+Thor CLI configures output/API host, parses path or inline JSON keystores, builds API instances, validates dynamic API/utils dispatch, and excludes interactive methods.
