@@ -96,6 +96,20 @@ module MixinBot
       end
 
       ##
+      # Derives an OAuth PKCE code challenge (S256) from a code verifier:
+      # base64url(SHA-256(verifier)) without padding.
+      #
+      # @param verifier [String] the PKCE code verifier
+      # @return [String] the code challenge
+      #
+      # @example
+      #   MixinBot.utils.oauth_code_challenge(verifier)
+      #
+      def oauth_code_challenge(verifier)
+        Base64.urlsafe_encode64 Digest::SHA256.digest(verifier), padding: false
+      end
+
+      ##
       # Generates a new Ed25519 keypair.
       #
       # Ed25519 is the recommended key type for Mixin Network.

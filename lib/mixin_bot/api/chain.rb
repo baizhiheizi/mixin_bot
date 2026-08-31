@@ -57,12 +57,29 @@ module MixinBot
         '163a2142-398d-3483-aee3-d47db8da4d10' => 'MarsChain',
         'b12bb04a-1cea-401c-a086-0be61f544889' => 'XDC Network',
         'd2c1c7e1-a1a9-4f88-b282-d93b0a08b42b' => 'Aptos',
-        '2bd97283-2582-33a8-bcba-f4b8ed189572' => 'Sui',
-        'ef660437-d915-4e27-ad3f-632bfb6ba0ee' => 'TON'
+        '3acb25e4-6216-35c3-b1ca-87184269ee08' => 'Sui',
+        'ef660437-d915-4e27-ad3f-632bfb6ba0ee' => 'TON',
+        '36d23d9e-bf4e-3ede-a12d-26f1f1f9fd2f' => 'HyperEVM',
+        '37f5a4d1-905f-3b34-8291-c37438c7dcfc' => 'X Layer',
+        'b304e03d-d004-3102-875b-8266f8407a1a' => 'Robinhood',
+        'e1bf305c-0d49-397d-85bd-55b9eaadafba' => 'Pearl'
       }.freeze
 
       XIN_ASSET_ID = 'c94ac88f-4671-3976-b60a-09064f1811e8'
       VAULTA_ASSET_ID = 'ac2b79f3-ec9c-3d87-b4ca-3e825228dda5'
+
+      # Stablecoin asset ids per chain, mirroring upstream bot-api-go-client asset.go.
+      USDT_HYPEREVM = '3782f986-a053-33ae-b6bf-460abb62ce49'
+      USDT_XLAYER = 'c4d9746a-20be-321c-baca-d378534dd4eb'
+      USDC_HYPEREVM = '1e01fede-51fa-3791-9b06-5c18801b272c'
+      USDC_XLAYER = '8d706a25-514c-3c73-9446-c25fd07d0ae2'
+      USDC_SUI = 'a0f7ad61-3b9f-30f3-a1de-cd831aec33ff'
+
+      CHAIN_STABLECOIN_ASSET_IDS = {
+        'HyperEVM' => { usdt: USDT_HYPEREVM, usdc: USDC_HYPEREVM },
+        'X Layer' => { usdt: USDT_XLAYER, usdc: USDC_XLAYER },
+        'Sui' => { usdc: USDC_SUI }
+      }.freeze
 
       def network_chain(chain_id)
         path = format('/network/chains/%<chain_id>s', chain_id:)

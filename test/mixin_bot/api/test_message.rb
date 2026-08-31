@@ -5,7 +5,11 @@ require 'fastimage'
 
 module MixinBot
   class TestMessage < Minitest::Test
+    include WebMock::API
+
     def setup
+      WebMock.reset!
+      MixinApiStubs.register!
       @conversation_id = MixinBot.api.unique_uuid(TEST_UID)
     end
 
@@ -14,6 +18,25 @@ module MixinBot
       msg = MixinBot.api.write_ws_message(params:)
 
       refute_nil msg
+    end
+
+    def test_silent_send_includes_silent_flag
+      MixinBot.api.send_text_message(
+        conversation_id: @conversation_id,
+        data: 'silent hello',
+        silent: true
+      )
+
+      assert_requested :post, 'https://api.mixin.one/messages', body: hash_including('silent' => true)
+    end
+
+    def test_plain_send_omits_silent_flag
+      MixinBot.api.send_text_message(
+        conversation_id: @conversation_id,
+        data: 'plain hello'
+      )
+
+      assert_requested :post, 'https://api.mixin.one/messages', body: hash_excluding('silent')
     end
 
     def test_send_text_message

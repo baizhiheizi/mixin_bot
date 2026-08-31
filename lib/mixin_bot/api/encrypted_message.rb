@@ -110,6 +110,123 @@ module MixinBot
         client.post path, *payload
       end
 
+      ##
+      # Encrypt and send messages using each recipient's current sessions.
+      #
+      # Messages are unencrypted option hashes (+recipient_id+, +conversation_id+,
+      # +category+, +data+, +message_id+, ...). Sessions are resolved through the
+      # session store (+POST /sessions/fetch+ on a cache miss); messages rejected
+      # because a recipient's sessions changed are refreshed and retried once.
+      #
+      # @param messages [Array<Hash>] unencrypted message options
+      # @param session_store [#fetch, #store] session cache (default: in-memory)
+      # @return [MixinBot::Models::ApiEnvelope] per-recipient responses (+state+ SUCCESS/FAILED)
+      #
+      def post_encrypted_messages(messages, session_store: nil, **kwargs)
+        messages = [messages] unless messages.is_a? Array
+        raise ArgumentError, 'messages must not be empty' if messages.empty?
+
+        pending = messages.map { |message| message.to_h.transform_keys(&:to_sym) }
+        pending.each do |message|
+          raise ArgumentError, 'recipient_id is required' if message[:recipient_id].blank?
+
+          message[:message_id] ||= SecureRandom.uuid
+        end
+
+        store = session_store || MixinBot::SessionStore.new
+        sessions_by_user = {}
+
+        responses = nil
+        2.times do |attempt|
+          recipient_ids = pending.map { |message| message[:recipient_id] }.uniq
+          missing =
+            if attempt.zero?
+              recipient_ids.reject do |recipient_id|
+                cached = store.fetch(recipient_id)
+                sessions_by_user[recipient_id] = cached if cached.present?
+                cached.present?
+              end
+            else
+              # failed recipients' sessions are assumed expired: bypass the cache
+              recipient_ids.reject { |recipient_id| sessions_by_user[recipient_id].present? }
+            end
+
+          fetch_encrypted_message_sessions!(missing, sessions_by_user, store, **kwargs) if missing.any?
+
+          requests = pending.map do |message|
+            sessions = sessions_by_user[message[:recipient_id]]
+            raise ArgumentError, "no sessions found for recipient #{message[:recipient_id]}" if sessions.blank?
+
+            encrypted_message_request(message, sessions)
+          end
+          responses = client.post '/encrypted_messages', *requests, **kwargs
+
+          pending = encrypted_message_failures(pending, responses['data'])
+          return responses if pending.empty? || attempt.positive?
+
+          pending.map { |message| message[:recipient_id] }.uniq.each do |recipient_id|
+            sessions_by_user.delete recipient_id
+          end
+        end
+
+        responses
+      end
+
+      def fetch_encrypted_message_sessions!(recipient_ids, sessions_by_user, store, **kwargs)
+        return if recipient_ids.empty?
+
+        response = fetch_user_sessions(recipient_ids, access_token: kwargs[:access_token])
+        grouped = {}
+        Array(response['data']).each do |session|
+          owner = session['user_id'].presence
+          owner = recipient_ids.first if owner.blank? && recipient_ids.one?
+          grouped[owner] = (grouped[owner] || []) + [session] if owner.present?
+        end
+
+        recipient_ids.each do |recipient_id|
+          sessions = grouped[recipient_id] || []
+          raise ArgumentError, "no sessions found for recipient #{recipient_id}" if sessions.empty?
+
+          sessions_by_user[recipient_id] = sessions
+          store.store recipient_id, sessions
+        end
+      end
+
+      def encrypted_message_request(message, sessions)
+        session_ids = sessions.map { |session| session['session_id'] }.sort
+        checksum = Digest::MD5.hexdigest session_ids.join
+        data = message[:data].to_s
+        data_base64 = encrypt_message Base64.urlsafe_encode64(data, padding: false), sessions
+
+        {
+          conversation_id: message[:conversation_id],
+          recipient_id: message[:recipient_id],
+          representative_id: message[:representative_id],
+          category: message[:category],
+          quote_message_id: message[:quote_message_id],
+          message_id: message[:message_id],
+          silent: (message[:silent] ? true : nil),
+          data_base64:,
+          checksum:,
+          recipient_sessions: session_ids.map { |session_id| { session_id: } }
+        }.compact
+      end
+
+      def encrypted_message_failures(messages, responses)
+        by_message_id = Array(responses).to_h { |response| [response['message_id'], response] }
+
+        messages.each_with_object([]) do |message, failures|
+          response = by_message_id[message[:message_id]]
+          raise ArgumentError, "encrypted message response missing for #{message[:message_id]}" if response.nil?
+
+          case response['state']
+          when 'SUCCESS' then nil
+          when 'FAILED' then failures << message
+          else raise ArgumentError, "encrypted message #{message[:message_id]} returned unknown state #{response['state']}"
+          end
+        end
+      end
+
       def encrypt_message(data, sessions = [], sk: nil, pk: nil) # rubocop:disable Naming/MethodParameterName
         raise ArgumentError, 'Wrong sessions format!' unless sessions.all?(&->(s) { s.key?('session_id') && s.key?('public_key') })
 

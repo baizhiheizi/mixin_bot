@@ -39,7 +39,8 @@ module MixinBot
       def authorize_code(**kwargs)
         data = authorization_data(
           kwargs[:app_id],
-          kwargs[:scope] || ['PROFILE:READ']
+          kwargs[:scope] || ['PROFILE:READ'],
+          kwargs[:code_verifier]
         )
 
         path = '/oauth/authorize'
@@ -67,21 +68,24 @@ module MixinBot
       end
       alias revoke_authorize revoke_authorization
 
-      def authorization_data(app_id, scope = ['PROFILE:READ'])
+      # REFRESH_OAUTH_CODE params for the OAuth authorization handshake.
+      def oauth_code_params(app_id:, scope:, authorization_id: '', code_verifier: nil)
+        {
+          client_id: app_id,
+          scope:,
+          authorization_id:,
+          code_challenge: code_verifier ? MixinBot.utils.oauth_code_challenge(code_verifier) : ''
+        }
+      end
+
+      def authorization_data(app_id, scope = ['PROFILE:READ'], code_verifier = nil)
         @_app_id = app_id
         @_scope = scope.join(' ')
+        @_code_params = oauth_code_params(app_id:, scope: @_scope, code_verifier:)
         EM.run do
           start_blaze_connect do
             def on_open(websocket, _event) # rubocop:disable Lint/NestedMethodDefinition
-              websocket.send write_ws_message(
-                action: 'REFRESH_OAUTH_CODE',
-                params: {
-                  client_id: @_app_id,
-                  scope: @_scope,
-                  authorization_id: '',
-                  code_challenge: ''
-                }
-              )
+              websocket.send write_ws_message(action: 'REFRESH_OAUTH_CODE', params: @_code_params)
             end
 
             def on_message(websocket, event) # rubocop:disable Lint/NestedMethodDefinition

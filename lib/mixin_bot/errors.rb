@@ -28,8 +28,8 @@ module MixinBot
     attr_reader :code, :description, :status, :http_status, :request_id, :server_time,
                 :retry_after, :extra, :path, :verb, :body
 
-    # rubocop:disable Metrics/ParameterLists -- structured API error metadata
-    def initialize(message = nil, code: nil, description: nil, status: nil, http_status: nil,
+    # structured API error metadata
+    def initialize(message = nil, code: nil, description: nil, status: nil, http_status: nil, # rubocop:disable Metrics/ParameterLists
                    request_id: nil, server_time: nil, retry_after: nil, extra: nil,
                    path: nil, verb: nil, body: nil)
       @code = code&.to_i
@@ -45,7 +45,6 @@ module MixinBot
       @body = body
       super(message || formatted_message)
     end
-    # rubocop:enable Metrics/ParameterLists
 
     def client_error?
       c = code.to_i

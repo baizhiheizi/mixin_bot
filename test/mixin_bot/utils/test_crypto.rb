@@ -17,6 +17,20 @@ module MixinBot::Utils
       assert MixinBot.utils.unique_uuid(uuid1, uuid2, uuid3) == 'f681e720-4981-3497-add1-4d90eabd7dce'
     end
 
+    def test_oauth_code_challenge_rfc7636_vector
+      verifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk'
+
+      assert_equal 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+                   MixinBot.utils.oauth_code_challenge(verifier)
+    end
+
+    def test_oauth_code_challenge_is_url_safe_without_padding
+      challenge = MixinBot.utils.oauth_code_challenge('a' * 128)
+
+      assert challenge.match?(/\A[A-Za-z0-9_-]+\z/), 'challenge must be base64url without padding'
+      assert_equal 43, challenge.length, 'S256 challenge of any verifier is 43 chars'
+    end
+
     def test_generate_group_conversation_id
       owner_id = 'c8cb0ac7-d456-4341-be66-0b143aa09922'
       group_name = 'Mixin Rocks'

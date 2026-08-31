@@ -14,7 +14,7 @@ module MixinBot
     def initialize(config)
       @config = config || MixinBot.config
       @conn = Faraday.new(
-        url: "#{SERVER_SCHEME}://#{config.api_host}",
+        url: "#{SERVER_SCHEME}://#{@config.api_host}",
         headers: {
           'Content-Type' => 'application/json',
           'User-Agent' => "mixin_bot/#{MixinBot::VERSION}"
@@ -23,8 +23,9 @@ module MixinBot
         f.request :json
         f.request :retry, max: 2, interval: 0.5, interval_randomness: 0.5, backoff_factor: 2,
                           exceptions: [Faraday::ConnectionFailed, Faraday::TimeoutError]
+        f.options.timeout = @config.http_timeout if @config.http_timeout
         f.response :json
-        f.response :logger if config.debug
+        f.response :logger if @config.debug
       end
     end
 

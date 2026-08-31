@@ -61,7 +61,7 @@ else
 
   # Avoid real EventMachine / Blaze in default tests.
   MixinBot::API::Auth.prepend(Module.new do
-    def authorization_data(_app_id, scope = ['PROFILE:READ'])
+    def authorization_data(_app_id, scope = ['PROFILE:READ'], _code_verifier = nil)
       { 'authorization_id' => SecureRandom.uuid, 'scopes' => scope }
     end
   end)

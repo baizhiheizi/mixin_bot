@@ -55,6 +55,7 @@ MixinBot.configure do
   # self.pin = self.spend_key        # optional; used where PIN material is required
   # self.api_host = 'api.mixin.one'
   # self.blaze_host = 'blaze.mixin.one'
+  # self.http_timeout = 30          # request timeout in seconds (nil = no timeout)
   # self.debug = true               # Faraday response logging
 end
 ```
