@@ -17,6 +17,12 @@ module MixinBot
       assert_equal 5, client.conn.options.timeout
     end
 
+    def test_http_timeout_must_be_a_positive_number
+      assert_raises(ArgumentError) { Configuration.new(http_timeout: 0) }
+      assert_raises(ArgumentError) { Configuration.new(http_timeout: -3) }
+      assert_raises(ArgumentError) { Configuration.new(http_timeout: 'five') }
+    end
+
     def test_global_configuration_timeout_is_applied
       previous = MixinBot.config.http_timeout
       MixinBot.config.http_timeout = 7

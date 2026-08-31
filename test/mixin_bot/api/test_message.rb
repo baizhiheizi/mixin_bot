@@ -8,8 +8,7 @@ module MixinBot
     include WebMock::API
 
     def setup
-      WebMock.reset!
-      MixinApiStubs.register!
+      super
       @conversation_id = MixinBot.api.unique_uuid(TEST_UID)
     end
 

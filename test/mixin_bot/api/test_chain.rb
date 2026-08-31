@@ -94,10 +94,18 @@ module MixinBot
 
       stablecoins = MixinBot::API::Chain::CHAIN_STABLECOIN_ASSET_IDS
       assert_equal({ usdt: MixinBot::API::Chain::USDT_HYPEREVM, usdc: MixinBot::API::Chain::USDC_HYPEREVM },
-                   stablecoins['HyperEVM'])
+                   stablecoins['36d23d9e-bf4e-3ede-a12d-26f1f1f9fd2f'])
       assert_equal({ usdt: MixinBot::API::Chain::USDT_XLAYER, usdc: MixinBot::API::Chain::USDC_XLAYER },
-                   stablecoins['X Layer'])
-      assert_equal({ usdc: MixinBot::API::Chain::USDC_SUI }, stablecoins['Sui'])
+                   stablecoins['37f5a4d1-905f-3b34-8291-c37438c7dcfc'])
+      assert_equal({ usdc: MixinBot::API::Chain::USDC_SUI },
+                   stablecoins['3acb25e4-6216-35c3-b1ca-87184269ee08'])
+    end
+
+    def test_stablecoin_asset_ids_accessor_uses_chain_id
+      assert_equal({ usdc: 'a0f7ad61-3b9f-30f3-a1de-cd831aec33ff' },
+                   MixinBot.api.stablecoin_asset_ids('3acb25e4-6216-35c3-b1ca-87184269ee08'))
+      assert_nil MixinBot.api.stablecoin_asset_ids('43d61dcd-e413-450d-80b8-101d5e903357')
+      assert_nil MixinBot.api.stablecoin_asset_ids('not-a-real-id')
     end
   end
 end

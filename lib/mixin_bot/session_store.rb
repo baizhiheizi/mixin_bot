@@ -5,7 +5,8 @@ module MixinBot
   # In-memory cache of recipient sessions for encrypted-message sending.
   #
   # Mirrors the Go SDK's +MapSessionStore+: +fetch+ returns the cached session
-  # list for a recipient user (or nil on a miss) and +store+ overwrites it.
+  # list for a recipient user (or nil on a miss) and +store+ overwrites it;
+  # storing +nil+ evicts the entry (used when sessions expire mid-send).
   # Any object answering both calls can be passed as +session_store:+ to
   # API#post_encrypted_messages to plug in custom caching (e.g. Redis, TTLs).
   #

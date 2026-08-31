@@ -17,13 +17,14 @@ module MixinBot
         )
       end
 
-      def oauth_token(code)
+      def oauth_token(code, code_verifier: nil)
         path = '/oauth/token'
         payload = {
           client_id: config.app_id,
           client_secret: config.client_secret,
           code:
         }
+        payload[:code_verifier] = code_verifier if code_verifier.present?
         client.post path, **payload
       end
 
@@ -37,9 +38,12 @@ module MixinBot
       end
 
       def authorize_code(**kwargs)
+        scope = kwargs[:scope] || ['PROFILE:READ']
+        scope = scope.split if scope.is_a?(String)
+
         data = authorization_data(
           kwargs[:app_id],
-          kwargs[:scope] || ['PROFILE:READ'],
+          scope,
           kwargs[:code_verifier]
         )
 
@@ -79,9 +83,7 @@ module MixinBot
       end
 
       def authorization_data(app_id, scope = ['PROFILE:READ'], code_verifier = nil)
-        @_app_id = app_id
-        @_scope = scope.join(' ')
-        @_code_params = oauth_code_params(app_id:, scope: @_scope, code_verifier:)
+        @_code_params = oauth_code_params(app_id:, scope: Array(scope).join, code_verifier:)
         EM.run do
           start_blaze_connect do
             def on_open(websocket, _event) # rubocop:disable Lint/NestedMethodDefinition

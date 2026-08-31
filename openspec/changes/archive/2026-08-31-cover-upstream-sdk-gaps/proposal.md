@@ -20,6 +20,8 @@ Assumption: "cover the gaps" includes the minor-parity items above, not just the
 
 No breaking changes: all additions are opt-in (new methods, new optional keyword args, new config key with current behavior as default).
 
+> **Exception (review follow-up):** the chain registry replaces the obsolete pre-fix Sui chain id `2bd97283-…` with the upstream-corrected `3acb25e4-…` (upstream commit `8b686d5`, 2026-06-09). Callers still holding the old id will see `chain_id?` return `false` — this mirrors upstream, which dropped the old id entirely.
+
 ## Capabilities
 
 ### New Capabilities

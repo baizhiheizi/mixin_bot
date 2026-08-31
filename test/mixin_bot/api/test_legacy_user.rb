@@ -8,8 +8,7 @@ module MixinBot
     include WebMock::API
 
     def setup
-      WebMock.reset!
-      MixinApiStubs.register!
+      super
 
       @rsa = OpenSSL::PKey::RSA.new(2048)
       @session_id = SecureRandom.uuid

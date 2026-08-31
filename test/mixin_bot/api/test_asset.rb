@@ -6,11 +6,6 @@ module MixinBot
   class TestAsset < Minitest::Test
     include WebMock::API
 
-    def setup
-      WebMock.reset!
-      MixinApiStubs.register!
-    end
-
     def test_assets
       r = MixinBot.api.assets
 

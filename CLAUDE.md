@@ -50,7 +50,7 @@ ruby -Itest -Ilib -e "require 'test_helper'; require 'test/mixin_bot/api_test'"
 - Interactive methods (Blaze connect, upload) are excluded from `mixinbot call` — use Ruby API with EventMachine instead
 
 ### Configuration
-`MixinBot.configure` accepts: `app_id`, `client_secret`, `session_id`, `session_private_key`, `server_public_key`, `spend_key`, `pin`, `api_host`, `blaze_host`. CLI accepts `-k`/`--keystore` for JSON keystore files.
+`MixinBot.configure` accepts: `app_id`, `client_secret`, `session_id`, `session_private_key`, `server_public_key`, `spend_key`, `pin`, `api_host`, `blaze_host`, `http_timeout` (seconds; opt-in). CLI accepts `-k`/`--keystore` for JSON keystore files.
 
 ### OpenSpec Workflow
 This repo uses [OpenSpec](https://github.com/nicholasdille/openspec) for structured changes:

@@ -47,5 +47,26 @@ module MixinBot
       amount = '0.1'
       assert_equal amount, MixinBot.utils.format_units(MixinBot.utils.parse_units(amount, 18), 18)
     end
+
+    def test_format_units_accepts_decimal_strings
+      assert_equal '0.075', MixinBot.utils.format_units('7.5', 2)
+      assert_equal '-0.05', MixinBot.utils.format_units('-0.5', 1)
+      assert_equal '1.234567', MixinBot.utils.format_units('123.4567', 2)
+    end
+
+    def test_format_units_never_parses_octal_or_hex
+      assert_equal '10', MixinBot.utils.format_units('010', 0)
+      assert_equal '0.00000000000000001', MixinBot.utils.format_units('010', 18)
+      assert_equal '0.0012', MixinBot.utils.format_units('012', 4)
+      assert_raises(ArgumentError) { MixinBot.utils.format_units('0x10', 18) }
+      assert_raises(ArgumentError) { MixinBot.utils.format_units('1_0', 18) }
+    end
+
+    def test_decimals_must_be_non_negative_integer
+      assert_raises(ArgumentError) { MixinBot.utils.format_units(1, -1) }
+      assert_raises(ArgumentError) { MixinBot.utils.format_units(1, 2.5) }
+      assert_raises(ArgumentError) { MixinBot.utils.parse_units('1', -1) }
+      assert_raises(ArgumentError) { MixinBot.utils.parse_units('1', 2.5) }
+    end
   end
 end

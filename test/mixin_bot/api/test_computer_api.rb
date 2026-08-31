@@ -18,11 +18,6 @@ module MixinBot
     SAMPLE_ADDR = '0xabc1230000000000000000000000000000000000'
     SAMPLE_ID = SecureRandom.uuid
 
-    def setup
-      WebMock.reset!
-      MixinApiStubs.register!
-    end
-
     # ===== HTTP delegations ===============================================
 
     def test_get_computer_info_hits_root

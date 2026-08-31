@@ -53,7 +53,7 @@ Status values: `done` | `alias` | `n/a` (CLI-only / config / platform-specific)
 | GetChainName | `API#chain_name` | local | done |
 | IsChainId | `API#chain_id?` | local | done |
 | GetFullChains | `API#full_chains` | local | done |
-| ChainId constants (HyperEVM, X Layer, Robinhood, Pearl, corrected Sui) | `CHAIN_NAMES` + `CHAIN_STABLECOIN_ASSET_IDS` | local | done |
+| ChainId constants (HyperEVM, X Layer, Robinhood, Pearl, corrected Sui) | `CHAIN_NAMES` + `CHAIN_STABLECOIN_ASSET_IDS` / `API#stablecoin_asset_ids` | local | done |
 | USDT/USDC per-chain constants | `MixinBot::API::Chain::USDT_*` / `USDC_*` | local | done |
 | **Outputs / deposits** |
 | ListOutputs / ListUnspentOutputs | `API#safe_outputs` | GET `/safe/outputs` | done |

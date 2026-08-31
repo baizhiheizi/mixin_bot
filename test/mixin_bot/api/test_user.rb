@@ -6,11 +6,6 @@ module MixinBot
   class TestUser < Minitest::Test
     include WebMock::API
 
-    def setup
-      WebMock.reset!
-      MixinApiStubs.register!
-    end
-
     def test_user
       r = MixinBot.api.user TEST_UID
 

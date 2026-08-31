@@ -76,9 +76,9 @@ module MixinBot
       USDC_SUI = 'a0f7ad61-3b9f-30f3-a1de-cd831aec33ff'
 
       CHAIN_STABLECOIN_ASSET_IDS = {
-        'HyperEVM' => { usdt: USDT_HYPEREVM, usdc: USDC_HYPEREVM },
-        'X Layer' => { usdt: USDT_XLAYER, usdc: USDC_XLAYER },
-        'Sui' => { usdc: USDC_SUI }
+        '36d23d9e-bf4e-3ede-a12d-26f1f1f9fd2f' => { usdt: USDT_HYPEREVM, usdc: USDC_HYPEREVM }, # HyperEVM
+        '37f5a4d1-905f-3b34-8291-c37438c7dcfc' => { usdt: USDT_XLAYER, usdc: USDC_XLAYER }, # X Layer
+        '3acb25e4-6216-35c3-b1ca-87184269ee08' => { usdc: USDC_SUI } # Sui
       }.freeze
 
       def network_chain(chain_id)
@@ -94,6 +94,11 @@ module MixinBot
 
       def chain_name(chain_id)
         CHAIN_NAMES[chain_id] || 'Not Supported Chain'
+      end
+
+      # Stablecoin asset ids for a chain id (nil for chains without a mapping).
+      def stablecoin_asset_ids(chain_id)
+        CHAIN_STABLECOIN_ASSET_IDS[chain_id]
       end
       alias get_chain_name chain_name
 

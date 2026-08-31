@@ -90,6 +90,10 @@ module MixinBot
       @api_host = kwargs[:api_host] || 'api.mixin.one'
       @blaze_host = kwargs[:blaze_host] || 'blaze.mixin.one'
       @http_timeout = kwargs[:http_timeout]
+      if @http_timeout && (@http_timeout.is_a?(Numeric) ? @http_timeout <= 0 : true)
+        raise ArgumentError, "http_timeout must be a positive number of seconds, got #{@http_timeout.inspect}"
+      end
+
       @debug = kwargs[:debug] || false
 
       self.session_private_key = kwargs[:session_private_key] || kwargs[:private_key]
