@@ -14,6 +14,7 @@ Minitest::Reporters.use!
 
 require_relative 'support/offline_config'
 require_relative 'support/mixin_api_stubs'
+require_relative 'support/encrypted_message_stub_helpers'
 
 CONFIG =
   begin

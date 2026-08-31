@@ -163,7 +163,7 @@ Many convenience methods on `MixinBot::API` still return the **inner `data` hash
 | **Withdraw** | `withdrawals`, `create_withdraw_address`, `check_address`, `withdraw_addresses` |
 | **Conversation** | `conversation`, `create_group_conversation`, `join_conversation`, … |
 | **Message** | `send_message`, `send_plain_messages`, Blaze helpers |
-| **EncryptedMessage** | `send_encrypted_*`, `encrypt_message`, `decrypt_message` |
+| **EncryptedMessage** | `send_encrypted_*`, `post_encrypted_messages`, `encrypt_message`, `decrypt_message` |
 | **Blaze** | `blaze`, `start_blaze_connect`, `blaze_send_plain_text`, … |
 | **Attachment** | `create_attachment`, `upload_attachment` |
 | **Auth** | `oauth_token`, `authorize_code`, `access_token`, `sign_oauth_access_token` |
@@ -175,6 +175,21 @@ Many convenience methods on `MixinBot::API` still return the **inner `data` hash
 | **ComputerApi** | delegates to `MixinBot::Computer` (`get_computer_info`, `register_computer`, …) |
 
 Top-level helpers on **`MixinBot::API`**: `access_token`, `encode_raw_transaction`, `decode_raw_transaction`, native variants via `mixin` CLI.
+
+### Session caching for encrypted messages
+
+`post_encrypted_messages` resolves recipient sessions through a **session store**: `session_store: session_store_obj` — any object answering `fetch(user_id)` (sessions or `nil`) and `store(user_id, sessions)` (storing `nil` evicts). Without one, a per-API-instance in-memory store is used.
+
+For Rails (or any `ActiveSupport::Cache`-style store — Redis, Memcached, solid_cache), use the built-in adapter for TTLs and cross-process caching:
+
+```ruby
+MixinBot.api.post_encrypted_messages(
+  [{ recipient_id: id, category: 'ENCRYPTED_TEXT', data: 'hello' }],
+  session_store: MixinBot::CacheStoreAdapter.new(Rails.cache, expires_in: 12.hours)
+)
+```
+
+The adapter maps `store(user_id, nil)` to `cache.delete`, so sessions the server reports as expired are evicted, refreshed, and retried automatically.
 
 ### Other libraries
 
