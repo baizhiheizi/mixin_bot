@@ -136,6 +136,11 @@ module MixinApiStubs
     return { 'data' => { 'scheme' => parsed_body['target'] }, 'error' => nil } if method == :post && path == '/schemes'
     return { 'data' => true, 'error' => nil } if method == :post && path == '/acknowledgements'
     return { 'data' => [], 'error' => nil } if method == :get && path == '/safe/addresses'
+    if method == :get && path == '/safe/fees'
+      return { 'data' => [{ 'asset_id' => CNB_ASSET_ID, 'chain_id' => ETH_ASSET_ID,
+                            'fee_asset_id' => 'c94ac88f-4671-3976-b60a-09064f1811e8',
+                            'fee_amount' => '0.01', 'priority' => 'SLOW' }], 'error' => nil }
+    end
 
     if method == :post && path == '/external/proxy'
       m = parsed_body['method']

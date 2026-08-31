@@ -101,8 +101,10 @@ module MixinBot
         )
       end
 
-      def blaze_send_app_card(socket, conversation_id:, recipient_id:, title:, description:, action:, icon_url:)
-        data = { title:, description:, action:, icon_url: }.to_json
+      # mirrors the upstream APP_CARD fields
+      def blaze_send_app_card(socket, conversation_id:, recipient_id:, title:, description:, action:, icon_url:, # rubocop:disable Metrics/ParameterLists
+                              cover_url: nil, actions: nil)
+        data = { title:, description:, action:, icon_url:, cover_url:, actions: }.compact.to_json
         socket.send write_ws_message(
           params: {
             conversation_id:,

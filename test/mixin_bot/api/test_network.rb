@@ -6,11 +6,6 @@ module MixinBot
   class TestNetwork < Minitest::Test
     include WebMock::API
 
-    def setup
-      WebMock.reset!
-      MixinApiStubs.register!
-    end
-
     # ----- Network module -------------------------------------------------
 
     def test_network_assets

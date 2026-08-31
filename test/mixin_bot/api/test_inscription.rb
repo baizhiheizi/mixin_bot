@@ -10,11 +10,6 @@ module MixinBot
     COLLECTION_HASH = 'aa' * 32
     COLLECTIBLE_HASH = 'bb' * 32
 
-    def setup
-      WebMock.reset!
-      MixinApiStubs.register!
-    end
-
     def teardown
       WebMock.reset!
       MixinApiStubs.register!

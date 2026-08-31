@@ -14,6 +14,7 @@ Minitest::Reporters.use!
 
 require_relative 'support/offline_config'
 require_relative 'support/mixin_api_stubs'
+require_relative 'support/encrypted_message_stub_helpers'
 
 CONFIG =
   begin
@@ -61,7 +62,7 @@ else
 
   # Avoid real EventMachine / Blaze in default tests.
   MixinBot::API::Auth.prepend(Module.new do
-    def authorization_data(_app_id, scope = ['PROFILE:READ'])
+    def authorization_data(_app_id, scope = ['PROFILE:READ'], _code_verifier = nil)
       { 'authorization_id' => SecureRandom.uuid, 'scopes' => scope }
     end
   end)
@@ -87,8 +88,13 @@ require 'securerandom'
 
 class Minitest::Test
   def setup
-    ConversationStubState.reset! if defined?(ConversationStubState) && ENV['LIVE'].to_s != '1'
-    AppBillingStubState.reset! if defined?(AppBillingStubState) && ENV['LIVE'].to_s != '1'
+    if ENV['LIVE'].to_s != '1'
+      # fresh stubs per test; in LIVE mode the real API is used instead
+      WebMock.reset!
+      MixinApiStubs.register!
+      ConversationStubState.reset! if defined?(ConversationStubState)
+      AppBillingStubState.reset! if defined?(AppBillingStubState)
+    end
     super
   end
 end

@@ -52,6 +52,7 @@ module MixinBot
       pin
       api_host
       blaze_host
+      http_timeout
       session_private_key_curve25519
       server_public_key_curve25519
       debug
@@ -71,6 +72,7 @@ module MixinBot
     # @option kwargs [String] :pin the PIN (defaults to spend_key if not provided)
     # @option kwargs [String] :api_host ('api.mixin.one') the API host
     # @option kwargs [String] :blaze_host ('blaze.mixin.one') the Blaze WebSocket host
+    # @option kwargs [Numeric] :http_timeout (nil) request timeout in seconds; nil keeps Faraday's default
     # @option kwargs [Boolean] :debug (false) enable debug logging
     #
     # @example
@@ -87,6 +89,11 @@ module MixinBot
       @session_id = kwargs[:session_id]
       @api_host = kwargs[:api_host] || 'api.mixin.one'
       @blaze_host = kwargs[:blaze_host] || 'blaze.mixin.one'
+      @http_timeout = kwargs[:http_timeout]
+      if @http_timeout && (@http_timeout.is_a?(Numeric) ? @http_timeout <= 0 : true)
+        raise ArgumentError, "http_timeout must be a positive number of seconds, got #{@http_timeout.inspect}"
+      end
+
       @debug = kwargs[:debug] || false
 
       self.session_private_key = kwargs[:session_private_key] || kwargs[:private_key]

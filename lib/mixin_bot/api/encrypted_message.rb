@@ -80,8 +80,8 @@ module MixinBot
       def base_encrypted_message_params(options)
         data = options[:data].is_a?(String) ? options[:data] : options[:data].to_json
         data_base64 = encrypt_message Base64.urlsafe_encode64(data, padding: false), options[:sessions]
-        session_ids = options[:sessions].map(&->(s) { s['session_id'] }).sort
-        checksum = Digest::MD5.hexdigest session_ids.join
+        session_ids = options[:sessions].map { |s| s['session_id'] || s[:session_id] }.compact.sort
+        checksum = MixinBot.utils.generate_user_checksum(options[:sessions])
 
         {
           conversation_id: options[:conversation_id],
@@ -92,8 +92,9 @@ module MixinBot
           message_id: options[:message_id] || SecureRandom.uuid,
           data_base64:,
           checksum:,
-          recipient_sessions: session_ids.map(&->(s) { { session_id: s } }),
-          silent: false
+          recipient_sessions: session_ids.map { |session_id| { session_id: } },
+          # Go's MessageRequest always serializes `silent`; default stays false
+          silent: (options[:silent] ? true : false)
         }.compact
       end
 
@@ -110,13 +111,149 @@ module MixinBot
         client.post path, *payload
       end
 
+      ##
+      # Encrypt and send messages using each recipient's current sessions.
+      #
+      # Accepts a single options hash or an array of them (same shapes as
+      # +send_encrypted_*_message+). Sessions are resolved through the session
+      # store - +session_store:+, or the per-API-instance default store - and
+      # fetched via +POST /sessions/fetch+ on a cache miss. Messages the server
+      # rejects because a recipient's sessions changed have their sessions
+      # evicted, refreshed, and are retried once. The returned envelope carries
+      # every message's final +state+ (SUCCESS/FAILED).
+      #
+      # @param messages [Hash, Array<Hash>] unencrypted message options
+      # @param session_store [#fetch, #store] session cache; +store(id, nil)+ evicts
+      # @return [MixinBot::Models::ApiEnvelope] per-message responses (+state+ SUCCESS/FAILED)
+      #
+      def post_encrypted_messages(messages = nil, session_store: nil, **kwargs)
+        messages = kwargs.delete(:messages) if messages.nil? && kwargs.key?(:messages)
+        messages = [messages] unless messages.is_a? Array
+        raise ArgumentError, 'messages must not be empty' if messages.empty?
+
+        token_keys = %i[access_token exp_in scp]
+        unknown = kwargs.keys - token_keys
+        raise ArgumentError, "unsupported options: #{unknown.join(', ')}" if unknown.any?
+
+        original = messages.map { |message| message.to_h.transform_keys(&:to_sym) }
+        seen_ids = []
+        pending = original.map do |message|
+          raise ArgumentError, 'recipient_id is required' if message[:recipient_id].blank?
+          if message[:message_id] && seen_ids.include?(message[:message_id])
+            raise ArgumentError,
+                  "duplicate message_id #{message[:message_id]}"
+          end
+
+          message[:message_id] ||= SecureRandom.uuid
+          seen_ids << message[:message_id]
+          message
+        end
+
+        store = session_store || (@session_store ||= MixinBot::SessionStore.new)
+        final_results = {}
+        responses = nil
+
+        2.times do |attempt|
+          recipient_ids = pending.map { |message| message[:recipient_id] }.uniq
+          missing = recipient_ids.reject { |recipient_id| cached_encrypted_sessions(store, recipient_id).present? }
+          fetched = missing.any? ? fetch_encrypted_message_sessions!(missing, store, **kwargs) : {}
+
+          requests = pending.map do |message|
+            sessions = cached_encrypted_sessions(store, message[:recipient_id]) || fetched[message[:recipient_id]]
+            raise ArgumentError, "no sessions found for recipient #{message[:recipient_id]}" if sessions.blank?
+
+            encrypted_message_request(message, sessions)
+          end
+          responses = client.post '/encrypted_messages', *requests, **kwargs
+
+          data = responses['data']
+          data = [data] if data.is_a?(Hash)
+          raise ArgumentError, 'unexpected /encrypted_messages response format' unless data.is_a? Array
+
+          results, failures = encrypted_message_results(pending, data)
+          final_results.merge!(results)
+          break if failures.empty? || attempt.positive?
+
+          pending = failures
+          # the FAILED recipients' sessions are assumed expired: evict + refresh
+          pending.map { |message| message[:recipient_id] }.uniq.each { |recipient_id| store.store recipient_id, nil }
+        end
+
+        responses.to_h['data'] = original.filter_map { |message| final_results[message[:message_id]] }
+        responses
+      end
+
+      # Read a recipient's sessions from the store. Stores that raise (a Redis
+      # outage) or return non-list values count as a cache miss, mirroring the
+      # Go SDK's `if sessions, err := store.Get(...); err == nil` tolerance.
+      def cached_encrypted_sessions(store, recipient_id)
+        cached = begin
+          # block form keeps 1-arity duck-typed stores (Hash included) working
+          store.fetch(recipient_id) { nil } # rubocop:disable Style/RedundantFetchBlock
+        rescue StandardError
+          nil
+        end
+
+        sessions = Array(cached)
+        return nil unless sessions.all?(Hash)
+        return nil if sessions.empty?
+
+        sessions.map(&:stringify_keys)
+      end
+
+      # Fetch sessions for the given recipients and write them to the store.
+      # Returns { recipient_id => sessions } for the resolved recipients.
+      def fetch_encrypted_message_sessions!(recipient_ids, store, **kwargs)
+        return {} if recipient_ids.empty?
+
+        response = fetch_user_sessions(recipient_ids, **kwargs.slice(:access_token, :exp_in, :scp))
+        grouped = {}
+        Array(response['data']).each do |session|
+          owner = session['user_id'].presence
+          owner = recipient_ids.first if owner.blank? && recipient_ids.one?
+          grouped[owner] = (grouped[owner] || []) + [session] if owner.present?
+        end
+
+        recipient_ids.each_with_object({}) do |recipient_id, resolved|
+          sessions = grouped[recipient_id]
+          raise ArgumentError, "no sessions found for recipient #{recipient_id}" if sessions.blank?
+
+          store.store recipient_id, sessions.map(&:stringify_keys)
+          resolved[recipient_id] = sessions.map(&:stringify_keys)
+        end
+      end
+
+      def encrypted_message_request(message, sessions)
+        base_encrypted_message_params message.merge(sessions:, silent: (message[:silent] ? true : false))
+      end
+
+      # Maps each pending message to its server response. Returns
+      # [results_by_message_id, failed_messages]; raises on malformed responses.
+      def encrypted_message_results(messages, responses)
+        by_message_id = responses.to_h { |response| [response['message_id'], response] }
+
+        results = {}
+        failures = []
+        messages.each do |message|
+          response = by_message_id[message[:message_id]]
+          raise ArgumentError, "encrypted message response missing for #{message[:message_id]}" if response.nil?
+
+          results[message[:message_id]] = response
+          case response['state']
+          when 'SUCCESS' then nil
+          when 'FAILED' then failures << message
+          else raise ArgumentError, "encrypted message #{message[:message_id]} returned unknown state #{response['state']}"
+          end
+        end
+        [results, failures]
+      end
+
       def encrypt_message(data, sessions = [], sk: nil, pk: nil) # rubocop:disable Naming/MethodParameterName
         raise ArgumentError, 'Wrong sessions format!' unless sessions.all?(&->(s) { s.key?('session_id') && s.key?('public_key') })
 
         sk ||= config.session_private_key[0...32]
         pk ||= config.session_private_key[32...]
 
-        Digest::MD5.hexdigest sessions.map(&->(s) { s['session_id'] }).sort.join
         encrypter = OpenSSL::Cipher.new('AES-128-GCM').encrypt
         key = encrypter.random_key
         nounce = encrypter.random_iv

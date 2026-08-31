@@ -58,7 +58,8 @@ module MixinBot
     end
 
     def utils_callable_methods
-      MixinBot::Utils.singleton_methods(false).sort
+      # include methods from the extend-ed submodules (Address, Amount, Crypto, ...)
+      MixinBot::Utils.singleton_methods.sort
     end
 
     def api_method_owner(method_name)

@@ -92,6 +92,8 @@ module MixinBot
           status: 'SENT',
           quote_message_id: options[:quote_message_id],
           message_id: options[:message_id] || SecureRandom.uuid,
+          # opt-in silent delivery; key is omitted unless requested (mirrors Go omitempty)
+          silent: (options[:silent] ? true : nil),
           data: Base64.encode64(data)
         }.compact
       end

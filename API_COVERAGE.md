@@ -41,6 +41,7 @@ Status values: `done` | `alias` | `n/a` (CLI-only / config / platform-specific)
 | AssetBalance* | `API#asset_balance` | derived from outputs | done |
 | UserAssetBalance | `API#user_asset_balance` | GET `/safe/outputs` | done |
 | ReadAsset | `API#network_asset` | GET `/network/assets/:id` | done |
+| ReadSafeFees | `API#safe_fees` / `#read_safe_fees` | GET `/safe/fees` | done |
 | ReadAssetTicker* | `API#network_ticker` | GET `/network/ticker` | done |
 | AssetSearch | `API#network_asset_search` | GET `/network/assets/search/:q` | done |
 | ReadNetworkAssets | `API#network_assets` | GET `/network` | done |
@@ -52,6 +53,8 @@ Status values: `done` | `alias` | `n/a` (CLI-only / config / platform-specific)
 | GetChainName | `API#chain_name` | local | done |
 | IsChainId | `API#chain_id?` | local | done |
 | GetFullChains | `API#full_chains` | local | done |
+| ChainId constants (HyperEVM, X Layer, Robinhood, Pearl, corrected Sui) | `CHAIN_NAMES` + `CHAIN_STABLECOIN_ASSET_IDS` / `API#stablecoin_asset_ids` | local | done |
+| USDT/USDC per-chain constants | `MixinBot::API::Chain::USDT_*` / `USDC_*` | local | done |
 | **Outputs / deposits** |
 | ListOutputs / ListUnspentOutputs | `API#safe_outputs` | GET `/safe/outputs` | done |
 | GetOutput | `API#safe_output` | GET `/safe/outputs/:id` | done |
@@ -94,6 +97,10 @@ Status values: `done` | `alias` | `n/a` (CLI-only / config / platform-specific)
 | RotateConversation | `API#rotate_conversation` | POST `.../rotate` | done |
 | UpdateParticipants | `API#add/remove/..._participants` | POST participants | done |
 | PostMessage(s) | `API#send_message` | POST `/messages` | done |
+| MessageRequest.Silent | `API#send_*(silent: true)` | POST `/messages` | done |
+| PostEncryptedMessages | `API#post_encrypted_messages` | POST `/encrypted_messages` + one-shot retry | done |
+| SessionStore / MapSessionStore | `MixinBot::SessionStore` | local | done |
+| EncryptedMessageResponse / EncryptedMessageError | response envelope `data` | per-recipient `state` | done |
 | EncryptMessageData / DecryptMessageData | `API#encrypt_message` / `#decrypt_message` | local | done |
 | BlazeClient send helpers | `API#blaze_send_*` | WebSocket | done |
 | **Inscriptions** |
@@ -139,6 +146,7 @@ Status values: `done` | `alias` | `n/a` (CLI-only / config / platform-specific)
 | CheckRetryableError | `MixinBot::Monitor.check_retryable_error` | local | done |
 | **HTTP config** |
 | Request / SetBaseUri / SetBlazeUri | `MixinBot::Configuration`, `Client` | config | n/a |
+| SetHttpTimeout | `MixinBot.configure` `http_timeout` | config | n/a |
 | NewSafeUser | `MixinBot::Configuration` | config | n/a |
 | cli/*, examples/*, mixin/rpc main | `mixinbot call` / `mixinbot list` | CLI dispatch to `MixinBot::API` | done |
 
@@ -197,6 +205,8 @@ TS-only or Node-first REST surfaces. Ruby methods follow snake_case; aliases mir
 | conversation.* (CRUD/participants) | `API#conversation`, `#create_*`, `#join_*`, etc. | various | done |
 | **Message** |
 | message.sendAcknowledgement(s) | `API#acknowledge_message` / `#acknowledge_messages` | POST `/acknowledgements` | done |
+| message.sendLegacy | `API#send_message(hash)` | POST `/messages` singular body | alias |
+| APP_CARD cover_url / actions | `API#blaze_send_app_card(cover_url:, actions:)` | WebSocket | done |
 | message.sendSticker/Audio/Video/Live/Location/Transfer | `API#send_*_message` | POST `/messages` | done |
 | message.sendText/Image/File/Post/Contact/AppCard/AppButton/Recall | `API#send_*_message` | POST `/messages` | done |
 | **Code** |
@@ -210,6 +220,9 @@ TS-only or Node-first REST surfaces. Ruby methods follow snake_case; aliases mir
 | external.deposits | `API#transactions` (legacy) | GET `/external/transactions` | done |
 | external.checkAddress | `API#check_address` | GET `/external/addresses/check` | done |
 | external.exchangeRates | `API#fiats` | GET `/external/fiats` | done |
+| **Utils** |
+| utils/amount.formatUnits / parseUnits | `MixinBot.utils.format_units` / `#parse_units` | local | done |
+| utils/auth.getChallenge | `MixinBot.utils.oauth_code_challenge` | local | done |
 | **Safe / UTXO / Transfer / Network / etc.** |
 | safe.* / utxo.* / transfer.* / network.* | spread across existing `API` modules | same HTTP paths as TS | done |
 | **Blaze** |

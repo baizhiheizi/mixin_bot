@@ -249,6 +249,49 @@ module MixinBot
       assert_equal %w[title description action icon_url], JSON.parse(decoded).keys
     end
 
+    def test_app_card_includes_cover_url_and_actions_when_given
+      MixinBot.api.blaze_send_app_card(
+        @socket,
+        conversation_id: CONV,
+        recipient_id: RECIPIENT,
+        title: 'T',
+        description: 'D',
+        action: 'https://example.com/x',
+        icon_url: 'https://example.com/i.png',
+        cover_url: 'https://example.com/cover.png',
+        actions: [{ 'label' => 'Open', 'color' => '#0000FF', 'action' => 'https://example.com/open' }]
+      )
+
+      decoded = Base64.urlsafe_decode64(@socket.envelopes.first['params']['data_base64'])
+      assert_equal(
+        {
+          'title' => 'T',
+          'description' => 'D',
+          'action' => 'https://example.com/x',
+          'icon_url' => 'https://example.com/i.png',
+          'cover_url' => 'https://example.com/cover.png',
+          'actions' => [{ 'label' => 'Open', 'color' => '#0000FF', 'action' => 'https://example.com/open' }]
+        },
+        JSON.parse(decoded)
+      )
+    end
+
+    def test_app_card_omits_cover_url_and_actions_when_absent
+      MixinBot.api.blaze_send_app_card(
+        @socket,
+        conversation_id: CONV,
+        recipient_id: RECIPIENT,
+        title: 'T',
+        description: 'D',
+        action: 'A',
+        icon_url: 'I'
+      )
+
+      decoded = JSON.parse(Base64.urlsafe_decode64(@socket.envelopes.first['params']['data_base64']))
+      refute decoded.key?('cover_url')
+      refute decoded.key?('actions')
+    end
+
     # =================================================================
     # blaze_send_app_button (single-button form)
     # =================================================================

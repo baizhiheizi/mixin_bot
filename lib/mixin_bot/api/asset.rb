@@ -116,6 +116,11 @@ module MixinBot
       end
       alias read_asset_fee asset_fee
 
+      def safe_fees(access_token: nil)
+        client.get '/safe/fees', access_token:
+      end
+      alias read_safe_fees safe_fees
+
       def asset_balance(asset_id)
         outputs = safe_outputs(asset: asset_id, state: 'unspent')
         Array(outputs['data']).sum { |o| o['amount'].to_d }
