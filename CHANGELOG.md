@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-09-03
+
+### Added
+
+- **Upstream SDK parity (2026 Go/Node releases)** — closes gaps with `bot-api-go-client` v3.25.3 and `bot-api-nodejs-client` v7.5.6.
+- **`API#safe_fees`** (`read_safe_fees` alias) — `GET /safe/fees` global Safe fee schedule.
+- **`API#post_encrypted_messages`** — encrypt-and-send pipeline (`POST /encrypted_messages`) with one-shot retry on expired recipient sessions, per-message `SUCCESS`/`FAILED` state, and a pluggable session cache.
+- **`MixinBot::SessionStore`** — in-memory `MapSessionStore` equivalent; pass any object answering `fetch(user_id)` / `store(user_id, sessions)` as `session_store:` (storing `nil` evicts).
+- **`MixinBot::CacheStoreAdapter`** — wraps any `ActiveSupport::Cache`-style store (`Rails.cache` with Redis/Memcached/solid_cache, or a hand-rolled read/write/delete object) so encrypted-message sessions can be cached across processes with `expires_in:` TTLs.
+- **`MixinBot::Configuration#http_timeout`** — opt-in Faraday request timeout in seconds (nil keeps the default).
+- **`silent:` flag** on REST `send_message` and encrypted REST sends, matching Go `MessageRequest.Silent`.
+- **Chain registry** — HyperEVM, X Layer, Robinhood, and Pearl chain ids, plus a corrected Sui id. `CHAIN_STABLECOIN_ASSET_IDS` map and `API#stablecoin_asset_ids(chain_id)`; per-chain `USDT_*` / `USDC_*` constants.
+- **`MixinBot.utils.format_units` / `#parse_units`** — decimal-safe unit conversion (Node `utils/amount` parity, no `Kernel#Integer` octal/hex surprises).
+- **`MixinBot.utils.oauth_code_challenge`** — PKCE S256 code challenge (RFC 7636).
+- **OAuth PKCE support** — `oauth_token(code, code_verifier:)` and `authorize_code(scope:, code_verifier:)` exchange and emit PKCE authorizations.
+- **`blaze_send_app_card(cover_url:, actions:)`** — APP_CARD parity with the Node SDK.
+
+### Changed
+
+- **`API#post_encrypted_messages`** — encrypted-message checksum now reuses `MixinBot.utils.generate_user_checksum` (the dead MD5 line in `encrypt_message` is gone).
+- **Encrypted-message session store** — default store lives on the API instance so caching persists across calls per process; expired sessions are evicted via `store(id, nil)` (Go `store.Delete` parity).
+- **`MixinBot::Utils` CLI introspection** — `mixinbot utils list` / `utils call` now surface methods extended from submodules (`Address`, `Amount`, `Crypto`, …).
+- **`API::Auth`** — `authorize_code` accepts `String` scopes; `REFRESH_OAUTH_CODE` payload is built from an `oauth_code_params` helper; the dead `@_app_id` ivar is gone.
+
+### Fixed
+
+- **`API#post_encrypted_messages`** — non-String `data` is JSON-encoded (was Ruby `inspect` output); the `silent` flag is honored on all encrypted REST sends; sessions stores that raise or return non-arrays are tolerated (Go `err == nil` semantics); symbol-keyed sessions are normalized; per-message responses are merged across the retry so every message's final state is returned; duplicate `message_id`s are rejected; malformed `/encrypted_messages` payloads raise meaningful errors; kwargs are strictly `access_token` / `exp_in` / `scp`.
+- **`MixinBot::Client`** — `Configuration#api_host` and `#debug` are now applied correctly even when the client is initialized with a different `config` (no more stale Faraday URL when reassigning config).
+- **Encrypted-message test harness** — shared guarded WebMock setup in `test_helper.rb` so `LIVE=1` runs and per-file `setup` methods reset state consistently; encrypted-message stub helpers extracted for reuse.
+
 ## [2.4.1] - 2026-08-08
 
 ### Fixed
