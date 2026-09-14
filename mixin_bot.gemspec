@@ -30,6 +30,7 @@ Gem::Specification.new do |s|
   s.executables   = ['mixinbot']
 
   s.add_dependency 'activesupport', '>= 7'
+  s.add_dependency 'async', '~> 2.0'
   s.add_dependency 'async-websocket', '~> 0.30'
   s.add_dependency 'awesome_print', '~> 1.8'
   s.add_dependency 'base58', '~> 0.2'

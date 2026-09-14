@@ -290,6 +290,41 @@ ensure
 end
 ```
 
+### Running Blaze inside Puma (`plugin :mixin_blaze`)
+
+For Rails/Puma apps, the gem ships a Puma plugin (Solid Queue-style) that hosts the Blaze connection inside the web process tree — no standalone Blaze process to deploy or supervise:
+
+```ruby
+# config/puma.rb
+plugin :mixin_blaze
+mixin_blaze_mode :fork # default; see table below
+```
+
+```ruby
+# config/initializers/mixin_bot.rb
+MixinBot.configure do
+  # ... credentials ...
+  self.blaze_handler = ->(envelope) { MyBot.process! envelope }
+  self.blaze_ack_policy = :on_receipt # default; or :after_handler
+end
+```
+
+The handler receives each decoded message envelope (a Hash with `action` and `data` keys) and runs serially on the hosting thread — safe for ActiveRecord. Handlers run one message at a time; the keepalive ping runs separately.
+
+| Mode | Where the connection lives | Notes |
+|---|---|---|
+| `:fork` (default) | Dedicated child process forked from the Puma launcher | Crash-isolated; if the child dies, Puma is stopped so the process manager restarts the unit |
+| `:async` | Background thread inside the Puma process itself | In cluster mode that process is the master; no child process |
+
+Ack policy: `:on_receipt` acknowledges each message immediately (at-most-once dispatch — a handler crash loses that message); `:after_handler` acknowledges only after the handler completes without raising (at-least-once — handlers must be idempotent, since unacknowledged messages are redelivered on reconnect).
+
+Operational notes:
+
+- **Remove any standalone Blaze process when enabling the plugin** — two connections double your handler invocations (or split deliveries).
+- **Cluster mode requires `preload_app!`** — plugins run in the launcher process, which holds no application code without preloading; the plugin reports an error and stays off otherwise.
+- **Phased restarts keep the old handler code** in the hosting process until a full restart; the same applies to Solid Queue's plugin.
+- Workers that need to *send* messages should use the REST API (`create_message` / `create_messages`), not the socket.
+
 ## Deep links and bot auth
 
 ```ruby

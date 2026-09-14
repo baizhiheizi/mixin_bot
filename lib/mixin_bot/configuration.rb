@@ -59,6 +59,17 @@ module MixinBot
     ].freeze
     attr_accessor(*CONFIGURABLE_ATTRS)
 
+    # Acknowledgement policies for the Blaze message loop:
+    # - +:on_receipt+ (default): ack immediately on receipt, before the handler
+    #   runs (at-most-once dispatch).
+    # - +:after_handler+: ack only after the handler completes without raising
+    #   (at-least-once dispatch; unacked messages are redelivered on reconnect).
+    BLAZE_ACK_POLICIES = %i[on_receipt after_handler].freeze
+
+    DEFAULT_BLAZE_ACK_POLICY = :on_receipt
+
+    attr_reader :blaze_handler, :blaze_ack_policy
+
     ##
     # Initializes a new Configuration instance.
     #
@@ -95,6 +106,10 @@ module MixinBot
       end
 
       @debug = kwargs[:debug] || false
+
+      @blaze_ack_policy = DEFAULT_BLAZE_ACK_POLICY
+      self.blaze_handler = kwargs[:blaze_handler]
+      self.blaze_ack_policy = kwargs[:blaze_ack_policy]
 
       self.session_private_key = kwargs[:session_private_key] || kwargs[:private_key]
       self.server_public_key = kwargs[:server_public_key] || kwargs[:pin_token]
@@ -201,6 +216,43 @@ module MixinBot
         else
           _private_key
         end
+    end
+
+    ##
+    # Sets the callable invoked for each decoded Blaze message envelope.
+    #
+    # Used by MixinBot::Blaze::Reactor (and the +plugin :mixin_blaze+ Puma
+    # plugin) to dispatch messages. The callable receives the full decoded
+    # message envelope Hash (with +action+ and +data+ keys).
+    #
+    # @param callable [#call, nil] the message handler; must respond to #call
+    # @raise [ArgumentError] if a non-callable, non-nil value is given
+    #
+    def blaze_handler=(callable)
+      unless callable.nil? || callable.respond_to?(:call)
+        raise ArgumentError,
+              "blaze_handler must respond to #call, got #{callable.inspect}"
+      end
+
+      @blaze_handler = callable
+    end
+
+    ##
+    # Sets the Blaze acknowledgement policy.
+    #
+    # @param policy [Symbol] +:on_receipt+ (default) or +:after_handler+
+    # @raise [ArgumentError] for unknown policies
+    #
+    def blaze_ack_policy=(policy)
+      return if policy.nil?
+
+      policy = policy.to_sym
+      unless BLAZE_ACK_POLICIES.include?(policy)
+        raise ArgumentError,
+              "blaze_ack_policy must be one of #{BLAZE_ACK_POLICIES.join(', ')}, got #{policy.inspect}"
+      end
+
+      @blaze_ack_policy = policy
     end
 
     private
