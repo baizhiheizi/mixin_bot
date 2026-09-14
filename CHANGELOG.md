@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-09-15
+
 ### Changed
 
 - **Breaking**: Ruby >= 4.0 is now required — `required_ruby_version` bumped from `>= 3.2.0` to `>= 4.0.0`. The CI matrix, RuboCop target, and Release workflow all run Ruby 4.0; the dev-only `parallel` version pin (kept for the old Ruby 3.2 floor) was dropped.

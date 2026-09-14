@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mixin_bot (2.6.0)
+    mixin_bot (3.0.0)
       activesupport (>= 7)
       async (~> 2.0)
       async-websocket (~> 0.30)
