@@ -33,7 +33,11 @@ module MixinBot
       # +handler:+ is yield-through so the caller can supply an
       # +Async::WebSocket::Connection+ subclass (e.g. one that correlates
       # PONG frames). +endpoint_options:+ are forwarded to
-      # +Async::HTTP::Endpoint.parse+ (e.g. +timeout:+ for the connect phase).
+      # +Async::HTTP::Endpoint.parse+. Prefer not passing +timeout:+ there: it
+      # becomes the socket's per-read timeout, so a quiet-but-healthy
+      # connection dies when no frame arrives within that window. Bound the
+      # connect phase at the call site instead (see
+      # MixinBot::Blaze::Reactor#connect!).
       def blaze_async(handler: Async::WebSocket::Connection, endpoint_options: {})
         access_token = access_token('GET', '/', '')
         authorization = format('Bearer %<access_token>s', access_token:)

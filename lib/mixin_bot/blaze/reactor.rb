@@ -46,7 +46,9 @@ module MixinBot
       #   +Async::WebSocket+ connection; defaults to +api.blaze_async+
       #   with a +connect_timeout+ connect phase
       # @param keepalive_interval [Numeric] seconds between client pings
-      # @param connect_timeout [Numeric] seconds allowed for connecting
+      # @param connect_timeout [Numeric] seconds allowed for the connect phase
+      #   (DNS + TCP + TLS + WebSocket upgrade); established connections are
+      #   never timed out on read
       # @param sleeper [#call, nil] backoff hook, called with seconds;
       #   defaults to +Kernel#sleep+ (inject for tests)
       # @param logger [#call, nil] called with +(level, exception_or_message)+;
@@ -62,8 +64,13 @@ module MixinBot
         @api = api
         @handler = handler
         @ack_policy = ack_policy
-        @connection_factory = connection_factory || -> { api.blaze_async(endpoint_options: { timeout: connect_timeout }) }
+        # No socket-level timeout: endpoint timeout: would apply to every read
+        # (a quiet-but-healthy connection would be killed), not just the
+        # connect phase. Liveness is the keepalive ping + the connect-phase
+        # timeout applied in #connect!.
+        @connection_factory = connection_factory || -> { api.blaze_async }
         @keepalive_interval = keepalive_interval
+        @connect_timeout = connect_timeout
         @sleeper = sleeper || ->(seconds) { sleep seconds }
         @logger = logger || ->(level, detail) { warn "[mixin_blaze] #{level}: #{detail}" }
         @guard = Mutex.new
@@ -77,7 +84,8 @@ module MixinBot
       #
       # @return [void]
       def run
-        Async do
+        Async do |task|
+          @task = task
           backoff = INITIAL_BACKOFF
 
           until stopped?
@@ -142,10 +150,13 @@ module MixinBot
       end
 
       # Establishes the connection and registers it under the guard, so a
-      # concurrent #stop can always find and close it. Returns nil when the
-      # reactor stopped mid-connect; the fresh connection is closed here.
+      # concurrent #stop can always find and close it. The connect phase
+      # (DNS + TCP + TLS + WebSocket upgrade) is bounded by #connect_timeout —
+      # a hung connect becomes an error the run loop retries, never a
+      # permanently stuck loop. Returns nil when the reactor stopped
+      # mid-connect; the fresh connection is closed here.
       def connect!
-        fresh = @connection_factory.call
+        fresh = @task.with_timeout(@connect_timeout) { @connection_factory.call }
 
         @guard.synchronize do
           if @stopping

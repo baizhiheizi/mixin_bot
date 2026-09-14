@@ -181,6 +181,67 @@ module MixinBot
         assert_equal 1, @backoffs.first
       end
 
+      def test_hung_connect_is_bounded_by_connect_timeout_and_retries
+        good = FakeConnection.new(messages: [FakeConnection.gzip({ 'action' => 'CREATE_MESSAGE', 'data' => { 'message_id' => 'mid-8' } })])
+        handled = Queue.new
+        calls = 0
+
+        reactor = Reactor.new(
+          handler: ->(_raw) { handled << :ok },
+          connection_factory: lambda {
+            calls += 1
+            sleep 1 if calls == 1 # hangs past the connect timeout on first attempt
+            good
+          },
+          connect_timeout: 0.05,
+          keepalive_interval: 3600,
+          sleeper: lambda { |seconds|
+            @backoffs << seconds
+            sleep 0.001
+          },
+          logger: ->(level, detail) { @logs << [level, detail] }
+        )
+
+        run_and_stop reactor do
+          pop(handled)
+        end
+
+        assert_equal 2, calls, 'must retry after the hung connect'
+        assert(@logs.any? { |level, detail| level == :error && detail.is_a?(Async::TimeoutError) })
+      end
+
+      def test_established_connection_is_not_timed_out_during_quiet_periods
+        # a quiet-but-healthy connection (no frames incoming, only keepalive
+        # pings) must stay up — a read timeout may not kill it between pings
+        pings = 0
+        quiet = Class.new(FakeConnection) do
+          define_method(:send_ping) { pings += 1 }
+          define_method(:read) do
+            # an open WebSocket idle on the wire: blocks until #stop closes it
+            sleep 0.05 until @closed
+            nil
+          end
+        end.new
+
+        reactor = Reactor.new(
+          handler: ->(_raw) { flake 'no frames expected' },
+          connection_factory: -> { quiet },
+          connect_timeout: 10,
+          keepalive_interval: 0.05,
+          sleeper: ->(_seconds) { sleep 0.001 },
+          logger: ->(level, detail) { @logs << [level, detail] }
+        )
+
+        run_and_stop reactor do
+          wait_for_pings = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+          sleep 0.05 while pings.zero? && Process.clock_gettime(Process::CLOCK_MONOTONIC) < wait_for_pings
+          assert_operator pings, :>=, 1, 'keepalive pings must keep flowing on a quiet connection'
+        end
+
+        refute(@logs.any? { |level, _detail| level == :error },
+               'a quiet-but-healthy connection must not error (e.g. read timeout)')
+      end
+
       def test_undecodable_message_is_skipped_without_ending_delivery
         garbage = FakeConnection.new(messages: ['not gzip at all', FakeConnection.gzip({ 'action' => 'CREATE_MESSAGE', 'data' => { 'message_id' => 'mid-6' } })])
         handled = Queue.new
