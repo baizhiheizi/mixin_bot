@@ -9,6 +9,7 @@ gem 'minitest-reporters'
 gem 'minitest-stub-const'
 gem 'parallel', '~> 1.26' # rubocop 1.86 allows parallel 2.x, which requires Ruby >= 3.3
 gem 'pry'
+gem 'puma' # dev-only: used by the blaze puma plugin tests
 gem 'rake'
 gem 'rdoc'
 gem 'rubocop'

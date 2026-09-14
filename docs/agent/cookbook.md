@@ -130,6 +130,32 @@ end
 
 See [examples/blaze.rb](../../examples/blaze.rb).
 
+## Blaze inside Puma (`plugin :mixin_blaze`)
+
+For Rails/Puma apps the gem ships a Puma plugin (Solid Queue-style) that hosts the Blaze connection inside the web process tree — no standalone Blaze process. Requires a configured `blaze_handler`; without one the plugin logs an error and stays off.
+
+```ruby
+# config/puma.rb
+plugin :mixin_blaze
+mixin_blaze_mode :fork # default (:fork = supervised child process); :async = in-process thread
+
+# config/initializers/mixin_bot.rb
+MixinBot.configure do
+  # ... credentials ...
+  self.blaze_handler = ->(envelope) { MyBot.process! envelope } # required
+  self.blaze_ack_policy = :on_receipt # default; :after_handler = ack after handler success
+end
+```
+
+Behavior: reconnect with bounded backoff, keepalive pings, serial handler dispatch (ActiveRecord-safe), handler exceptions logged without ending delivery, graceful shutdown with Puma (child killed on stop; in `:fork` mode a dead child stops Puma so the unit restarts). `ACKNOWLEDGE_MESSAGE_RECEIPT` confirmations are consumed internally — the handler never sees them and they are never re-acknowledged.
+
+Operational notes:
+
+- **Remove any standalone Blaze process when enabling the plugin** — duplicate connections duplicate handler invocations.
+- **Puma cluster mode requires `preload_app!`** — plugins run in the launcher process; without preloading there is no app code to resolve the handler and the plugin reports an error.
+- **Phased restarts keep old handler code** in the hosting process until a full restart.
+- Workers that need to *send* messages use the REST API (`create_message`), not the socket.
+
 ## Discover API methods
 
 ```bash

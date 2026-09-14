@@ -40,10 +40,12 @@ def send_frame(connection, bytes)
 end
 
 Async do |task|
-  # endpoint_options: is forwarded to Async::HTTP::Endpoint.parse (a connect
-  # timeout here). handler: stays default; pass an Async::WebSocket::Connection
-  # subclass to hook the raw frame events (e.g. PONG correlation).
-  connection = API.blaze_async(endpoint_options: { timeout: 10 })
+  # endpoint_options: is forwarded to Async::HTTP::Endpoint.parse. No
+  # timeout: here — it would become the socket's per-read timeout and kill
+  # quiet-but-healthy connections; liveness is the keepalive ping below.
+  # handler: stays default; pass an Async::WebSocket::Connection subclass to
+  # hook the raw frame events (e.g. PONG correlation).
+  connection = API.blaze_async
   p [Time.now.to_s, :connected]
 
   # liveness is the caller's policy: nothing on the wire goes stale quietly
