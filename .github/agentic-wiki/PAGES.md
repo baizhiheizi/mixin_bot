@@ -4,7 +4,7 @@
 
 ## Project overview
 
-*{ Summarize the gem, its scope (REST SDK + CLI + optional MVM), the SDKs it parallels (bot-api-go-client, bot-api-nodejs-client), and the Ruby/runtime requirements (Ruby >= 3.2, Bundler 2.5+). }*
+*{ Summarize the gem, its scope (REST SDK + CLI + optional MVM), the SDKs it parallels (bot-api-go-client, bot-api-nodejs-client), and the Ruby/runtime requirements (Ruby >= 4.0, Bundler 2.6+). }*
 
 ## Quick links
 
@@ -21,7 +21,7 @@
 *{ Walk through configuring credentials with `MixinBot.configure`, calling `MixinBot.api.me`, and reading `MixinBot.api.assets`. Show a minimal Safe transfer via `create_transfer` including the `spend_key` requirement. }*
 
 ####+ Prerequisites
-*{ Ruby >= 3.2, Bundler 2.5+ recommended, optional `mixin` CLI for the native encoder helpers. }*
+*{ Ruby >= 4.0, Bundler 2.6+ recommended, optional `mixin` CLI for the native encoder helpers. }*
 
 ####+ Common commands
 *{ Enumerate the rake tasks: `rake`, `rake test`, `rake test_live`, `rake mixin_bot:api_coverage`, `rake rdoc`, `rake build`, `rake publish`. }*

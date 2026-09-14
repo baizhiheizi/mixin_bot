@@ -34,13 +34,13 @@ docs/agent/             # LLM-oriented CLI and cookbook docs
 
 ## CI and release
 
-- **CI** (`.github/workflows/ci.yml`): `pull_request` and `push` to `main` — `rake test` on Ruby 3.2/3.3/4.0, `rake rubocop` (3.3), `rake mixin_bot:api_coverage`.
+- **CI** (`.github/workflows/ci.yml`): `pull_request` and `push` to `main` — `rake test` on Ruby 4.0, `rake rubocop` (4.0), `rake mixin_bot:api_coverage`.
 - **Release** (`.github/workflows/release.yml`): push tag `v*` (must match `MixinBot::VERSION`, e.g. tag `v2.1.0` for `VERSION = '2.1.0'`) → `rake build` → RubyGems via [trusted publishing](https://guides.rubygems.org/trusted-publishing/) (OIDC; workflow `release.yml`, no repo secret) → GitHub Release (notes from `CHANGELOG.md`, `.gem` attached).
 - **Dependabot** (`.github/dependabot.yml`): weekly Bundler and GitHub Actions updates; Dependabot PRs use the same CI workflow.
 
 ## Conventions
 
-- **Ruby** >= 3.2 (CI: 3.2, 3.3, 4.0)
+- **Ruby** >= 4.0 (CI: 4.0)
 - **HTTP responses**: `MixinBot::Models::ApiEnvelope` — use `res['data']` or delegated keys
 - **Safe transfers**: require `spend_key`; prefer `create_safe_transfer` / `create_transfer` (Safe pipeline)
 - **Legacy APIs**: `create_legacy_transfer`, `POST /transfers` — deprecated, warns once

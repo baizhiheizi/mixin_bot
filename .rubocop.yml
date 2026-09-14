@@ -4,7 +4,7 @@ plugins:
 AllCops:
   NewCops: enable
   SuggestExtensions: true
-  TargetRubyVersion: '3.2'
+  TargetRubyVersion: '4.0'
   Exclude:
     - bin/**/*
     - db/**/*

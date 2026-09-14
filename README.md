@@ -10,8 +10,8 @@ Current gem version: **2.6.0** (see [CHANGELOG.md](CHANGELOG.md) for breaking ch
 
 ## Requirements
 
-- **Ruby** ≥ 3.2 (CI runs 3.2, 3.3, and 4.0).
-- **Bundler** 2.5+ recommended, especially on Ruby 4.
+- **Ruby** ≥ 4.0 (CI runs 4.0).
+- **Bundler** 2.6+ recommended.
 - Optional: the **`mixin`** CLI in `PATH` if you use `MixinBot::API#encode_raw_transaction_native` / `#decode_raw_transaction_native` or the experimental `MixinBot::NodeCLI` helpers.
 
 ## Installation
@@ -433,8 +433,8 @@ Examples under `examples/` expect `examples/config.yml` (copy from `examples/con
 
 GitHub Actions runs on every pull request and on pushes to `main`:
 
-- **Test** — Ruby 3.2, 3.3, and 4.0: `bundle exec rake test`
-- **RuboCop** — Ruby 3.3: `bundle exec rake rubocop`
+- **Test** — Ruby 4.0: `bundle exec rake test`
+- **RuboCop** — Ruby 4.0: `bundle exec rake rubocop`
 - **API coverage** — `bundle exec rake mixin_bot:api_coverage`
 
 ### Release

@@ -276,7 +276,6 @@ DEPENDENCIES
   minitest-reporters
   minitest-stub-const
   mixin_bot!
-  parallel (~> 1.26)
   pry
   puma
   rake

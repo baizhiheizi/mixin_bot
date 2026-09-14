@@ -72,7 +72,7 @@ Custom errors in `lib/mixin_bot/errors.rb`: `ResponseError`, `UnauthorizedError`
 
 ## Dependencies
 
-- Ruby >= 3.2
+- Ruby >= 4.0
 - Faraday (HTTP client)
 - Thor (CLI framework)
 - EventMachine (for Blaze WebSocket)

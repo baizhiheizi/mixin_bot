@@ -5,7 +5,7 @@ $LOAD_PATH.push File.expand_path('lib', __dir__)
 require 'mixin_bot/version'
 
 Gem::Specification.new do |s|
-  s.required_ruby_version = '>= 3.2.0'
+  s.required_ruby_version = '>= 4.0.0'
 
   s.name          = 'mixin_bot'
   s.version       = MixinBot::VERSION
