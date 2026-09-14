@@ -145,6 +145,27 @@ module MixinBot
         assert_equal 1, connection.binary_frames.grep(/mid-4/).size
       end
 
+      def test_receipt_confirmations_are_neither_dispatched_nor_acked
+        # the server confirms our own sent/acked messages with
+        # ACKNOWLEDGE_MESSAGE_RECEIPT frames; re-acking one would round-trip a
+        # no-op frame back to the server, and the handler must not see them
+        echo = { 'action' => 'ACKNOWLEDGE_MESSAGE_RECEIPT', 'data' => { 'message_id' => 'mid-out' } }
+        handled = Queue.new
+
+        %i[on_receipt after_handler].each do |ack_policy|
+          connection = FakeConnection.new(messages: [FakeConnection.gzip(echo)])
+          reactor = build_reactor(connections: [connection], handler: ->(raw) { handled << raw }, ack_policy: ack_policy)
+
+          run_and_stop reactor do
+            # a dispatched echo would enqueue here and fail the pop timeout
+            assert_nil handled.pop(timeout: 0.2), 'handler must not receive ACKNOWLEDGE_MESSAGE_RECEIPT frames'
+          end
+
+          assert_empty connection.binary_frames.grep(/ACKNOWLEDGE_MESSAGE_RECEIPT/),
+                       "#{ack_policy} must not acknowledge receipt confirmations"
+        end
+      end
+
       def test_reconnects_after_abrupt_close_with_backoff
         broken = FakeConnection.new(error: EOFError.new('abrupt'))
         good = FakeConnection.new(messages: [FakeConnection.gzip({ 'action' => 'CREATE_MESSAGE', 'data' => { 'message_id' => 'mid-5' } })])

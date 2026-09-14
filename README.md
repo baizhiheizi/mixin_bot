@@ -318,6 +318,8 @@ The handler receives each decoded message envelope (a Hash with `action` and `da
 
 Ack policy: `:on_receipt` acknowledges each message immediately (at-most-once dispatch — a handler crash loses that message); `:after_handler` acknowledges only after the handler completes without raising (at-least-once — handlers must be idempotent, since unacknowledged messages are redelivered on reconnect).
 
+Receipt confirmations (`ACKNOWLEDGE_MESSAGE_RECEIPT` frames the server pushes for your own outgoing/acknowledged messages) are consumed internally: the handler never sees them and they are never re-acknowledged.
+
 Operational notes:
 
 - **Remove any standalone Blaze process when enabling the plugin** — two connections double your handler invocations (or split deliveries).

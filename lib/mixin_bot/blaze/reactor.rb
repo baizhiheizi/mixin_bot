@@ -13,8 +13,10 @@ module MixinBot
     # so it can be called from any plain thread — e.g. a Puma plugin's
     # background thread or a forked child). The loop: connect, request
     # pending messages, read frames serially, dispatch each decoded envelope
-    # to the configured handler, and acknowledge per the ack policy. Dropped
-    # connections are re-established with bounded exponential backoff.
+    # to the configured handler, and acknowledge per the ack policy. Receipt
+    # confirmations (ACKNOWLEDGE_MESSAGE_RECEIPT frames) are consumed
+    # internally — never dispatched to the handler nor re-acknowledged.
+    # Dropped connections are re-established with bounded exponential backoff.
     #
     # Handlers run serially on the reactor thread — never in concurrent
     # fibers — so handler code may use per-thread resources like ActiveRecord
@@ -176,6 +178,12 @@ module MixinBot
       def dispatch(message)
         raw = decode(message)
         return if raw.nil?
+
+        # Receipt confirmations echo a message_id the client already knows and
+        # are never redelivered by LIST_PENDING_MESSAGES — they are not
+        # dispatchable events, and acknowledging one back would only
+        # round-trip a no-op frame. Skip them before the ack policy sees them.
+        return if raw['action'] == 'ACKNOWLEDGE_MESSAGE_RECEIPT'
 
         data = raw['data'].is_a?(Hash) ? raw['data'] : {}
         message_id = data['message_id']

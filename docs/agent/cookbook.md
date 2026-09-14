@@ -147,7 +147,7 @@ MixinBot.configure do
 end
 ```
 
-Behavior: reconnect with bounded backoff, keepalive pings, serial handler dispatch (ActiveRecord-safe), handler exceptions logged without ending delivery, graceful shutdown with Puma (child killed on stop; in `:fork` mode a dead child stops Puma so the unit restarts).
+Behavior: reconnect with bounded backoff, keepalive pings, serial handler dispatch (ActiveRecord-safe), handler exceptions logged without ending delivery, graceful shutdown with Puma (child killed on stop; in `:fork` mode a dead child stops Puma so the unit restarts). `ACKNOWLEDGE_MESSAGE_RECEIPT` confirmations are consumed internally — the handler never sees them and they are never re-acknowledged.
 
 Operational notes:
 

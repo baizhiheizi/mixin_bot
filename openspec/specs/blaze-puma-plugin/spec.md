@@ -87,6 +87,13 @@ The plugin SHALL support two acknowledgement policies:
 - **WHEN** the policy is after-handler and the handler raises
 - **THEN** the message is not acknowledged and is redelivered after reconnect
 
+### Requirement: Receipt confirmations are consumed internally
+Server `ACKNOWLEDGE_MESSAGE_RECEIPT` frames (confirmations of the client's own sent or acknowledged messages) SHALL NOT be dispatched to the handler and SHALL NOT be re-acknowledged under either policy: they carry no payload the handler needs, Mixin never redelivers them, and echoing an acknowledgement back is a no-op round trip.
+
+#### Scenario: Receipt confirmation arrives
+- **WHEN** a decoded frame has action `ACKNOWLEDGE_MESSAGE_RECEIPT`
+- **THEN** the handler is not invoked and no acknowledgement frame is sent
+
 ### Requirement: Missing preconditions fail loudly
 If the plugin is activated in an environment that cannot host the loop — notably Puma cluster mode without `preload_app!`, where the launcher process has no application code — the plugin SHALL report a clear, actionable error at boot (naming the fix) instead of starting a loop that cannot resolve handlers. The plugin SHALL NOT silently deliver zero messages in such an environment.
 
