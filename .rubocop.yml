@@ -41,7 +41,7 @@ Naming/AccessorMethodName:
   Exclude:
     - lib/mixin_bot/api/computer_api.rb
 
-Naming/PredicateName:
+Naming/PredicatePrefix:
   Enabled: true
 
 Layout/LineLength:
