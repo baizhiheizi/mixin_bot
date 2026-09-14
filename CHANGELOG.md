@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.0.0] - 2026-09-15
 
+### Added
+
+- **Puma plugin hosting the Blaze connection** (`plugin :mixin_blaze`) — Solid Queue-style in-process hosting, removing the standalone Blaze deployment artifact. Dual run modes via the `mixin_blaze_mode` Puma DSL option: `:fork` (default) forks a dedicated Blaze child on `on_booted` with a monitor thread that stops Puma if the child dies, terminated on `on_stopped`/`on_restart`; `:async` runs the reactor on a Puma background thread in-process. Handler resolution comes from `MixinBot` configuration (resolved lazily after app boot) with an explicit ack policy (on-receipt vs after-handler); Puma 6/7 lifecycle-event compatibility; cluster mode requires `preload_app!` and fails loudly without it. Puma remains a host-app concern — no new gem dependency.
+- **`MixinBot::Blaze::Reactor`** — reusable Blaze loop (connect, keepalive ping, read → handler → ack, reconnect with backoff) wrapping `API#blaze_async`; extracted from `examples/blaze_async.rb` so the plugin shell stays thin and the loop is unit-testable offline.
+
 ### Changed
 
 - **Breaking**: Ruby >= 4.0 is now required — `required_ruby_version` bumped from `>= 3.2.0` to `>= 4.0.0`. The CI matrix, RuboCop target, and Release workflow all run Ruby 4.0; the dev-only `parallel` version pin (kept for the old Ruby 3.2 floor) was dropped.
