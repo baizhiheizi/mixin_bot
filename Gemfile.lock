@@ -42,7 +42,7 @@ GEM
       public_suffix (>= 2.0.2, < 8.0)
     ansi (1.6.0)
     ast (2.4.3)
-    async (2.45.1)
+    async (2.46.0)
       console (~> 1.29)
       fiber-annotation
       io-event (~> 1.21)
@@ -79,7 +79,7 @@ GEM
     coderay (1.1.3)
     concurrent-ruby (1.3.8)
     connection_pool (3.0.2)
-    console (1.37.0)
+    console (1.38.0)
       fiber-annotation
       fiber-local (~> 1.1)
       json
@@ -139,13 +139,13 @@ GEM
     io-console (0.8.2)
     io-endpoint (0.18.0)
       openssl (>= 3.3.0)
-    io-event (1.21.1)
+    io-event (1.22.0)
     io-stream (0.14.0)
       openssl (>= 3.3)
     jose (1.2.0)
       base64
       immutable-ruby
-    json (2.21.2)
+    json (3.0.2)
     keccak (1.3.3)
     konstructor (1.0.2)
     language_server-protocol (3.17.0.6)
