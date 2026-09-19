@@ -327,6 +327,31 @@ Operational notes:
 - **Phased restarts keep the old handler code** in the hosting process until a full restart; the same applies to Solid Queue's plugin.
 - Workers that need to *send* messages should use the REST API (`create_message` / `create_messages`), not the socket.
 
+## Rails integration
+
+The gem ships Rails generators under the `mixin_bot:` namespace. The first one sets up **"Sign in with Mixin"** (OAuth login via [`omniauth-mixin`](https://github.com/an-lee/omniauth-mixin)), modeled on Rails' built-in `rails g authentication`:
+
+```bash
+rails generate mixin_bot:authentication
+```
+
+This creates an identity-only Mixin login: OmniAuth initializer, `User` / `Session` / `Current` models, `SessionsController` with the OAuth callback, an `Authentication` controller concern (injected into `ApplicationController`), a sign-in view, routes, and the `CreateUsers` / `CreateSessions` migrations. It also adds `omniauth-mixin` and `omniauth-rails_csrf_protection` to the Gemfile (uncommenting existing entries, otherwise `bundle add`) and runs migrations generation. Run `bin/rails db:migrate` afterwards.
+
+Then:
+
+- Set `MIXIN_CLIENT_ID` and `MIXIN_CLIENT_SECRET` from the [Mixin Developer Dashboard](https://developers.mixin.one/dashboard).
+- Register `https://<your-host>/auth/mixin/callback` as the OAuth redirect URL of your Mixin app.
+
+Notes:
+
+- **Identity only** — the OAuth exchange is used to establish identity (Mixin user id + name + avatar). Access/refresh tokens are not persisted; a future generator may add API-access wiring on top.
+- **Fail loud at sign-in, not at boot** — the app boots fine without credentials (deploys, CI, `assets:precompile`); attempting to sign in raises an error naming the missing `MIXIN_CLIENT_ID` / `MIXIN_CLIENT_SECRET`.
+- **CSRF-protected request phase** — the sign-in button POSTs to `/auth/mixin` (OmniAuth 2.x default request method, protected by `omniauth-rails_csrf_protection`); the provider redirects back to the `/auth/mixin/callback` GET route.
+- **Existing apps beware** — like `rails g authentication`, the generator templates over target files (e.g. an existing `User` model) and will prompt on conflicts; reconcile manually if you already have users.
+- Sessions are database-backed (`sessions` table with `ip_address` / `user_agent`) with a signed httponly cookie, exactly like Rails 8's `authentication` generator; `Current.user` is available after sign-in.
+
+The generated code depends only on Rails and the two OmniAuth gems — not on `mixin_bot` itself — so the login keeps working even if you later drop the gem from the app.
+
 ## Deep links and bot auth
 
 ```ruby

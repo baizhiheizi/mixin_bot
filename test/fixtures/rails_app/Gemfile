@@ -1,0 +1,6 @@
+source "https://rubygems.org"
+
+gem "rails"
+
+# gem "omniauth-mixin"
+# gem "omniauth-rails_csrf_protection"

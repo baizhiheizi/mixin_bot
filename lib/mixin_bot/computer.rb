@@ -2,6 +2,8 @@
 
 require 'faraday'
 
+require_relative 'json_decoder'
+
 module MixinBot
   # Mixin Computer API client (https://computer.mixin.one).
   class Computer
@@ -15,7 +17,7 @@ module MixinBot
       def connection
         @connection ||= Faraday.new(url: BASE_URI) do |f|
           f.request :json
-          f.response :json
+          f.response :json, parser_options: { decoder: [MixinBot::JSONDecoder, :parse] }
           f.adapter Faraday.default_adapter
         end
       end

@@ -1,0 +1,29 @@
+Description:
+    Adds "Sign in with Mixin" to this Rails application using OmniAuth
+    (omniauth-mixin): User/Session/Current models, a sessions controller with
+    the OAuth callback, an authentication concern, routes, migrations, and
+    the OmniAuth initializer.
+
+    The generated login is identity-only: the OAuth access token is used to
+    establish identity and is not persisted.
+
+    After generating, set MIXIN_CLIENT_ID and MIXIN_CLIENT_SECRET, and register
+    https://<your-host>/auth/mixin/callback as the OAuth redirect URL in the
+    Mixin developer dashboard.
+
+Example:
+    rails generate mixin_bot:authentication
+
+    This will create:
+        config/initializers/omniauth.rb
+        app/models/user.rb
+        app/models/session.rb
+        app/models/current.rb
+        app/controllers/sessions_controller.rb
+        app/controllers/concerns/authentication.rb
+        app/views/sessions/new.html.erb
+        db/migrate/xxx_create_users.rb
+        db/migrate/xxx_create_sessions.rb
+
+    It will also add `omniauth-mixin` and `omniauth-rails_csrf_protection` to
+    the Gemfile and inject `include Authentication` into ApplicationController.

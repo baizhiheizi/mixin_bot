@@ -9,6 +9,7 @@ AllCops:
     - bin/**/*
     - db/**/*
     - tmp/**/*
+    - test/tmp/**/*
     - vendor/**/*
 
 # SDK methods often mirror Go client signatures (long keyword lists, get_* names).
@@ -40,6 +41,15 @@ Metrics/ParameterLists:
 Naming/AccessorMethodName:
   Exclude:
     - lib/mixin_bot/api/computer_api.rb
+
+# Fixture mirrors a real Rails app's house style (double quotes, no magic
+# comments); the generator tests assert against that style.
+Style/StringLiterals:
+  Exclude:
+    - test/fixtures/rails_app/**/*
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - test/fixtures/rails_app/**/*
 
 Naming/PredicatePrefix:
   Enabled: true

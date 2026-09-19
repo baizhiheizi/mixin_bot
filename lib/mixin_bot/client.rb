@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'client/error_mapper'
+require_relative 'json_decoder'
 
 module MixinBot
   ##
@@ -24,7 +25,7 @@ module MixinBot
         f.request :retry, max: 2, interval: 0.5, interval_randomness: 0.5, backoff_factor: 2,
                           exceptions: [Faraday::ConnectionFailed, Faraday::TimeoutError]
         f.options.timeout = @config.http_timeout if @config.http_timeout
-        f.response :json
+        f.response :json, parser_options: { decoder: [JSONDecoder, :parse] }
         f.response :logger if @config.debug
       end
     end
