@@ -40,6 +40,37 @@ module MixinBot
       assert_operator @host.transitioned_at.to_i, :>=, before
     end
 
+    def test_transition_graph_enforced
+      legal = MixinBot::Transfers::Model::TRANSITIONS
+
+      legal.each do |from, targets|
+        targets.each do |to|
+          host = FakeTransfer.new(state: from)
+          host.transition_to!(to)
+          assert_equal to, host.state, "#{from} → #{to} must be allowed"
+        end
+      end
+
+      # every non-legal move raises, and terminal states never change
+      legal.keys.product(MixinBot::Transfers::Model::STATES).each do |from, to|
+        next if legal[from].include?(to) || from == to
+
+        host = FakeTransfer.new(state: from)
+        error = assert_raises(MixinBot::ArgumentError, "#{from} → #{to} must be rejected") do
+          host.transition_to!(to)
+        end
+        assert_match(/illegal transfer transition/, error.message)
+        assert_equal from, host.state
+      end
+    end
+
+    def test_same_state_transition_is_a_no_op
+      @host.transition_to!('pending')
+
+      assert_equal 'pending', @host.state
+      assert_nil @host.previous_state
+    end
+
     def test_transition_can_record_an_error
       @host.transition_to!('failed', error: 'insufficient balance')
 

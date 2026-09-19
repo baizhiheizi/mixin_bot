@@ -7,10 +7,21 @@ namespace :mixin_bot do
     # sees them (the poller process never references them directly).
     Rails.application.eager_load!
 
+    unless MixinBot::Outputs.receipt_store
+      raise MixinBot::ArgumentError,
+            'no receipt store configured: run `rails g mixin_bot:outputs` (or include ' \
+            'MixinBot::Outputs::ReceiptModel in your receipt model) so polling dedup ' \
+            'survives restarts'
+    end
+
     api = args[:bot] ? MixinBot.bot(args[:bot]) : MixinBot.api
     poller = MixinBot::Outputs::Poller.new(
       api:,
-      interval: Integer(ENV.fetch('MIXIN_BOT_POLL_INTERVAL', 5))
+      receipts: MixinBot::Outputs.receipt_store,
+      interval: Integer(ENV.fetch('MIXIN_BOT_POLL_INTERVAL', 5)),
+      asset: ENV.fetch('MIXIN_BOT_POLL_ASSET', nil),
+      members: ENV['MIXIN_BOT_POLL_MEMBERS']&.split(','),
+      threshold: ENV['MIXIN_BOT_POLL_THRESHOLD']&.then { |t| Integer(t) }
     )
 
     %w[TERM INT].each { |signal| trap(signal) { poller.stop } }

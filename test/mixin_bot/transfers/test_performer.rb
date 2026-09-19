@@ -124,5 +124,25 @@ module MixinBot
     ensure
       remove_request_stub(snapshot_stub)
     end
+
+    def test_reconcile_reports_failed_when_the_resend_is_rejected
+      remove_request_stub(@submit_stub)
+      @submit_stub = stub_request(:post, 'https://api.mixin.one/safe/transactions')
+                     .to_return(status: 400, headers: { 'Content-Type' => 'application/json' },
+                                body: JSON.generate({ 'error' => { 'code' => 20_117,
+                                                                   'desc' => 'insufficient balance' } }))
+      snapshot_stub = stub_request(:get, "https://api.mixin.one/safe/snapshots/trace/#{transfer.trace_id}")
+                      .to_return(status: 404, headers: { 'Content-Type' => 'application/json' },
+                                 body: JSON.generate({ 'error' => { 'code' => 404, 'desc' => 'not found' } }))
+
+      record = transfer(state: 'reconciling')
+
+      result = record.reconcile!
+
+      assert_equal :failed, result
+      assert_equal 'failed', record.state
+    ensure
+      remove_request_stub(snapshot_stub)
+    end
   end
 end

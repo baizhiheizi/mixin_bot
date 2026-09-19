@@ -10,12 +10,15 @@ module MixinBot
     def setup
       super
       MixinBot::Outputs.receipt_loader = nil
+      EnvelopeCapturingProcessor.captured = nil
+      ApiCapturingProcessor.captured_api = nil
       ActiveJob::Base.logger = nil if defined?(ActiveJob::Base) && ActiveJob::Base.logger
     end
 
     def teardown
       cleanup_fake_namespace
       MixinBot::Outputs.receipt_loader = nil
+      MixinBot.bots.clear
       super
     end
 
@@ -100,6 +103,18 @@ module MixinBot
       assert_same shop, ApiCapturingProcessor.captured_api
     end
 
+    def test_job_raises_for_unknown_explicit_app_id
+      with_fake_processors(EnvelopeCapturingProcessor)
+      MixinBot::Outputs.receipt_loader = ->(_id) { receipt_double(bot_app_id: 'ghost-app-id') }
+
+      error = assert_raises(MixinBot::NotFoundError) do
+        MixinBot::Outputs::ProcessingJob.perform_now(80, EnvelopeCapturingProcessor.name)
+      end
+
+      assert_match(/no bot registered for app_id ghost-app-id/, error.message)
+      assert_nil EnvelopeCapturingProcessor.captured
+    end
+
     def test_job_without_receipt_loader_raises_clear_error
       error = assert_raises(ArgumentError) do
         MixinBot::Outputs::ProcessingJob.perform_now(1, 'Mixin::Processors::Fake')
@@ -119,7 +134,8 @@ module MixinBot
     end
 
     def envelope_double(memo: nil)
-      receipt = receipt_double(bot_app_id: 'x', memo:)
+      receipt = receipt_double(bot_app_id: 'x')
+      receipt.cache_snapshot!(memo:, opponent_id: nil, trace_id: nil)
       MixinBot::Outputs::Envelope.new(receipt, api: MixinBot.api)
     end
 

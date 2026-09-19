@@ -19,7 +19,8 @@ module MixinBot
     # objects must expose:
     #   output_id, amount (String), asset_id, state, transaction_hash,
     #   output_index, memo, opponent_id, trace_id
-    #   cache_snapshot!(memo:, opponent_id:, trace_id:)  # optional write-back
+    #   snapshot_bridged?            # bridge already attempted (success or not)
+    #   cache_snapshot!(memo:, opponent_id:, trace_id:)  # write-back
     #
     #   envelope.amount        # => BigDecimal
     #   envelope.memo          # => String or nil (bridged on first access)
@@ -89,20 +90,18 @@ module MixinBot
       private
 
       # Returns the memo/opponent/trace triple after a single bridge attempt.
-      # Bridged data already cached on the receipt short-circuits the API call.
+      # Receipts whose bridge already ran (success OR failure — the flag is
+      # written in both cases) short-circuit the API call, so each output is
+      # bridged at most once per receipt lifetime, not just per Envelope.
       def bridge_snapshot
         return @bridge_snapshot if defined?(@bridge_snapshot)
 
-        cached =
-          [receipt.memo, receipt.opponent_id, receipt.trace_id].any? { |value| !value.nil? }
+        if receipt.respond_to?(:snapshot_bridged?) && receipt.snapshot_bridged?
+          return Snapshot.new(memo: receipt.memo, opponent_id: receipt.opponent_id,
+                              trace_id: receipt.trace_id, bridged: true)
+        end
 
-        @bridge_snapshot =
-          if cached
-            Snapshot.new(memo: receipt.memo, opponent_id: receipt.opponent_id,
-                         trace_id: receipt.trace_id, bridged: true)
-          else
-            fetch_snapshot
-          end
+        fetch_snapshot
       end
 
       def fetch_snapshot
@@ -133,6 +132,8 @@ module MixinBot
       rescue StandardError => e
         MixinBot::Outputs.logger.call(:snapshot_bridge_error,
                                       "#{e.class}: #{e.message} (output #{receipt.output_id})")
+        # Mark the attempt even on failure so later jobs don't re-POST.
+        receipt.cache_snapshot!(memo: nil, opponent_id: nil, trace_id: nil) if receipt.respond_to?(:cache_snapshot!)
         Snapshot.new(memo: nil, opponent_id: nil, trace_id: nil, bridged: false)
       end
 

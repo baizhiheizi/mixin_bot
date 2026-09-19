@@ -9,10 +9,11 @@ module MixinBot
     # generated +MixinOutput+ model (see {ReceiptModel}), which implements the
     # same interface:
     #
-    #   record!(bot_app_id:, output:)   # => [receipt, :created] or
-    #                                   #    [existing, :duplicate]
-    #   mark_enqueued!(receipt)         # stamp the receipt as dispatched
+    #   record!(bot_app_id:, output:)        # => [receipt, :created] or
+    #                                        #    [existing, :duplicate]
+    #   mark_enqueued!(receipt)              # stamp the receipt as dispatched
     #   unenqueued(bot_app_id:, older_than:) # records not yet dispatched
+    #   cursor_value(bot_app_id:)            # poller resume position
     #
     class MemoryReceiptStore
       ##
@@ -22,15 +23,22 @@ module MixinBot
       Receipt = Struct.new(
         :id, :bot_app_id, :output_id, :amount, :asset_id, :state,
         :transaction_hash, :output_index, :created_at,
-        :memo, :opponent_id, :trace_id,
+        :memo, :opponent_id, :trace_id, :snapshot_bridged,
         :enqueued_at, :recorded_at,
         keyword_init: true
       ) do
-        # Writes resolved snapshot data back onto the receipt (one-time cache).
+        def snapshot_bridged?
+          snapshot_bridged ? true : false
+        end
+
+        # Writes resolved snapshot data back onto the receipt (one-time cache)
+        # and marks the bridge as attempted — even when it failed with all-nil
+        # fields, so it is not retried per job.
         def cache_snapshot!(memo:, opponent_id:, trace_id:)
           self.memo = memo
           self.opponent_id = opponent_id
           self.trace_id = trace_id
+          self.snapshot_bridged = true
         end
       end
 
@@ -73,28 +81,14 @@ module MixinBot
             receipt.recorded_at < older_than
         end
       end
-    end
 
-    ##
-    # In-memory cursor store: remembers, per bot app id, the last processed
-    # output position (the outputs API's own created_at value). The generated
-    # +MixinPollerCursor+ model (see {CursorModel}) implements the same
-    # interface durably:
-    #
-    #   value(bot_app_id:)          # => String or nil
-    #   advance!(bot_app_id:, value:)
-    #
-    class MemoryCursorStore
-      def initialize
-        @values = {}
-      end
-
-      def value(bot_app_id:)
-        @values[bot_app_id]
-      end
-
-      def advance!(bot_app_id:, value:)
-        @values[bot_app_id] = value
+      # The poller's resume position: the newest output timestamp this bot has
+      # recorded (nil = fetch from the beginning).
+      def cursor_value(bot_app_id:)
+        @records.values
+                .select { |receipt| receipt.bot_app_id == bot_app_id }
+                .filter_map(&:created_at)
+                .max
       end
     end
   end

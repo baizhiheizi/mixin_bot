@@ -14,7 +14,6 @@ module MixinBot
       super
       @clock = FakeClock.new
       @receipts = MixinBot::Outputs::MemoryReceiptStore.new(clock: @clock.to_proc)
-      @cursor = MixinBot::Outputs::MemoryCursorStore.new
       @enqueued = []
       @enqueuer = ->(processor, receipt) { @enqueued << [processor, receipt] }
       @output_queries = []
@@ -46,7 +45,7 @@ module MixinBot
 
     def build_poller(**)
       MixinBot::Outputs::Poller.new(
-        receipts: @receipts, cursor: @cursor,
+        receipts: @receipts,
         processors: [MatchingProcessor, OtherProcessor],
         interval: 5, enqueuer: @enqueuer,
         sleeper: ->(_s) { raise 'poller must not sleep in these tests' },
@@ -67,19 +66,33 @@ module MixinBot
       query = @output_queries.first
       assert_equal '500', query['limit']
       assert_equal 'ASC', query['order']
-      assert_equal '2026-09-19T12:00:00Z', @cursor.value(bot_app_id: MixinBot.config.app_id)
+      assert_equal '2026-09-19T12:00:00Z', @receipts.cursor_value(bot_app_id: MixinBot.config.app_id)
       # both processors match both outputs
       assert_equal 4, @enqueued.size
       assert_equal [MatchingProcessor, OtherProcessor] * 2, @enqueued.map(&:first)
     end
 
-    def test_fetch_uses_the_cursor_as_offset
-      @cursor.advance!(bot_app_id: MixinBot.config.app_id, value: '2026-09-19T11:00:00Z')
+    def test_fetch_uses_the_derived_cursor_as_offset
+      # receipts already absorbed output 11:00 — restart derives from them
+      @receipts.record!(bot_app_id: MixinBot.config.app_id,
+                        output: output('old-1', created_at: '2026-09-19T11:00:00Z'))
       poller = build_poller
 
       poller.poll_once
 
       assert_equal '2026-09-19T11:00:00Z', @output_queries.first['offset']
+    end
+
+    def test_forwarded_poll_filters
+      poller = build_poller(asset: CNB_ASSET_ID, members: %w[user-a user-b], threshold: 2)
+
+      poller.poll_once
+
+      query = @output_queries.first
+      assert_equal CNB_ASSET_ID, query['asset']
+      # the API receives members hashed
+      assert_equal MixinBot.utils.hash_members(%w[user-a user-b]), query['members']
+      assert_equal '2', query['threshold']
     end
 
     def test_refetched_output_is_not_enqueued_twice
@@ -119,7 +132,7 @@ module MixinBot
 
       assert_raises(RuntimeError) { poller.poll_once }
 
-      assert_nil @cursor.value(bot_app_id: MixinBot.config.app_id)
+      assert_nil @receipts.cursor_value(bot_app_id: MixinBot.config.app_id)
     end
 
     def test_next_cycle_after_failure_refetches_the_same_page
@@ -134,10 +147,11 @@ module MixinBot
 
     # ---- restart ----
 
-    def test_restarted_poller_resumes_from_the_persisted_cursor
+    def test_restarted_poller_resumes_from_the_receipt_derived_cursor
       @pages << [output('out-1', created_at: '2026-09-19T12:30:00Z')]
       build_poller.poll_once
 
+      # a fresh poller over the SAME receipt store (restart)
       restarted = build_poller
       restarted.poll_once
 
@@ -196,7 +210,7 @@ module MixinBot
         @stop_after_two&.call
       }
       poller = MixinBot::Outputs::Poller.new(
-        receipts: @receipts, cursor: @cursor, processors: [],
+        receipts: @receipts, processors: [],
         interval: 7, enqueuer: @enqueuer, sleeper:, clock: @clock.to_proc
       )
       @stop_after_two = -> { poller.stop if cycles >= 2 }
@@ -208,12 +222,12 @@ module MixinBot
 
     def test_run_logs_cycle_errors_and_keeps_going
       logs = []
-      broken_cursor = Object.new
-      def broken_cursor.value(...)
-        raise 'cursor store offline'
+      broken_receipts = Object.new
+      def broken_receipts.unenqueued(...)
+        raise 'receipt store offline'
       end
       poller = MixinBot::Outputs::Poller.new(
-        receipts: @receipts, cursor: broken_cursor, processors: [],
+        receipts: broken_receipts, processors: [],
         interval: 1, enqueuer: @enqueuer,
         sleeper: ->(_s) { poller.stop },
         logger: ->(level, detail) { logs << [level, detail] }

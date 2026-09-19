@@ -15,7 +15,7 @@ module MixinBot
       RECURRING_ENTRY = <<~YAML
         production:
           mixin_transfers_reconcile:
-            class: MixinTransfers.ReconcileJob
+            class: MixinTransfers::ReconcileJob
             schedule: every 5 minutes
       YAML
 

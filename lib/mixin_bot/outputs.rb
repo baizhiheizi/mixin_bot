@@ -22,6 +22,12 @@ module MixinBot
       # Without a loader, processing jobs raise a clear error explaining how to
       # wire one.
       attr_accessor :receipt_loader
+
+      # The receipt store the poller process uses — set by the generated
+      # receipt model when it loads. The mixin_bot:poller rake task refuses to
+      # run without one (polling with an in-memory store would silently lose
+      # dedup across restarts).
+      attr_accessor :receipt_store
     end
 
     self.logger = ->(level, detail) { warn "[mixin_outputs] #{level}: #{detail}" }
@@ -34,4 +40,3 @@ require_relative 'outputs/processors'
 require_relative 'outputs/poller'
 require_relative 'outputs/processing_job'
 require_relative 'outputs/receipt_model'
-require_relative 'outputs/cursor_model'

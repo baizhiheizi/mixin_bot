@@ -79,8 +79,8 @@ module MixinBot
       end
       migrations = Dir[File.join(destination_root, 'db', 'migrate', '*')]
       # auth migrations are requested via `rails_command` (recorded, not run);
-      # outputs adds two, transfers one.
-      assert_equal 3, migrations.size
+      # outputs adds one, transfers one.
+      assert_equal 2, migrations.size
     end
 
     private

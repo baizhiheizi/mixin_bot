@@ -31,6 +31,17 @@ module MixinBot
 
       STATES = %w[pending broadcast confirmed failed reconciling].freeze
 
+      # The allowed state graph: pending is pre-submission; broadcast means
+      # the transaction was submitted; confirmed and failed are terminal;
+      # reconciling means a submission outcome was indeterminate.
+      TRANSITIONS = {
+        'pending' => %w[broadcast failed reconciling],
+        'broadcast' => %w[confirmed reconciling],
+        'reconciling' => %w[broadcast confirmed failed],
+        'confirmed' => [].freeze,
+        'failed' => [].freeze
+      }.freeze
+
       included do
         validates :trace_id, presence: true, uniqueness: true
         validates :recipient_id, :asset_id, :amount, presence: true
@@ -46,13 +57,23 @@ module MixinBot
       end
 
       ##
-      # Audited state transition. Never mutate #state directly.
+      # Audited state transition through the allowed graph. Never mutate
+      # #state directly. Same-state transitions are no-ops (idempotent
+      # retries); terminal states (confirmed, failed) never change.
       #
       # @param state [String] target state
       # @param transaction_hash [String, nil] set when the network revealed it
       # @param error [String, nil] set when the transition records a failure
+      # @raise [MixinBot::ArgumentError] when the transition is not allowed
       #
       def transition_to!(state, transaction_hash: nil, error: nil)
+        state = state.to_s
+        return self if state == self.state
+
+        unless TRANSITIONS.fetch(self.state, []).include?(state)
+          raise MixinBot::ArgumentError, "illegal transfer transition: #{self.state.inspect} → #{state.inspect}"
+        end
+
         update!(
           previous_state: self.state,
           state:,

@@ -12,6 +12,7 @@ class CreateMixinOutputs < ActiveRecord::Migration<%= migration_version %>
       t.text :memo
       t.string :opponent_id
       t.string :trace_id
+      t.boolean :snapshot_bridged, null: false, default: false
       t.datetime :enqueued_at
       t.timestamps
     end

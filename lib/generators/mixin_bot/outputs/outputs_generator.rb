@@ -5,9 +5,10 @@ require 'rails/generators'
 module MixinBot
   module Generators
     # `rails generate mixin_bot:outputs` — scaffolds the output-polling
-    # foundation: receipt + cursor tables and models, and an example
-    # processor under app/mixin/processors. Pair with the `mixin_bot:poller`
-    # rake task and a job backend (e.g. Solid Queue).
+    # foundation: the receipt table and model, and an example processor under
+    # app/mixin/processors. Pair with the `mixin_bot:poller` rake task and a
+    # job backend (e.g. Solid Queue). The poller's resume cursor is derived
+    # from the receipts themselves — there is no separate cursor table.
     class OutputsGenerator < Rails::Generators::Base
       include Rails::Generators::Migration
 
@@ -22,12 +23,10 @@ module MixinBot
 
       def create_migrations
         migration 'create_mixin_outputs'
-        migration 'create_mixin_poller_cursors'
       end
 
-      def create_models
+      def create_model
         template 'app/models/mixin_output.rb'
-        template 'app/models/mixin_poller_cursor.rb'
       end
 
       def create_example_processor

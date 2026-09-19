@@ -31,12 +31,12 @@ module MixinBot
       super
     end
 
-    def receipt(memo: nil, opponent_id: nil, trace_id: nil, state: 'unspent')
+    def receipt(state: 'unspent')
       MixinBot::Outputs::MemoryReceiptStore::Receipt.new(
         id: 1, bot_app_id: MixinBot.config.app_id, output_id: 'out-1',
         amount: '1.5', asset_id: CNB_ASSET_ID, state:,
         transaction_hash: 'ab' * 32, output_index: 3,
-        memo:, opponent_id:, trace_id:
+        memo: nil, opponent_id: nil, trace_id: nil
       )
     end
 
@@ -68,32 +68,42 @@ module MixinBot
       assert_equal 'trace-1', record.trace_id
     end
 
-    def test_pre_cached_receipt_skips_the_bridge
-      record = receipt(memo: 'CACHED', opponent_id: 'payer-2', trace_id: 'trace-2')
+    def test_bridged_receipt_skips_the_bridge_even_with_nil_fields
+      record = receipt
+      record.cache_snapshot!(memo: nil, opponent_id: nil, trace_id: nil) # failed bridge cached
       envelope = MixinBot::Outputs::Envelope.new(record, api: MixinBot.api)
 
-      assert_equal 'CACHED', envelope.memo
-      assert_equal 'payer-2', envelope.opponent_id
-      assert_equal 'trace-2', envelope.trace_id
+      assert_nil envelope.memo
+      assert_empty @bridge_calls
 
+      # a second envelope (as a later job would build) must not re-POST either
+      MixinBot::Outputs::Envelope.new(record, api: MixinBot.api).memo
       assert_empty @bridge_calls
     end
 
     def test_bridge_failure_logs_and_continues_with_nil_fields
       remove_request_stub(@bridge_stub)
       @bridge_stub = stub_request(:post, 'https://api.mixin.one/safe/snapshots/notifications')
-                     .to_return(status: 500)
+                     .to_return do |request|
+        @bridge_calls << JSON.parse(request.body)
+        { status: 500, headers: { 'Content-Type' => 'application/json' },
+          body: JSON.generate({ 'error' => { 'code' => 500, 'desc' => 'boom' } }) }
+      end
       original_logger = MixinBot::Outputs.logger
       logs = []
       MixinBot::Outputs.logger = ->(level, detail) { logs << [level, detail] }
-      stub_request(:post, 'https://api.mixin.one/safe/snapshots/notifications').to_return(status: 500)
 
-      envelope = MixinBot::Outputs::Envelope.new(receipt, api: MixinBot.api)
+      record = receipt
+      envelope = MixinBot::Outputs::Envelope.new(record, api: MixinBot.api)
 
       assert_nil envelope.memo
       assert_nil envelope.opponent_id
       assert_nil envelope.trace_id
       assert_equal :snapshot_bridge_error, logs.first[0]
+      # the attempt is cached so later jobs (new envelopes) don't re-POST
+      assert_predicate record, :snapshot_bridged?
+      MixinBot::Outputs::Envelope.new(record, api: MixinBot.api).memo
+      assert_equal 1, @bridge_calls.size
     ensure
       MixinBot::Outputs.logger = original_logger
     end

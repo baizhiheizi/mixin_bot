@@ -26,9 +26,13 @@ module MixinBot
     # Matching is first-registered-wins on the message category (aliases like
     # 'text' normalize to PLAIN_TEXT; raw categories pass through verbatim) or
     # on a Hash of conditions ({action:, category:}) that must all hold.
-    # Unmatched envelopes are logged and ignored. Handler exceptions are
-    # logged (:handler_error) and never propagate into the connection loop —
-    # mirroring the reactor's containment.
+    # Unmatched envelopes are logged and ignored.
+    #
+    # Handler exceptions are logged (:handler_error) and re-raised: the
+    # reactor owns containment (it logs and keeps the loop alive) and, under
+    # `ack_policy: :after_handler`, withholds the acknowledgement so a failed
+    # message is redelivered on reconnect. Swallowing here would turn that
+    # policy into at-most-once.
     #
     # Handlers are one of:
     # - a Class with #initialize(message) + #call (see {Router::Base});
@@ -249,9 +253,11 @@ module MixinBot
       ##
       # Dispatches one decoded envelope Hash (the reactor's handler contract).
       # Unmatched envelopes are logged and ignored; handler exceptions are
-      # logged and contained.
+      # logged and re-raised so the reactor's ack policy and containment
+      # govern retry/redelivery.
       #
       # @param raw [Hash] decoded envelope with 'action' and 'data' keys
+      # @raise [StandardError] when the matched handler raises
       #
       def call(raw)
         message = Message.new(raw, api: @api)
@@ -292,6 +298,7 @@ module MixinBot
         end
       rescue StandardError => e
         @logger.call(:handler_error, e)
+        raise
       end
 
       def compile_matcher(matcher)

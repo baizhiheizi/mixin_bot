@@ -56,7 +56,7 @@ module MixinBot
 
       assert_file 'config/recurring.yml' do |content|
         assert_match(/mixin_transfers_reconcile:/, content)
-        assert_match(/class: MixinTransfers\.ReconcileJob/, content)
+        assert_match(/class: MixinTransfers::ReconcileJob/, content)
         assert_match(/schedule: every 5 minutes/, content)
       end
     end

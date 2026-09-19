@@ -19,7 +19,7 @@ module MixinBot
                    Rails::Generators.find_by_namespace('outputs', 'mixin_bot')
     end
 
-    def test_generates_receipt_and_cursor_migrations
+    def test_generates_the_receipt_migration
       run_generator
 
       assert_migration 'db/migrate/create_mixin_outputs.rb' do |content|
@@ -27,14 +27,13 @@ module MixinBot
         assert_match(/t\.string :bot_app_id, null: false/, content)
         assert_match(/t\.string :output_id, null: false/, content)
         assert_match(/t\.text :memo/, content)
+        assert_match(/t\.boolean :snapshot_bridged, null: false, default: false/, content)
         assert_match(/t\.datetime :enqueued_at/, content)
         assert_match(/unique: true/, content)
       end
 
-      assert_migration 'db/migrate/create_mixin_poller_cursors.rb' do |content|
-        assert_match(/create_table :mixin_poller_cursors/, content)
-        assert_match(/t\.string :bot_app_id, null: false/, content)
-      end
+      # the poller cursor is derived from the receipts — no cursor table
+      assert_no_migration 'db/migrate/create_mixin_poller_cursors.rb'
     end
 
     def test_generates_models_including_runtime_concerns
@@ -42,9 +41,6 @@ module MixinBot
 
       assert_file 'app/models/mixin_output.rb' do |content|
         assert_match(/include MixinBot::Outputs::ReceiptModel/, content)
-      end
-      assert_file 'app/models/mixin_poller_cursor.rb' do |content|
-        assert_match(/include MixinBot::Outputs::CursorModel/, content)
       end
     end
 
@@ -64,7 +60,7 @@ module MixinBot
       run_generator
 
       migrations = Dir[File.join(destination_root, 'db', 'migrate', '*')]
-      assert_equal 2, migrations.size
+      assert_equal 1, migrations.size
     end
 
     private

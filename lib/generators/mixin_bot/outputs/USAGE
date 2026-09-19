@@ -1,9 +1,9 @@
 Description:
-    Scaffolds the Mixin output-polling foundation: the receipt and cursor
-    tables with models, and an example processor under app/mixin/processors.
-    Receipts deduplicate every observed output (inbound or outbound); the
-    cursor survives poller restarts; processors are selected by predicate and
-    run in the job queue.
+    Scaffolds the Mixin output-polling foundation: the receipt table and
+    model, and an example processor under app/mixin/processors. Receipts
+    deduplicate every observed output (inbound or outbound); the poller's
+    resume cursor is derived from the receipts themselves; processors are
+    selected by predicate and run in the job queue.
 
     Start polling with the rake task (bots default to MixinBot's global
     credentials; pass a registered bot name for multi-bot apps):
@@ -11,14 +11,18 @@ Description:
         rails mixin_bot:poller            # default bot
         rails mixin_bot:poller[shop]      # registered bot :shop
 
+    Optional filters via environment variables:
+
+        MIXIN_BOT_POLL_ASSET      restrict to one asset id
+        MIXIN_BOT_POLL_MEMBERS    comma-separated member user ids
+        MIXIN_BOT_POLL_THRESHOLD  members threshold
+
 Example:
     rails generate mixin_bot:outputs
 
     This will create:
         db/migrate/xxx_create_mixin_outputs.rb
-        db/migrate/xxx_create_mixin_poller_cursors.rb
         app/models/mixin_output.rb
-        app/models/mixin_poller_cursor.rb
         app/mixin/processors/deposit_processor.rb
 
     Run `rails db:migrate` afterwards, and make sure a job backend

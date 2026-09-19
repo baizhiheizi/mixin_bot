@@ -38,10 +38,15 @@ module MixinBot
 
         private
 
+        # The receipt's own bot: nil bot_app_id = the default bot; an explicit
+        # app id that no longer resolves is a configuration error, never a
+        # reason to spend the default bot's credentials on it.
         def api_for(receipt)
           app_id = receipt.respond_to?(:bot_app_id) ? receipt.bot_app_id : nil
-          bot = MixinBot.bot_by_app_id(app_id) if app_id
-          bot || MixinBot.api
+          return MixinBot.api if app_id.blank?
+
+          MixinBot.bot_by_app_id(app_id) ||
+            raise(MixinBot::NotFoundError, "no bot registered for app_id #{app_id}")
         end
       end
     end

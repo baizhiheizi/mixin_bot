@@ -10,10 +10,9 @@ module MixinBot
       super
       @clock = FakeClock.new
       @receipts = MixinBot::Outputs::MemoryReceiptStore.new(clock: @clock.to_proc)
-      @cursor = MixinBot::Outputs::MemoryCursorStore.new
     end
 
-    def output(id = 'out-1')
+    def output(id = 'out-1', created_at: '2026-09-19T12:00:00Z')
       {
         'output_id' => id,
         'amount' => '1.5',
@@ -21,7 +20,7 @@ module MixinBot
         'state' => 'unspent',
         'transaction_hash' => 'ab' * 32,
         'output_index' => 0,
-        'created_at' => '2026-09-19T12:00:00Z'
+        'created_at' => created_at
       }
     end
 
@@ -38,6 +37,7 @@ module MixinBot
       assert_equal 0, receipt.output_index
       assert_equal '2026-09-19T12:00:00Z', receipt.created_at
       assert_nil receipt.enqueued_at
+      refute_predicate receipt, :snapshot_bridged?
     end
 
     def test_duplicate_record_returns_existing_receipt
@@ -74,7 +74,7 @@ module MixinBot
       refute_includes pending, recent        # too fresh
     end
 
-    def test_cache_snapshot_writes_bridge_fields
+    def test_cache_snapshot_writes_bridge_fields_and_marks_the_attempt
       receipt, = @receipts.record!(bot_app_id: 'app-1', output: output)
 
       receipt.cache_snapshot!(memo: 'M', opponent_id: 'O', trace_id: 'T')
@@ -82,15 +82,20 @@ module MixinBot
       assert_equal 'M', receipt.memo
       assert_equal 'O', receipt.opponent_id
       assert_equal 'T', receipt.trace_id
+      assert_predicate receipt, :snapshot_bridged?
     end
 
-    def test_cursor_value_and_advance
-      assert_nil @cursor.value(bot_app_id: 'app-1')
+    def test_cursor_value_is_the_newest_recorded_output_per_bot
+      assert_nil @receipts.cursor_value(bot_app_id: 'app-1')
 
-      @cursor.advance!(bot_app_id: 'app-1', value: '2026-09-19T12:00:00Z')
+      @receipts.record!(bot_app_id: 'app-1', output: output('out-1')) # 12:00
+      @clock.advance 1
+      @receipts.record!(bot_app_id: 'app-1', output: output('out-2', created_at: '2026-09-19T11:00:00Z'))
+      @receipts.record!(bot_app_id: 'app-2', output: output('out-3', created_at: '2026-09-19T23:00:00Z'))
 
-      assert_equal '2026-09-19T12:00:00Z', @cursor.value(bot_app_id: 'app-1')
-      assert_nil @cursor.value(bot_app_id: 'app-2')
+      # max of THIS bot's recorded outputs, even when inserted out of order
+      assert_equal '2026-09-19T12:00:00Z', @receipts.cursor_value(bot_app_id: 'app-1')
+      assert_equal '2026-09-19T23:00:00Z', @receipts.cursor_value(bot_app_id: 'app-2')
     end
   end
 end

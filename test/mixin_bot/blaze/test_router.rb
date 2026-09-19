@@ -137,21 +137,26 @@ module MixinBot
       assert_match(/must be a class or respond to #call/, error.message)
     end
 
-    # ---- Handler exception containment ----
+    # ---- Handler exception propagation ----
+    # The router logs and re-raises: the REACTOR owns containment (its loop
+    # survives) and, under ack_policy: :after_handler, withholds the
+    # acknowledgement so failed messages are redelivered on reconnect.
 
-    def test_handler_exception_is_contained_and_next_message_still_delivered
+    def test_handler_exception_is_logged_and_reraised
       logs = []
       router = MixinBot::Blaze::Router.new(logger: ->(level, detail) { logs << [level, detail] }) do
         on 'text', ExplodingHandler
       end
 
-      assert_silent do
-        router.call envelope(message_id: 'boom')
-        router.call envelope(message_id: 'after')
-      end
+      error = assert_raises(RuntimeError) { router.call envelope(message_id: 'boom') }
 
-      assert_equal %w[boom after], ExplodingHandler.handled
+      assert_equal 'kaboom', error.message
+      assert_equal %w[boom], ExplodingHandler.handled
       assert_equal :handler_error, logs.first[0]
+
+      # subsequent messages still dispatch
+      router.call envelope(message_id: 'after')
+      assert_equal %w[boom after], ExplodingHandler.handled
     end
 
     # ---- Message wrapper ----

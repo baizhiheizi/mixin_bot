@@ -20,8 +20,9 @@ module MixinBot
       end
 
       ##
-      # @return [Symbol] :confirmed, :resent or :failed (definitive rejection
-      #   surfaced by the re-send)
+      # @return [Symbol] :confirmed (found in the network), :resent (nothing
+      #   existed; re-sent successfully) or :failed (the re-send was
+      #   definitively rejected)
       #
       def call
         snapshot = fetch_snapshot_by_trace
@@ -32,7 +33,7 @@ module MixinBot
           :confirmed
         else
           Performer.new(transfer, api:).perform
-          :resent
+          transfer.state == 'failed' ? :failed : :resent
         end
       end
 

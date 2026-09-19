@@ -14,13 +14,17 @@ module MixinBot
     #     include MixinBot::Outputs::ReceiptModel
     #   end
     #
-    # ReceiptModel also registers the model as the processing job's receipt
-    # loader and provides cache_snapshot! for the envelope's snapshot bridge.
+    # Including the model also registers it as the integration's receipt
+    # store (the mixin_bot:poller rake task) and as the processing job's
+    # receipt loader. The poller's resume cursor is derived from the receipts
+    # themselves — the newest output_created_at per bot — so there is no
+    # separate cursor table.
     #
     # Required columns (see the generated migration): bot_app_id, output_id,
     # amount, asset_id, state, transaction_hash, output_index,
     # output_created_at (the chain timestamp), memo, opponent_id, trace_id,
-    # enqueued_at, plus Rails timestamps (created_at backs the sweep query).
+    # snapshot_bridged, enqueued_at, plus Rails timestamps (created_at backs
+    # the sweep query).
     #
     module ReceiptModel
       extend ActiveSupport::Concern
@@ -57,15 +61,24 @@ module MixinBot
         def unenqueued(bot_app_id:, older_than:)
           where(bot_app_id:, enqueued_at: nil).where(created_at: ...older_than)
         end
+
+        # The poller's resume position: the newest chain timestamp recorded
+        # for this bot (nil = fetch from the beginning). Derived from the
+        # receipts themselves — no separate cursor state.
+        def cursor_value(bot_app_id:)
+          where(bot_app_id:).maximum(:output_created_at)
+        end
       end
 
-      # Caches the envelope's resolved snapshot data (one bridge per output).
+      # Caches the envelope's resolved snapshot data (one bridge attempt per
+      # output — including failures, which cache nils and the flag).
       def cache_snapshot!(memo:, opponent_id:, trace_id:)
-        update!(memo:, opponent_id:, trace_id:) unless frozen?
+        update!(memo:, opponent_id:, trace_id:, snapshot_bridged: true) unless frozen?
       end
 
       included do
         MixinBot::Outputs.receipt_loader = method(:find)
+        MixinBot::Outputs.receipt_store = self
       end
     end
   end
