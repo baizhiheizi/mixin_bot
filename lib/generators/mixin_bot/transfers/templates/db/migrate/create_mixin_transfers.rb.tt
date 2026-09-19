@@ -1,0 +1,23 @@
+class CreateMixinTransfers < ActiveRecord::Migration<%= migration_version %>
+  def change
+    create_table :mixin_transfers do |t|
+      t.string :recipient_id, null: false
+      t.string :asset_id, null: false
+      t.decimal :amount, precision: 32, scale: 18, null: false
+      t.text :memo
+      t.string :trace_id, null: false
+      t.string :state, null: false, default: 'pending'
+      t.string :previous_state
+      t.string :transaction_hash
+      t.text :error
+      t.datetime :transitioned_at
+      t.string :bot_app_id
+
+      t.timestamps
+    end
+
+    add_index :mixin_transfers, :trace_id, unique: true
+    add_index :mixin_transfers, :state
+    add_index :mixin_transfers, :bot_app_id
+  end
+end

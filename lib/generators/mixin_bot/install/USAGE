@@ -1,0 +1,24 @@
+Description:
+    Sets up a Mixin Messenger/Network Rails application in one command:
+    "Sign in with Mixin" (OmniAuth), Blaze message routing with the Puma
+    plugin, the outputs poller with an example processor, the outbound
+    transfer ledger, and Noticed-driven Mixin notifications.
+
+    Skip any component:
+
+        rails generate mixin_bot:install --skip-notifications --skip-transfers
+        rails generate mixin_bot:install --skip notifications,transfers
+        rails generate mixin_bot:install --skip authentication
+
+Example:
+    rails generate mixin_bot:install
+
+    This will run, in order:
+        rails generate mixin_bot:authentication
+        rails generate mixin_bot:blaze
+        rails generate mixin_bot:outputs
+        rails generate mixin_bot:transfers
+        rails generate mixin_bot:notifications
+
+    Afterwards: set your bot credentials, run `rails db:migrate`, and start
+    the poller (`rails mixin_bot:poller`) and your job backend.

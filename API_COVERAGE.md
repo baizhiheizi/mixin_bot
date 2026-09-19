@@ -81,6 +81,7 @@ Status values: `done` | `alias` | `n/a` (CLI-only / config / platform-specific)
 | **Snapshots** |
 | SafeSnapshots* | `API#safe_snapshots` | GET `/safe/snapshots` | done |
 | SafeSnapshotById | `API#safe_snapshot` | GET `/safe/snapshots/:id` | done |
+| SafeSnapshotByTrace | `API#safe_snapshot_by_trace` | GET `/safe/snapshots/trace/:trace_id` | done |
 | SafeNotifySnapshot | `API#create_safe_snapshot_notification` | POST notifications | done |
 | Snapshots / SnapshotById / SnapshotByTraceId | `API#snapshots`, `#snapshot`, `#snapshot_by_trace_id` | legacy | done |
 | NetworkSnapshot* | `API#network_snapshot(s)` | legacy | done |

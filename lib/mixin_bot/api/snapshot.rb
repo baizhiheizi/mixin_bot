@@ -23,6 +23,11 @@ module MixinBot
       end
       alias safe_snapshot_by_id safe_snapshot
 
+      def safe_snapshot_by_trace(trace_id, access_token: nil)
+        path = format('/safe/snapshots/trace/%<trace_id>s', trace_id:)
+        client.get path, access_token:
+      end
+
       def create_safe_snapshot_notification(**kwargs)
         path = '/safe/snapshots/notifications'
 

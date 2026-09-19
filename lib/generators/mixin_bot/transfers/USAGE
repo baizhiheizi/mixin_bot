@@ -1,0 +1,37 @@
+Description:
+    Scaffolds the outbound transfer ledger: a migration and model for
+    MixinTransfer (with the runtime state machine), perform and reconcile
+    jobs under app/jobs/mixin_transfers, and a Solid Queue recurring
+    schedule for reconciliation.
+
+    Usage:
+
+        transfer = MixinTransfer.create!(
+          recipient_id: user_id,          # Mixin user id of the recipient
+          asset_id: ASSET_ID,
+          amount: '1.5',
+          memo: 'payout',
+          trace_id: SecureRandom.uuid     # idempotency: re-sends are deduped
+        )
+
+    The record is enqueued on create and ends `confirmed` (with its
+    transaction hash), `failed` (definitive rejection), or `reconciling`
+    (timeout — resolved by the recurring job).
+
+Example:
+    rails generate mixin_bot:transfers
+
+    This will create:
+        db/migrate/xxx_create_mixin_transfers.rb
+        app/models/mixin_transfer.rb
+        app/jobs/mixin_transfers/perform_job.rb
+        app/jobs/mixin_transfers/reconcile_job.rb
+        config/recurring.yml
+
+    Run `rails db:migrate` afterwards. If config/recurring.yml already
+    exists, add the reconcile entry manually:
+
+        production:
+          mixin_transfers_reconcile:
+            class: MixinTransfers.ReconcileJob
+            schedule: every 5 minutes

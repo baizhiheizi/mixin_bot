@@ -41,6 +41,9 @@ GEM
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
+    activejob (8.1.3.1)
+      activesupport (= 8.1.3.1)
+      globalid (>= 0.3.6)
     activesupport (8.1.3.1)
       base64
       bigdecimal
@@ -143,6 +146,8 @@ GEM
       fiber-storage
     fiber-storage (1.0.1)
     forwardable (1.4.0)
+    globalid (1.4.0)
+      activesupport (>= 6.1)
     h2c (0.2.1)
       ecdsa (~> 1.2.0)
     hashdiff (1.2.1)
@@ -331,6 +336,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  activejob
   fastimage
   minitest-reporters
   minitest-stub-const

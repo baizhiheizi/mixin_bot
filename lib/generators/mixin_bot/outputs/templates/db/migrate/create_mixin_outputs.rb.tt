@@ -1,0 +1,22 @@
+class CreateMixinOutputs < ActiveRecord::Migration<%= migration_version %>
+  def change
+    create_table :mixin_outputs do |t|
+      t.string :bot_app_id, null: false
+      t.string :output_id, null: false
+      t.string :amount
+      t.string :asset_id
+      t.string :state
+      t.string :transaction_hash
+      t.integer :output_index
+      t.datetime :output_created_at
+      t.text :memo
+      t.string :opponent_id
+      t.string :trace_id
+      t.datetime :enqueued_at
+      t.timestamps
+    end
+
+    add_index :mixin_outputs, %i[bot_app_id output_id], unique: true
+    add_index :mixin_outputs, :bot_app_id
+  end
+end

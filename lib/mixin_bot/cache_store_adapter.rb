@@ -20,7 +20,9 @@ module MixinBot
     KEY_PREFIX = 'mixin_bot/sessions'
 
     def initialize(cache = nil, expires_in: nil)
-      cache ||= Rails.cache if defined?(Rails)
+      # ::Rails (not bare Rails): lexical lookup under module MixinBot must
+      # never resolve to a MixinBot-namespaced constant.
+      cache ||= ::Rails.cache if defined?(::Rails)
       raise ArgumentError, 'a cache store is required' if cache.nil?
 
       @cache = cache

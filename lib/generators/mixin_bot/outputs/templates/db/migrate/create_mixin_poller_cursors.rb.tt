@@ -1,0 +1,11 @@
+class CreateMixinPollerCursors < ActiveRecord::Migration<%= migration_version %>
+  def change
+    create_table :mixin_poller_cursors do |t|
+      t.string :bot_app_id, null: false
+      t.string :value
+      t.timestamps
+    end
+
+    add_index :mixin_poller_cursors, :bot_app_id, unique: true
+  end
+end

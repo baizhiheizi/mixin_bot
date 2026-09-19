@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'activejob' # dev-only: outputs poller ProcessingJob tests
 gem 'fastimage'
 gem 'minitest-reporters'
 gem 'minitest-stub-const'

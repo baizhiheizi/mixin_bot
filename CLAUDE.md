@@ -41,6 +41,17 @@ ruby -Itest -Ilib -e "require 'test_helper'; require 'test/mixin_bot/api_test'"
 ### HTTP Client
 `MixinBot::Client` (`lib/mixin_bot/client.rb`) — Faraday-based. Returns `MixinBot::Models::ApiEnvelope`. Use `res['data']` for envelope data or `res['key']` for delegated lookup.
 
+### Rails Integration Layer (opt-in)
+`require 'mixin_bot/rails'` (`lib/mixin_bot/rails.rb`) — loads the integration layer; `require 'mixin_bot'` never touches Rails. The railtie constant is `MixinBot::Railtie` (NOT `MixinBot::Rails`, which would lexically shadow `::Rails` inside `module MixinBot` — always reference `::Rails` in gem code under `MixinBot`). Components:
+- **Multi-bot registry** (`lib/mixin_bot/registry.rb`): `MixinBot.register_bot(name, **creds)` (freezes the bot's config) / `MixinBot.bot(name)` / `MixinBot.bot_by_app_id(app_id)`
+- **Blaze router** (`lib/mixin_bot/blaze/router.rb`): callable plugging into `config.blaze_handler`; DSL `on 'text', Handler`; handlers in app's `app/mixin/handlers` (`Mixin::Handlers::*`) subclass `Router::Base` and `reply` via HTTP `POST /messages`
+- **Outputs poller** (`lib/mixin_bot/outputs/`): standalone `mixin_bot:poller` rake task; per-`app_id` cursor + receipt dedup (`MemoryReceiptStore` in gem, `ReceiptModel` concern for generated `MixinOutput` AR model); processors in `app/mixin/processors` (`Mixin::Processors::*` < `Outputs::Processor`, `matches?` + `process`); `Envelope` bridges memo/opponent/trace lazily via `create_safe_snapshot_notification`
+- **Transfers** (`lib/mixin_bot/transfers/`): `Transfers::Model` concern (state machine `pending/broadcast/confirmed/failed/reconciling`, unique `trace_id`), `Performer` (Safe pipeline; APIError → failed, network error → reconciling), `Reconcile` (snapshot-by-trace confirms or re-sends)
+- **Noticed channel** (`lib/mixin_bot/notifications/mixin_channel.rb`): loads only when `Noticed` is defined; notification classes define `mixin_recipient` + `mixin_message`
+- **Generators** (`lib/generators/mixin_bot/`): `authentication`, `blaze`, `outputs`, `transfers`, `notifications`, and `install` (composes all with `--skip-<component>` flags)
+
+Dev-only Gemfile deps for the Rails test harness: `railties`, `activejob`, `puma`. Integration runtime files live under `lib/mixin_bot/{blaze/router,outputs,transfers,notifications,rails}` and load only through `mixin_bot/rails`.
+
 ### CLI Structure
 `lib/mixin_bot/cli.rb` + `lib/mixin_bot/cli/*.rb`:
 - `mixinbot call METHOD` — invoke any API method with `-d '{"key":"value"}'` JSON kwargs

@@ -4,3 +4,4 @@ gem "rails"
 
 # gem "omniauth-mixin"
 # gem "omniauth-rails_csrf_protection"
+# gem "noticed"

@@ -32,6 +32,7 @@ require_relative 'mixin_bot/cli'
 require_relative 'mixin_bot/computer'
 require_relative 'mixin_bot/invoice'
 require_relative 'mixin_bot/monitor'
+require_relative 'mixin_bot/registry'
 require_relative 'mixin_bot/url_scheme'
 require_relative 'mixin_bot/utils'
 require_relative 'mixin_bot/nfo'
@@ -230,4 +231,6 @@ module MixinBot
       @deprecator ||= ActiveSupport::Deprecation.new('2.0', 'MixinBot')
     end
   end
+
+  extend Registry
 end
