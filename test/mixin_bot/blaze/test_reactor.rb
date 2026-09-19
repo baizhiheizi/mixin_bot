@@ -210,6 +210,73 @@ module MixinBot
         assert(@logs.any? { |level, detail| level == :error && detail.is_a?(Async::TimeoutError) })
       end
 
+      def test_connection_killed_within_stable_period_never_resets_backoff
+        # A gateway throttling sessions at a fixed short lifetime (every
+        # connection closed shortly after the handshake) must not read as
+        # "stable": if it did, the backoff would reset to the initial rate on
+        # every cycle and the reactor would hammer the endpoint indefinitely.
+        cycles = 10
+        lifetime = 30 # dies just past the old STABLE_PERIOD, well under 120
+        fake_now = 0.0
+
+        reactor = Class.new(Reactor) do
+          define_method(:monotonic_time) { fake_now }
+        end.new(
+          handler: ->(_raw) { flake 'no frames expected' },
+          connection_factory: lambda {
+            fake_now += lifetime
+            FakeConnection.new(error: EOFError.new('killed early'))
+          },
+          keepalive_interval: 3600,
+          sleeper: lambda { |seconds|
+            @backoffs << seconds
+            fake_now += seconds
+            sleep 0.001
+          },
+          logger: ->(level, detail) { @logs << [level, detail] }
+        )
+
+        run_and_stop reactor do
+          wait_for = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+          sleep 0.01 while @backoffs.size < cycles && Process.clock_gettime(Process::CLOCK_MONOTONIC) < wait_for
+        end
+
+        ladder = [1, 2, 4, 8, 16, 32, 64, 128, 256, Reactor::MAX_BACKOFF]
+        assert_equal ladder, @backoffs.first(cycles),
+                     'backoff must climb the ladder and never reset while connections stay unstable'
+      end
+
+      def test_connection_living_past_stable_period_resets_backoff
+        cycles = 3
+        lifetime = 150 # comfortably past STABLE_PERIOD
+        fake_now = 0.0
+
+        reactor = Class.new(Reactor) do
+          define_method(:monotonic_time) { fake_now }
+        end.new(
+          handler: ->(_raw) { flake 'no frames expected' },
+          connection_factory: lambda {
+            fake_now += lifetime
+            FakeConnection.new(error: EOFError.new('died late'))
+          },
+          keepalive_interval: 3600,
+          sleeper: lambda { |seconds|
+            @backoffs << seconds
+            fake_now += seconds
+            sleep 0.001
+          },
+          logger: ->(level, detail) { @logs << [level, detail] }
+        )
+
+        run_and_stop reactor do
+          wait_for = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+          sleep 0.01 while @backoffs.size < cycles && Process.clock_gettime(Process::CLOCK_MONOTONIC) < wait_for
+        end
+
+        assert_equal [1, 1, 1], @backoffs.first(cycles),
+                     'a genuinely stable connection must reset the backoff each cycle'
+      end
+
       def test_established_connection_is_not_timed_out_during_quiet_periods
         # a quiet-but-healthy connection (no frames incoming, only keepalive
         # pings) must stay up — a read timeout may not kill it between pings
