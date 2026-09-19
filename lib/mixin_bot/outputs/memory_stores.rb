@@ -22,7 +22,7 @@ module MixinBot
       #
       Receipt = Struct.new(
         :id, :bot_app_id, :output_id, :amount, :asset_id, :state,
-        :transaction_hash, :output_index, :created_at,
+        :transaction_hash, :output_index, :sequence, :created_at,
         :memo, :opponent_id, :trace_id, :snapshot_bridged,
         :enqueued_at, :recorded_at,
         keyword_init: true
@@ -63,6 +63,7 @@ module MixinBot
           state: output['state'],
           transaction_hash: output['transaction_hash'],
           output_index: output['output_index'],
+          sequence: output['sequence'],
           created_at: output['created_at'],
           recorded_at: @clock.call
         )
@@ -82,12 +83,13 @@ module MixinBot
         end
       end
 
-      # The poller's resume position: the newest output timestamp this bot has
-      # recorded (nil = fetch from the beginning).
+      # The poller's resume position: the newest output sequence this bot has
+      # recorded — unique and monotonic, and the key the outputs API paginates
+      # on (nil = fetch from the beginning).
       def cursor_value(bot_app_id:)
         @records.values
                 .select { |receipt| receipt.bot_app_id == bot_app_id }
-                .filter_map(&:created_at)
+                .filter_map(&:sequence)
                 .max
       end
     end

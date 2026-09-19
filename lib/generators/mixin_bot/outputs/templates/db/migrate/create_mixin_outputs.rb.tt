@@ -8,6 +8,7 @@ class CreateMixinOutputs < ActiveRecord::Migration<%= migration_version %>
       t.string :state
       t.string :transaction_hash
       t.integer :output_index
+      t.bigint :sequence
       t.datetime :output_created_at
       t.text :memo
       t.string :opponent_id
@@ -19,5 +20,7 @@ class CreateMixinOutputs < ActiveRecord::Migration<%= migration_version %>
 
     add_index :mixin_outputs, %i[bot_app_id output_id], unique: true
     add_index :mixin_outputs, :bot_app_id
+    # cursor lookups: MAX(sequence) per bot
+    add_index :mixin_outputs, %i[bot_app_id sequence]
   end
 end

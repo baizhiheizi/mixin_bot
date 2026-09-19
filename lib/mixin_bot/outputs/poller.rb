@@ -9,10 +9,11 @@ module MixinBot
     # only after the whole page is absorbed.
     #
     # The resume cursor is derived from the receipts themselves — the newest
-    # output timestamp recorded for the bot — and kept in memory afterwards:
-    # receipts recorded past a mid-page failure cover the remainder (the
-    # outputs API returns outputs strictly after the offset), so there is no
-    # gap and no separate cursor state.
+    # output sequence recorded for the bot (unique, monotonic, and the key
+    # the outputs API paginates on) — and kept in memory afterwards: receipts
+    # recorded past a mid-page failure cover the remainder (the API returns
+    # outputs strictly after the offset), so there is no gap and no separate
+    # cursor state.
     #
     # Each loop iteration first sweeps receipts that were recorded but never
     # dispatched (a crash between the two steps), re-evaluating predicates and
@@ -125,7 +126,7 @@ module MixinBot
         page = fetch_page
         page.each { |output| absorb(output) }
 
-        @cursor_value = page.last['created_at'] if page.last
+        @cursor_value = page.last['sequence'] if page.last
         page.size
       end
 

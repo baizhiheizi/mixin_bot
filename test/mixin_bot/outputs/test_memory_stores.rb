@@ -12,7 +12,7 @@ module MixinBot
       @receipts = MixinBot::Outputs::MemoryReceiptStore.new(clock: @clock.to_proc)
     end
 
-    def output(id = 'out-1', created_at: '2026-09-19T12:00:00Z')
+    def output(id = 'out-1', sequence: 100, created_at: '2026-09-19T12:00:00Z')
       {
         'output_id' => id,
         'amount' => '1.5',
@@ -20,6 +20,7 @@ module MixinBot
         'state' => 'unspent',
         'transaction_hash' => 'ab' * 32,
         'output_index' => 0,
+        'sequence' => sequence,
         'created_at' => created_at
       }
     end
@@ -85,17 +86,17 @@ module MixinBot
       assert_predicate receipt, :snapshot_bridged?
     end
 
-    def test_cursor_value_is_the_newest_recorded_output_per_bot
+    def test_cursor_value_is_the_newest_recorded_sequence_per_bot
       assert_nil @receipts.cursor_value(bot_app_id: 'app-1')
 
-      @receipts.record!(bot_app_id: 'app-1', output: output('out-1')) # 12:00
+      @receipts.record!(bot_app_id: 'app-1', output: output('out-1', sequence: 100))
       @clock.advance 1
-      @receipts.record!(bot_app_id: 'app-1', output: output('out-2', created_at: '2026-09-19T11:00:00Z'))
-      @receipts.record!(bot_app_id: 'app-2', output: output('out-3', created_at: '2026-09-19T23:00:00Z'))
+      @receipts.record!(bot_app_id: 'app-1', output: output('out-2', sequence: 90))
+      @receipts.record!(bot_app_id: 'app-2', output: output('out-3', sequence: 500))
 
-      # max of THIS bot's recorded outputs, even when inserted out of order
-      assert_equal '2026-09-19T12:00:00Z', @receipts.cursor_value(bot_app_id: 'app-1')
-      assert_equal '2026-09-19T23:00:00Z', @receipts.cursor_value(bot_app_id: 'app-2')
+      # max of THIS bot's recorded sequences, even when inserted out of order
+      assert_equal 100, @receipts.cursor_value(bot_app_id: 'app-1')
+      assert_equal 500, @receipts.cursor_value(bot_app_id: 'app-2')
     end
   end
 end

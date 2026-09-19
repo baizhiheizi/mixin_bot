@@ -59,6 +59,13 @@ module MixinBot
         receipt.output_index
       end
 
+      # The output's kernel sequence — unique and monotonic; the key the
+      # outputs API paginates on and the value processors can key on for
+      # ordering.
+      def sequence
+        receipt.sequence
+      end
+
       # True when the output is spent (outbound from the bot's perspective).
       def spent?
         receipt.state == 'spent'

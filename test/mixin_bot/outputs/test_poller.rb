@@ -31,7 +31,7 @@ module MixinBot
       super
     end
 
-    def output(id, created_at: '2026-09-19T12:00:00Z', amount: '1.5', state: 'unspent')
+    def output(id, sequence: 100, created_at: '2026-09-19T12:00:00Z', amount: '1.5', state: 'unspent')
       {
         'output_id' => id,
         'amount' => amount,
@@ -39,6 +39,7 @@ module MixinBot
         'state' => state,
         'transaction_hash' => 'ab' * 32,
         'output_index' => 0,
+        'sequence' => sequence,
         'created_at' => created_at
       }
     end
@@ -66,21 +67,21 @@ module MixinBot
       query = @output_queries.first
       assert_equal '500', query['limit']
       assert_equal 'ASC', query['order']
-      assert_equal '2026-09-19T12:00:00Z', @receipts.cursor_value(bot_app_id: MixinBot.config.app_id)
+      assert_equal 100, @receipts.cursor_value(bot_app_id: MixinBot.config.app_id)
       # both processors match both outputs
       assert_equal 4, @enqueued.size
       assert_equal [MatchingProcessor, OtherProcessor] * 2, @enqueued.map(&:first)
     end
 
     def test_fetch_uses_the_derived_cursor_as_offset
-      # receipts already absorbed output 11:00 — restart derives from them
+      # receipts already absorbed sequence 90 — restart derives from them
       @receipts.record!(bot_app_id: MixinBot.config.app_id,
-                        output: output('old-1', created_at: '2026-09-19T11:00:00Z'))
+                        output: output('old-1', sequence: 90))
       poller = build_poller
 
       poller.poll_once
 
-      assert_equal '2026-09-19T11:00:00Z', @output_queries.first['offset']
+      assert_equal '90', @output_queries.first['offset']
     end
 
     def test_forwarded_poll_filters
@@ -141,21 +142,21 @@ module MixinBot
       poller.poll_once
       poller.poll_once # page now empty; overlap already deduped
 
-      assert_equal '2026-09-19T12:00:00Z', @output_queries.second['offset']
-      assert_equal '2026-09-19T12:00:00Z', @output_queries.last['offset']
+      assert_equal '100', @output_queries.second['offset']
+      assert_equal '100', @output_queries.last['offset']
     end
 
     # ---- restart ----
 
     def test_restarted_poller_resumes_from_the_receipt_derived_cursor
-      @pages << [output('out-1', created_at: '2026-09-19T12:30:00Z')]
+      @pages << [output('out-1', sequence: 300)]
       build_poller.poll_once
 
       # a fresh poller over the SAME receipt store (restart)
       restarted = build_poller
       restarted.poll_once
 
-      assert_equal '2026-09-19T12:30:00Z', @output_queries.last['offset']
+      assert_equal '300', @output_queries.last['offset']
       assert_equal 2, @enqueued.size # only the first cycle enqueued
     end
 

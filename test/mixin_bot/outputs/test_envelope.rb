@@ -35,7 +35,7 @@ module MixinBot
       MixinBot::Outputs::MemoryReceiptStore::Receipt.new(
         id: 1, bot_app_id: MixinBot.config.app_id, output_id: 'out-1',
         amount: '1.5', asset_id: CNB_ASSET_ID, state:,
-        transaction_hash: 'ab' * 32, output_index: 3,
+        transaction_hash: 'ab' * 32, output_index: 3, sequence: 77,
         memo: nil, opponent_id: nil, trace_id: nil
       )
     end
@@ -48,6 +48,7 @@ module MixinBot
       assert_equal CNB_ASSET_ID, envelope.asset_id
       assert_equal 'ab' * 32, envelope.transaction_hash
       assert_equal 3, envelope.output_index
+      assert_equal 77, envelope.sequence
       refute_predicate envelope, :spent?
       assert_predicate MixinBot::Outputs::Envelope.new(receipt(state: 'spent'), api: MixinBot.api), :spent?
     end
