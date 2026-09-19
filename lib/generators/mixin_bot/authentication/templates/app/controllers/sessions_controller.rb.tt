@@ -1,0 +1,24 @@
+class SessionsController < ApplicationController
+  allow_unauthenticated_access only: %i[new create]
+
+  def new
+  end
+
+  def create
+    auth = request.env["omniauth.auth"]
+
+    unless auth
+      redirect_to new_session_path, alert: "Sign in with Mixin failed. Please try again."
+      return
+    end
+
+    user = User.find_or_create_by_mixin_auth!(auth)
+    start_new_session_for user
+    redirect_to after_authentication_url
+  end
+
+  def destroy
+    terminate_session
+    redirect_to new_session_path, status: :see_other
+  end
+end

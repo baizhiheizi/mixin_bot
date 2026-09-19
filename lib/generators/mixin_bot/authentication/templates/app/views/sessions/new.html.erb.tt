@@ -1,0 +1,3 @@
+<p style="color: red"><%%= alert %></p>
+
+<%%= button_to "Sign in with Mixin", "/auth/mixin", data: { turbo: false } %>

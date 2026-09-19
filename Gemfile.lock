@@ -25,6 +25,22 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    actionpack (8.1.3.1)
+      actionview (= 8.1.3.1)
+      activesupport (= 8.1.3.1)
+      nokogiri (>= 1.8.5)
+      rack (>= 2.2.4)
+      rack-session (>= 1.0.1)
+      rack-test (>= 0.6.3)
+      rails-dom-testing (~> 2.2)
+      rails-html-sanitizer (~> 1.6)
+      useragent (~> 0.16)
+    actionview (8.1.3.1)
+      activesupport (= 8.1.3.1)
+      builder (~> 3.1)
+      erubi (~> 1.11)
+      rails-dom-testing (~> 2.2)
+      rails-html-sanitizer (~> 1.6)
     activesupport (8.1.3.1)
       base64
       bigdecimal
@@ -86,9 +102,11 @@ GEM
     crack (1.0.1)
       bigdecimal
       rexml
+    crass (1.0.7)
     drb (2.2.3)
     ecdsa (1.2.0)
     erb (6.0.4)
+    erubi (1.13.1)
     eth (0.5.17)
       base64 (~> 0.1)
       bigdecimal (~> 3.1)
@@ -142,6 +160,11 @@ GEM
     io-event (1.22.0)
     io-stream (0.14.0)
       openssl (>= 3.3)
+    irb (1.18.0)
+      pp (>= 0.6.0)
+      prism (>= 1.3.0)
+      rdoc (>= 4.0.0)
+      reline (>= 0.4.2)
     jose (1.2.0)
       base64
       immutable-ruby
@@ -151,6 +174,9 @@ GEM
     language_server-protocol (3.17.0.6)
     lint_roller (1.1.0)
     logger (1.7.0)
+    loofah (2.25.2)
+      crass (~> 1.0.2)
+      nokogiri (>= 1.12.0)
     method_source (1.1.0)
     mini_portile2 (2.8.9)
     minitest (6.0.6)
@@ -167,12 +193,20 @@ GEM
     net-http (0.9.1)
       uri (>= 0.11.1)
     nio4r (2.7.5)
+    nokogiri (1.19.4)
+      mini_portile2 (~> 2.8.2)
+      racc (~> 1.4)
+    nokogiri (1.19.4-x86_64-linux-gnu)
+      racc (~> 1.4)
     openssl (3.3.3)
     parallel (2.2.0)
     parser (3.3.12.0)
       ast (~> 2.4.1)
       racc
     pkg-config (1.6.5)
+    pp (0.6.4)
+      prettyprint
+    prettyprint (0.2.0)
     prism (1.9.0)
     protocol-hpack (1.5.1)
     protocol-http (0.71.0)
@@ -197,6 +231,29 @@ GEM
       nio4r (~> 2.0)
     racc (1.8.1)
     rack (3.2.7)
+    rack-session (2.1.2)
+      base64 (>= 0.1.0)
+      rack (>= 3.0.0)
+    rack-test (2.2.0)
+      rack (>= 1.3)
+    rackup (2.3.1)
+      rack (>= 3)
+    rails-dom-testing (2.3.0)
+      activesupport (>= 5.0.0)
+      minitest
+      nokogiri (>= 1.6)
+    rails-html-sanitizer (1.7.1)
+      loofah (~> 2.25, >= 2.25.2)
+      nokogiri (>= 1.15.7, != 1.16.7, != 1.16.6, != 1.16.5, != 1.16.4, != 1.16.3, != 1.16.2, != 1.16.1, != 1.16.0.rc1, != 1.16.0)
+    railties (8.1.3.1)
+      actionpack (= 8.1.3.1)
+      activesupport (= 8.1.3.1)
+      irb (~> 1.13)
+      rackup (>= 1.0.0)
+      rake (>= 12.2)
+      thor (~> 1.0, >= 1.2.2)
+      tsort (>= 0.2)
+      zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.4.2)
     rake-compiler-dock (1.12.0)
@@ -257,6 +314,7 @@ GEM
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
     uri (1.1.1)
+    useragent (0.16.11)
     webmock (3.26.4)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
@@ -266,6 +324,7 @@ GEM
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
     yard (0.9.45)
+    zeitwerk (2.8.3)
 
 PLATFORMS
   ruby
@@ -278,6 +337,7 @@ DEPENDENCIES
   mixin_bot!
   pry
   puma
+  railties
   rake
   rdoc
   rubocop

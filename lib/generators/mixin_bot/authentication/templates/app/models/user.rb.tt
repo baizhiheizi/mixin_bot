@@ -1,0 +1,12 @@
+class User < ApplicationRecord
+  has_many :sessions, dependent: :destroy
+
+  # Finds or creates the user for an OmniAuth auth hash and refreshes the
+  # stored Mixin profile (name, avatar). The OAuth exchange is used only to
+  # establish identity; credentials are not stored.
+  def self.find_or_create_by_mixin_auth!(auth)
+    user = find_or_create_by!(mixin_user_id: auth.uid)
+    user.update!(name: auth.info.name, avatar_url: auth.info.image)
+    user
+  end
+end

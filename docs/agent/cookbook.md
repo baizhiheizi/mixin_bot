@@ -156,6 +156,29 @@ Operational notes:
 - **Phased restarts keep old handler code** in the hosting process until a full restart.
 - Workers that need to *send* messages use the REST API (`create_message`), not the socket.
 
+## Mixin login for a Rails app (`rails g mixin_bot:authentication`)
+
+Task: add "Sign in with Mixin" (OAuth identity login) to an existing Rails app.
+
+```bash
+bundle add mixin_bot            # if not already present
+rails generate mixin_bot:authentication
+bin/rails db:migrate
+```
+
+Generated: `config/initializers/omniauth.rb` (OmniAuth `:mixin` provider), `app/models/{user,session,current}.rb`, `app/controllers/sessions_controller.rb` + `app/controllers/concerns/authentication.rb` (injected into `ApplicationController`), `app/views/sessions/new.html.erb`, `resource :session` + `/auth/mixin/callback` routes, and `CreateUsers` (`mixin_user_id` unique, `name`, `avatar_url`) / `CreateSessions` migrations. The Gemfile gains `omniauth-mixin` and `omniauth-rails_csrf_protection`.
+
+Required environment: `MIXIN_CLIENT_ID`, `MIXIN_CLIENT_SECRET` (from the Mixin Developer Dashboard); register `https://<host>/auth/mixin/callback` as the OAuth redirect URL.
+
+Behavior notes for agents:
+
+- **Identity only** — sign-in stores the Mixin user id + name + avatar (`User.find_or_create_by_mixin_auth!`, matched by uid). OAuth access/refresh tokens are never persisted; do not add token columns to the generated models.
+- **Boot is safe without credentials** (CI / `assets:precompile`); a sign-in attempt without them raises `ArgumentError` naming the missing env vars (OmniAuth setup phase).
+- **Request phase is POST + CSRF** (`button_to` → `/auth/mixin`, `omniauth-rails_csrf_protection`); callback is the GET route → `sessions#create`. A GET to `/auth/mixin` is rejected (OmniAuth 2.x).
+- **Sessions** are DB-backed (`sessions` rows, `ip_address`/`user_agent`) remembered in a signed httponly cookie; `Current.user` after sign-in; unauthenticated requests redirect to the sign-in page and return after login; `terminate_session` on sign-out.
+- **Self-contained** — generated code references no `mixin_bot` APIs; the login survives removing the gem. Re-running the generator does not duplicate routes or Gemfile entries; template conflicts prompt like any Rails generator (an existing `User` model is overwritten only if you choose so).
+- To call Mixin APIs on behalf of a signed-in user afterwards, use the gem's OAuth machinery (`MixinBot::API` with delegated authorization) separately from the generated authentication code.
+
 ## Discover API methods
 
 ```bash
