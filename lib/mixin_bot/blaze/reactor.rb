@@ -29,9 +29,14 @@ module MixinBot
       CONNECT_TIMEOUT = 10
       KEEPALIVE_INTERVAL = 30
       INITIAL_BACKOFF = 1
-      MAX_BACKOFF = 30
-      # a connection must live at least this long for the backoff to reset
-      STABLE_PERIOD = 30
+      MAX_BACKOFF = 300
+      # A connection must live at least this long to count as "stable" and
+      # reset the reconnect backoff. The bar sits well above any single
+      # backoff step so a session that a gateway throttles at a fixed short
+      # lifetime (e.g. closed ~30s after every handshake) never reads as
+      # stable — otherwise the loop pins itself at the fastest retry rate
+      # and hammers the endpoint indefinitely.
+      STABLE_PERIOD = 120
 
       attr_reader :handler, :ack_policy
 

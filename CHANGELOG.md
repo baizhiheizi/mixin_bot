@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-09-19
+
+### Fixed
+
+- **Blaze reconnect backoff no longer resets on short-lived connections.** `Reactor::STABLE_PERIOD` (the lifetime a connection needs for the backoff to reset) was exactly `MAX_BACKOFF` (30s), so any failure mode that closes sessions at a ~30s lifetime (e.g. a gateway throttling abusive reconnect patterns) read as "stable" on every cycle — the backoff pinned at the initial 1s and the reactor reconnected hot indefinitely, which is itself the abuse pattern that triggers such throttling. `STABLE_PERIOD` is now 120s (well above every single backoff step) and `MAX_BACKOFF` grows the ceiling to 300s so a sustained failure mode backs off hard while a single transient blip still reconnects in ~1s.
+
 ## [3.0.0] - 2026-09-15
 
 ### Added
