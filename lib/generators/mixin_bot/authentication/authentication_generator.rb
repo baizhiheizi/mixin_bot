@@ -61,7 +61,11 @@ module MixinBot
             uncomment_lines 'Gemfile', pattern
             uncommented << name
           else
-            bundle_command("add #{name}", {}, quiet: true)
+            # Single positional call: bundle_command signatures differ across
+            # railties versions (8.1 BundleHelper is (command, env, params);
+            # older Actions is (command, options)) — only this shape is valid
+            # on all of them, and bundler handles --quiet itself.
+            bundle_command("add #{name} --quiet")
           end
         end
 

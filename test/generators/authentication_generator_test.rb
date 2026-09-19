@@ -140,8 +140,26 @@ class MixinBotAuthenticationGeneratorTest < Rails::Generators::TestCase
 
     run_generator_with_stubs
 
-    assert_includes @bundle_commands, ['add omniauth-mixin', {}, { quiet: true }]
-    assert_includes @bundle_commands, ['add omniauth-rails_csrf_protection', {}, { quiet: true }]
+    assert_includes @bundle_commands, ['add omniauth-mixin --quiet']
+    assert_includes @bundle_commands, ['add omniauth-rails_csrf_protection --quiet']
+  end
+
+  def test_bundle_command_call_shape_is_accepted_by_real_helper
+    skip 'BundleHelper not present in this railties' unless defined?(Rails::Generators::BundleHelper)
+
+    helper = Class.new do
+      def say_status(*); end
+    end.new.extend(Rails::Generators::BundleHelper)
+    received = nil
+    helper.define_singleton_method(:exec_bundle_command) do |*args|
+      received = args
+      true
+    end
+
+    helper.bundle_command('add omniauth-mixin --quiet')
+
+    # exec_bundle_command receives (bundle_exe_path, command, env, params)
+    assert_equal ['add omniauth-mixin --quiet', {}, {}], received.drop(1)
   end
 
   def test_rerun_does_not_duplicate_routes_or_gemfile_entries

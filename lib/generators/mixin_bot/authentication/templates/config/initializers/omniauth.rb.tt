@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "omniauth"
+require "omniauth/strategies/mixin"
 
 Rails.application.config.middleware.use OmniAuth::Builder do
   provider :mixin,
