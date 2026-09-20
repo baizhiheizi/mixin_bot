@@ -1,0 +1,13 @@
+Description:
+    Adds Noticed-driven Mixin message notifications: ensures the `noticed`
+    gem is in the Gemfile and scaffolds one example notification delivered
+    through MixinBot's Mixin channel (`deliver_by :mixin`) over the HTTP
+    message API.
+
+Example:
+    rails generate mixin_bot:notifications
+
+    This will create:
+        app/notifications/payment_received_notification.rb
+
+    It will also ensure `noticed` is present in the Gemfile.

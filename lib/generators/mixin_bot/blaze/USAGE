@@ -1,0 +1,19 @@
+Description:
+    Adds Mixin Blaze message routing to this Rails application: a routes
+    initializer wired to MixinBot's `blaze_handler`, an example text handler
+    under app/mixin/handlers, and the `mixin_blaze` Puma plugin line in
+    config/puma.rb so messages are received inside the web process tree.
+
+    Requires MixinBot bot credentials (app_id, session_id,
+    session_private_key, server_public_key) to be configured, e.g. from
+    environment variables.
+
+Example:
+    rails generate mixin_bot:blaze
+
+    This will create:
+        config/initializers/mixin_bot_blaze.rb
+        app/mixin/handlers/text_handler.rb
+
+    It will also add `plugin :mixin_blaze` to config/puma.rb (creating it
+    when missing) without duplicating an existing line.
