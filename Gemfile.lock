@@ -108,7 +108,7 @@ GEM
     crass (1.0.7)
     drb (2.2.3)
     ecdsa (1.2.0)
-    erb (6.0.4)
+    erb (6.0.7)
     erubi (1.13.1)
     eth (0.5.17)
       base64 (~> 0.1)
@@ -266,7 +266,7 @@ GEM
       rake-compiler-dock (= 1.12.0)
     rbnacl (7.1.2)
       ffi (~> 1)
-    rbs (4.0.3)
+    rbs (4.2.0)
       logger
       prism (>= 1.6.0)
       tsort
@@ -275,7 +275,7 @@ GEM
       pkg-config (~> 1.5)
       rubyzip (~> 2.3)
     rbtree (0.4.7)
-    rdoc (8.0.0)
+    rdoc (8.1.0)
       erb
       prism (>= 1.6.0)
       rbs (>= 4.0.0)
