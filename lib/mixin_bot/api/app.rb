@@ -85,6 +85,26 @@ module MixinBot
         client.post path, **payload, access_token: kwargs[:access_token]
       end
 
+      ##
+      # Updates the app security profile — the allowed IP addresses and the
+      # resource URL patterns.
+      #
+      # +POST /apps/:id+ does not persist these two fields; the security
+      # endpoint is the only one that stores them. Both lists are submitted on
+      # every call, so fetch the live values first when only one list should
+      # change.
+      #
+      # @param allowed_ips [Array<String>] IPv4 / CIDR entries; +[]+ removes
+      #   the restriction
+      # @param resource_patterns [Array<String>] URL patterns; +[]+ removes the
+      #   restriction
+      # @return [MixinBot::Models::ApiEnvelope]
+      #
+      def update_app_security(app_id, allowed_ips: [], resource_patterns: [], access_token: nil)
+        path = format('/apps/%<id>s/security', id: app_id)
+        client.post path, allowed_ips:, resource_patterns:, access_token:
+      end
+
       def rotate_app_secret(app_id, access_token: nil)
         path = format('/apps/%<id>s/secret', id: app_id)
         client.post path, access_token:
