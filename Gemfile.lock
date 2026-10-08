@@ -275,7 +275,7 @@ GEM
       pkg-config (~> 1.5)
       rubyzip (~> 2.3)
     rbtree (0.4.7)
-    rdoc (8.0.0)
+    rdoc (8.1.0)
       erb
       prism (>= 1.6.0)
       rbs (>= 4.0.0)
