@@ -108,7 +108,7 @@ GEM
     crass (1.0.7)
     drb (2.2.3)
     ecdsa (1.2.0)
-    erb (6.0.4)
+    erb (6.0.7)
     erubi (1.13.1)
     eth (0.5.17)
       base64 (~> 0.1)
@@ -159,7 +159,7 @@ GEM
     immutable-ruby (0.2.0)
       concurrent-ruby (~> 1.1)
       sorted_set (~> 1.0)
-    io-console (0.8.2)
+    io-console (0.9.4)
     io-endpoint (0.18.0)
       openssl (>= 3.3.0)
     io-event (1.22.0)
@@ -266,7 +266,7 @@ GEM
       rake-compiler-dock (= 1.12.0)
     rbnacl (7.1.2)
       ffi (~> 1)
-    rbs (4.0.3)
+    rbs (4.2.0)
       logger
       prism (>= 1.6.0)
       tsort
@@ -281,7 +281,7 @@ GEM
       rbs (>= 4.0.0)
       tsort
     regexp_parser (2.12.0)
-    reline (0.6.3)
+    reline (0.7.0)
       io-console (~> 0.5)
     rexml (3.4.4)
     rubocop (1.91.0)
