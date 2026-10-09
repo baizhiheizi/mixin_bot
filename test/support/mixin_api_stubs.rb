@@ -423,6 +423,11 @@ module MixinApiStubs
     return { 'data' => true, 'error' => nil } if method == :post && path =~ %r{\A/apps/[^/]+/unfavorite\z}
     return { 'data' => { 'app_id' => parsed_body['app_id'] }, 'error' => nil } if method == :post && path == '/apps/favorite'
     return { 'data' => true, 'error' => nil } if method == :post && path == '/apps/unfavorite'
+    if method == :post && path =~ %r{\A/apps/[^/]+/security\z}
+      return { 'data' => { 'app_id' => path.split('/')[2],
+                           'allowed_ips' => parsed_body['allowed_ips'],
+                           'resource_patterns' => parsed_body['resource_patterns'] }, 'error' => nil }
+    end
     return { 'data' => [], 'error' => nil } if method == :get && path == '/external/transactions'
 
     if method == :post && path == '/transactions'

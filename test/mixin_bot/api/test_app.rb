@@ -4,7 +4,11 @@ require 'test_helper'
 
 module MixinBot
   class TestApp < Minitest::Test
+    include WebMock::API
+
     def setup
+      WebMock.reset!
+      MixinApiStubs.register!
       @opponent_app_id = 'c1412f68-6152-40ad-a193-f7fadf9328a1'
     end
 
@@ -84,6 +88,38 @@ module MixinBot
 
       updated = MixinBot.api.update_app(app_id, name: 'Updated App')
       assert_equal 'Updated App', updated['data']['name']
+    end
+
+    def test_update_app_security_posts_both_whitelists
+      MixinBot.api.update_app_security(
+        MixinBot.config.app_id,
+        allowed_ips: ['203.0.113.10'],
+        resource_patterns: ['https://mixin.one']
+      )
+
+      assert_requested(:post, "https://api.mixin.one/apps/#{MixinBot.config.app_id}/security") do |req|
+        body = MixinApiStubs.parse_json_body(req)
+        body['allowed_ips'] == ['203.0.113.10'] && body['resource_patterns'] == ['https://mixin.one']
+      end
+    end
+
+    def test_update_app_security_defaults_to_empty_lists
+      MixinBot.api.update_app_security(MixinBot.config.app_id)
+
+      assert_requested(:post, "https://api.mixin.one/apps/#{MixinBot.config.app_id}/security") do |req|
+        body = MixinApiStubs.parse_json_body(req)
+        body['allowed_ips'] == [] && body['resource_patterns'] == []
+      end
+    end
+
+    def test_update_app_security_returns_the_app_profile
+      r = MixinBot.api.update_app_security(
+        MixinBot.config.app_id,
+        resource_patterns: ['https://mixin.one/codes/*']
+      )
+
+      assert_equal MixinBot.config.app_id, r['data']['app_id']
+      assert_equal ['https://mixin.one/codes/*'], r['data']['resource_patterns']
     end
 
     def test_rotate_app_secret

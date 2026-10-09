@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`MixinBot::API#update_app_security`** — `POST /apps/:id/security`, the endpoint that persists an app's `allowed_ips` and `resource_patterns`. The generic `update_app` endpoint silently ignores both fields, so code that tried to manage the resource-pattern whitelist through it was a no-op.
+
 ## [3.0.1] - 2026-09-19
 
 ### Fixed
