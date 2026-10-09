@@ -1,6 +1,6 @@
 # Home
 
-*[MixinBot](https://github.com/baizhiheizi/mixin_bot) is a Ruby SDK (gem version 3.0.0) and CLI for [Mixin Network](https://developers.mixin.one/docs). It mirrors the official Go and Node SDKs and exposes authenticated REST calls, Safe UTXO transfers, Blaze messaging, network asset catalogs, inscriptions, invoices, transaction encoding, and optional MVM helpers.*
+*[MixinBot](https://github.com/baizhiheizi/mixin_bot) is a Ruby SDK (gem version 3.0.2) and CLI for [Mixin Network](https://developers.mixin.one/docs). It mirrors the official Go and Node SDKs and exposes authenticated REST calls, Safe UTXO transfers, Blaze messaging, network asset catalogs, inscriptions, invoices, transaction encoding, and optional MVM helpers.*
 
 ## Project overview
 
