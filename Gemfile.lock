@@ -227,7 +227,7 @@ GEM
     protocol-url (0.18.0)
     protocol-websocket (0.21.1)
       protocol-http (~> 0.2)
-    pry (0.16.0)
+    pry (0.16.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
       reline (>= 0.6.0)
