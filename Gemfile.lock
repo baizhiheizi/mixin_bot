@@ -273,10 +273,10 @@ GEM
       logger
       prism (>= 1.6.0)
       tsort
-    rbsecp256k1 (6.0.0)
+    rbsecp256k1 (6.0.2)
       mini_portile2 (~> 2.8)
       pkg-config (~> 1.5)
-      rubyzip (~> 2.3)
+      rubyzip (~> 3.4)
     rbtree (0.4.7)
     rdoc (8.1.0)
       erb
@@ -305,7 +305,7 @@ GEM
       lint_roller (~> 1.1)
       rubocop (>= 1.72.1)
     ruby-progressbar (1.13.0)
-    rubyzip (2.4.1)
+    rubyzip (3.4.0)
     scrypt (3.1.0)
       ffi-compiler (>= 1.0, < 2.0)
       rake (~> 13)
