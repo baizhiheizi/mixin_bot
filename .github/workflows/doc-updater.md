@@ -1,23 +1,24 @@
 ---
+name: Documentation Updater
+description: Automatically reviews and updates documentation based on recent code changes
 on:
+  schedule: weekly on wednesday around 03:00 utc+8
+  workflow_dispatch:
   permissions:
     pull-requests: read
-  schedule: weekly on wednesday around 03:00 utc+8
   steps:
-  - env:
-      GH_TOKEN: ${{ github.token }}
-    id: check
-    run: |
-      MAX_OPEN_PRS=8
-      if [[ "$GITHUB_EVENT_NAME" != "schedule" ]]; then exit 0; fi
-      COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "[docs]"' --json number --jq 'length')
-      [[ "$COUNT" -lt "$MAX_OPEN_PRS" ]]
-  workflow_dispatch: null
-permissions:
-  contents: read
-  issues: read
-  pull-requests: read
+    - id: check
+      env: 
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        MAX_OPEN_PRS=8
+        if [[ "$GITHUB_EVENT_NAME" != "schedule" ]]; then exit 0; fi
+        COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "[docs]"' --json number --jq 'length')
+        [[ "$COUNT" -lt "$MAX_OPEN_PRS" ]]
+      # exits 0 if not scheduled or <MAX_OPEN_PRS open PRs, 1 if ≥MAX_OPEN_PRS
+
 if: needs.pre_activation.outputs.check_result == 'success'
+
 network:
   allowed:
   - defaults
@@ -26,8 +27,17 @@ network:
   - python
   - rust
   - java
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+runs-on: [self-hosted, linux]
+runs-on-slim: self-hosted
+
 imports:
-- shared/engine-minimax.md
+  - shared/engine-glm.md
 models:
   providers:
     anthropic:
@@ -37,29 +47,24 @@ models:
             input: 3.0
             output: 15.0
             cache_read: 0.3
+
+tools:
+  github:
+    toolsets: [default]
+  edit:
+  bash: true
+
+timeout-minutes: 30
+
 safe-outputs:
   create-pull-request:
-    draft: false
     expires: 2d
-    labels:
-    - documentation
-    - automation
-    protected-files: fallback-to-issue
     title-prefix: "[docs] "
-description: Automatically reviews and updates documentation based on recent code changes
-name: Documentation Updater
-runs-on:
-- self-hosted
-- linux
-runs-on-slim: self-hosted
-source: githubnext/agentics/workflows/doc-updater.md@1c6668b751c51af8571f01204ceffb19362e0f66
-timeout-minutes: 30
-tools:
-  bash: true
-  edit: null
-  github:
-    toolsets:
-    - default
+    labels: [documentation, automation]
+    draft: false
+    protected-files: fallback-to-issue
+
+source: githubnext/agentics/workflows/doc-updater.md@139fa09ef17cde4135e696ff8e7af09bc5ddfa6e
 ---
 
 # Documentation Updater

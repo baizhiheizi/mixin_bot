@@ -23,7 +23,7 @@ runs-on: [self-hosted, linux]
 runs-on-slim: "self-hosted"
 
 imports:
-  - shared/engine-minimax.md
+  - shared/engine-glm.md
 models:
   providers:
     anthropic:
