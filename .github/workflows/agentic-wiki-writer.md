@@ -17,7 +17,7 @@ concurrency:
   job-discriminator: ${{ github.run_id }}
 
 imports:
-- shared/engine-minimax.md
+- shared/engine-glm.md
 
 permissions:
   contents: read

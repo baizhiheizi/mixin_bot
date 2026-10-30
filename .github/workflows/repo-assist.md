@@ -36,7 +36,7 @@ network:
   - rust
   - java
 imports:
-- shared/engine-minimax.md
+- shared/engine-glm.md
 models:
   providers:
     anthropic:
