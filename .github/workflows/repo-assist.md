@@ -264,20 +264,11 @@ steps:
       MEMORY_DIR: /tmp/gh-aw/repo-memory/default
     run: |
       if [[ ! -f "$MEMORY_DIR/notes.json" ]]; then
-        cat > "$MEMORY_DIR/notes.json" <<'EOF'
-      {
-        "version": 1,
-        "cursors": {
-          "labelling_after": null,
-          "investigation_after": null
-        },
-        "issues": [],
-        "fixes": [],
-        "checks": [],
-        "completed_actions": [],
-        "priorities": []
-      }
-      EOF
+        # Write the JSON via printf in one single-quoted argument: a literal
+        # `null` at the end of a heredoc line gets dropped by the gh-aw
+        # compiler's step processing (gh-aw v1.0.1), which corrupted
+        # notes.json and failed repo-memory validation with a SyntaxError.
+        printf '%s\n' '{"version": 1, "cursors": {"labelling_after": null, "investigation_after": null}, "issues": [], "fixes": [], "checks": [], "completed_actions": [], "priorities": []}' > "$MEMORY_DIR/notes.json"
       fi
 
   - name: Fetch repo data for task weighting
@@ -288,12 +279,50 @@ steps:
       set -euo pipefail
       mkdir -p /tmp/gh-aw
 
+      # gh CLI ignores GITHUB_API_URL/GITHUB_GRAPHQL_URL, so unlike the Octokit
+      # steps it connects to api.github.com directly instead of via the DIFC
+      # proxy. On hosts where that direct route is unreliable, a single network
+      # blip used to abort the whole run before the agent started. Retry each
+      # fetch, then degrade to neutral data so persistent connectivity failures
+      # cost some weighting fidelity instead of the entire run.
+      fetch_gh() {
+        local out="$1" attempt last_err
+        shift
+        for attempt in 1 2 3; do
+          if gh "$@" > "${out}.tmp" 2>>/tmp/gh-aw/gh-fetch.err; then
+            mv "${out}.tmp" "$out"
+            return 0
+          fi
+          last_err="$(tail -n 1 /tmp/gh-aw/gh-fetch.err 2>/dev/null || true)"
+          echo "::warning::gh $* failed (attempt ${attempt}/3)${last_err:+: ${last_err}}"
+          [ "$attempt" -eq 3 ] || sleep $((attempt * 15))
+        done
+        return 1
+      }
+
+      DATA_DEGRADED=false
+
       # Fetch open issues with labels (up to 500)
-      gh issue list --state open --limit 500 --json number,labels > /tmp/gh-aw/issues.json
+      if ! fetch_gh /tmp/gh-aw/issues.json issue list --state open --limit 500 --json number,labels; then
+        echo '::warning::issue fetch failed; falling back to neutral task weights'
+        echo '[]' > /tmp/gh-aw/issues.json
+        DATA_DEGRADED=true
+      fi
 
       # Fetch all open PRs so the capacity decision cannot miss older PRs.
-      gh api --hostname "${GITHUB_SERVER_URL#https://}" --paginate "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" \
-        --jq '.[] | {number, title}' | jq -s . > /tmp/gh-aw/prs.json
+      if ! fetch_gh /tmp/gh-aw/prs.raw api --paginate "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --jq '.[] | {number, title}'; then
+        echo '::warning::PR fetch failed; falling back to neutral task weights'
+        echo '[]' > /tmp/gh-aw/prs.json
+        DATA_DEGRADED=true
+      elif jq -s . /tmp/gh-aw/prs.raw > /tmp/gh-aw/prs.json; then
+        rm -f /tmp/gh-aw/prs.raw
+      else
+        echo '::warning::PR data unparseable; falling back to neutral task weights'
+        echo '[]' > /tmp/gh-aw/prs.json
+        DATA_DEGRADED=true
+      fi
+
+      export DATA_DEGRADED
 
       # Compute task weights and select three tasks for this run
       python3 - << 'EOF'
@@ -363,6 +392,7 @@ steps:
       print(f'Unlabelled issues : {unlabelled}')
       print(f'Repo Assist PRs   : {repo_assist_prs}')
       print(f'Mode              : {"maintenance-only" if maintenance_only else "normal"}')
+      print(f'Data degraded     : {os.environ.get("DATA_DEGRADED") == "true"}')
       print()
       print('Task weights:')
       for t, w in weights.items():
@@ -377,6 +407,7 @@ steps:
           'open_issues': open_issues, 'unlabelled_issues': unlabelled,
           'repo_assist_prs': repo_assist_prs,
           'maintenance_only': maintenance_only,
+          'data_degraded': os.environ.get('DATA_DEGRADED') == 'true',
           'new_pr_limit': max(0, min(4, 8 - repo_assist_prs)) if os.environ.get('GITHUB_EVENT_NAME') == 'schedule' else 4,
           'task_names': task_names,
           'weights': {str(k): round(v, 2) for k, v in weights.items()},
@@ -443,7 +474,7 @@ After every change to `notes.json`, run `jq empty /tmp/gh-aw/repo-memory/default
 
 Each run, the deterministic pre-step collects live repo data (open issue count, unlabelled issue count, and open Repo Assist PRs), computes a **weighted probability** for each task, and selects **three tasks** for this run using a seeded random draw. The weights and selected tasks are printed in the workflow logs. You will find the selection in `/tmp/gh-aw/task_selection.json`.
 
-**Read the task selection**: at the start of your run, read `/tmp/gh-aw/task_selection.json` and confirm the three selected tasks in your opening reasoning. Start with **those three tasks**. If a selected task is not applicable to the current repo state, substitute its fallback task. The selection is a starting allocation, not a restriction on which tasks you may perform. If no actionable work emerges, perform the generic fallback sweep below before concluding with `noop`. Do Task 11 after substantive work and record any substitutions in its run history entry.
+**Read the task selection**: at the start of your run, read `/tmp/gh-aw/task_selection.json` and confirm the three selected tasks in your opening reasoning. Start with **those three tasks**. If a selected task is not applicable to the current repo state, substitute its fallback task. The selection is a starting allocation, not a restriction on which tasks you may perform. If `data_degraded` is `true`, the pre-step could not fetch live repo data (host network to `api.github.com` was unavailable), so treat the weights as neutral and establish current repository state yourself with `list_issues`/`list_pull_requests` before acting on any selected task. If no actionable work emerges, perform the generic fallback sweep below before concluding with `noop`. Do Task 11 after substantive work and record any substitutions in its run history entry.
 
 | Selected task | Not applicable when… | Fallback |
 |---|---|---|
