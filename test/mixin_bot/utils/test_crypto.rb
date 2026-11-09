@@ -14,7 +14,31 @@ module MixinBot::Utils
 
       assert MixinBot.utils.generate_unique_uuid(uuid1, uuid2) == '42a76a3b-775f-3ee6-baeb-3f76224f8deb'
       assert MixinBot.utils.generate_unique_uuid(uuid2, uuid1) == '42a76a3b-775f-3ee6-baeb-3f76224f8deb'
-      assert MixinBot.utils.unique_uuid(uuid1, uuid2, uuid3) == 'f681e720-4981-3497-add1-4d90eabd7dce'
+      assert MixinBot.utils.unique_uuid(uuid1, uuid2, uuid3) == '9663a1fc-ac2f-34be-ad96-b534414efee7'
+    end
+
+    def test_unique_uuid_is_order_independent
+      uuid1 = '965e5c6e-434c-3fa9-b780-c50f43cd955c'
+      uuid2 = 'c94ac88f-4671-3976-b60a-09064f1811e8'
+      uuid3 = '43d61dcd-e413-450d-80b8-101d5e903357'
+
+      expected = MixinBot.utils.unique_uuid(uuid1, uuid2, uuid3)
+      assert_equal '109ce9c6-5350-378e-a645-ff88457a8e05', expected
+      [uuid1, uuid2, uuid3].permutation.each do |ids|
+        assert_equal expected, MixinBot.utils.unique_uuid(*ids)
+      end
+
+      assert_equal MixinBot.utils.unique_uuid(uuid1, uuid2), MixinBot.utils.unique_uuid(uuid2, uuid1)
+    end
+
+    def test_unique_uuid_flattens_and_compacts_input
+      uuid1 = '965e5c6e-434c-3fa9-b780-c50f43cd955c'
+      uuid2 = 'c94ac88f-4671-3976-b60a-09064f1811e8'
+      uuid3 = '43d61dcd-e413-450d-80b8-101d5e903357'
+
+      expected = MixinBot.utils.unique_uuid(uuid1, uuid2, uuid3)
+
+      assert_equal expected, MixinBot.utils.unique_uuid([uuid3, nil, uuid1, uuid2])
     end
 
     def test_oauth_code_challenge_rfc7636_vector

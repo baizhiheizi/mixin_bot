@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`MixinBot.utils.unique_uuid` now honors its documented order-independence.** The variadic method called `uuids.sort` but discarded the result (`Array#sort` returns a new array without mutating), so calls with 3+ UUIDs produced different IDs depending on argument order. It now sorts before folding. Two-argument calls and all in-gem callers (conversation IDs, group conversation IDs) are unchanged; only direct callers passing 3+ UUIDs in non-sorted order see a different derived ID. The 3-argument golden test value and its order-independence assertions are updated accordingly.
+
 ## [3.0.2] - 2026-09-24
 
 ### Added

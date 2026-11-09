@@ -237,8 +237,7 @@ module MixinBot
       #   puts uuid  # Always the same for these inputs
       #
       def unique_uuid(*uuids)
-        uuids = uuids.flatten.compact
-        uuids.sort
+        uuids = uuids.flatten.compact.sort
         r = uuids.first
         uuids.each_with_index do |uuid, i|
           r = generate_unique_uuid(r, uuid) if i.positive?
