@@ -52,8 +52,6 @@ tools:
   bash: true
 
 timeout-minutes: 15
-
-source: githubnext/agentics/workflows/dependabot-pr-bundler.md@e15e57b40918dbca11b350c55d02ab61934afa75
 ---
 
 # Agentic Dependabot Bundler

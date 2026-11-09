@@ -225,7 +225,7 @@ jobs:
     pre-steps:
       - name: Download outputs for PR capacity check
         if: github.event_name == 'schedule'
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: "{agent,agent-output-fallback}"
           merge-multiple: true
@@ -274,6 +274,9 @@ steps:
   - name: Fetch repo data for task weighting
     env:
       GH_TOKEN: ${{ github.token }}
+      # steps.sanitized lives in the activation job; downstream jobs consume it
+      # via needs.activation.outputs (compiler only rewrites steps.sanitized
+      # inside the activation job itself).
       REPO_ASSIST_COMMAND: ${{ needs.activation.outputs.text || inputs.command }}
     run: |
       set -euo pipefail

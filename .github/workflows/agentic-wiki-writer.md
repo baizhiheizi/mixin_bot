@@ -41,6 +41,7 @@ safe-outputs:
         with:
           repository: ${{ github.repository }}.wiki
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: false
       - name: Write wiki pages
         run: |
           jq -r '.items[] | select(.type == "push_wiki") | .files | fromjson | to_entries[] | @base64' "$GH_AW_AGENT_OUTPUT" | while IFS= read -r entry; do
@@ -93,13 +94,15 @@ safe-outputs:
               print('No Mermaid syntax issues found')
           EOF
       - name: Commit and push
+        env:
+          WIKI_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           git diff --cached --quiet && echo "No changes to commit" && exit 0
           git commit -m "Update wiki pages [agentic-wiki]"
-          git push
+          git push "https://x-access-token:${WIKI_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" HEAD
 steps:
 - name: Pre-stage event payload for sandbox
   run: |
