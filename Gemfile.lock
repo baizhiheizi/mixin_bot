@@ -105,7 +105,7 @@ GEM
     crack (1.0.1)
       bigdecimal
       rexml
-    crass (1.0.7)
+    crass (1.0.8)
     drb (2.2.3)
     ecdsa (1.2.0)
     erb (6.0.7)
