@@ -47,7 +47,7 @@ module MixinBot
       # @param uri [String] request URI path
       # @param body [String] request body (empty for GET)
       # @param kwargs [Hash] additional options
-      # @option kwargs [Integer] :exp_in (600) token lifetime in seconds
+      # @option kwargs [Integer] :exp_in (300) token lifetime in seconds
       # @option kwargs [String] :scp ('FULL') token scope
       # @option kwargs [String] :app_id bot application ID
       # @option kwargs [String] :session_id session ID
@@ -64,7 +64,8 @@ module MixinBot
       def access_token(method, uri, body = '', **kwargs)
         sig = Digest::SHA256.hexdigest(method + uri + body.to_s)
         iat = Time.now.utc.to_i
-        exp = (Time.now.utc + (kwargs[:exp_in] || 600)).to_i
+        # Mixin API rejects JWT tokens with a validity longer than 5 minutes.
+        exp = (Time.now.utc + (kwargs[:exp_in] || 300)).to_i
         scp = kwargs[:scp] || 'FULL'
         jti = SecureRandom.uuid
         uid = kwargs[:app_id] || MixinBot.config.app_id

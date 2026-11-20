@@ -218,7 +218,7 @@ module MixinBot
     # @param uri [String] the request URI path
     # @param body [String] the request body
     # @param kwargs [Hash] additional options
-    # @option kwargs [Integer] :exp_in (600) token expiration time in seconds
+    # @option kwargs [Integer] :exp_in (300) token expiration time in seconds
     # @option kwargs [String] :scp ('FULL') token scope
     #
     # @return [String] the JWT access token
@@ -231,7 +231,7 @@ module MixinBot
         method,
         uri,
         body,
-        exp_in: kwargs.delete(:exp_in) || 600,
+        exp_in: kwargs.delete(:exp_in) || 300,
         scp: kwargs.delete(:scp) || 'FULL',
         app_id: config.app_id,
         session_id: config.session_id,
