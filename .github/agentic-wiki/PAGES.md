@@ -1,6 +1,6 @@
 # Home
 
-*[MixinBot](https://github.com/baizhiheizi/mixin_bot) is a Ruby SDK (gem version 3.0.2) and CLI for [Mixin Network](https://developers.mixin.one/docs). It mirrors the official Go and Node SDKs and exposes authenticated REST calls, Safe UTXO transfers, Blaze messaging, network asset catalogs, inscriptions, invoices, transaction encoding, and optional MVM helpers.*
+*[MixinBot](https://github.com/baizhiheizi/mixin_bot) is a Ruby SDK (gem version 3.0.3) and CLI for [Mixin Network](https://developers.mixin.one/docs). It mirrors the official Go and Node SDKs and exposes authenticated REST calls, Safe UTXO transfers, Blaze messaging, network asset catalogs, inscriptions, invoices, transaction encoding, and optional MVM helpers.*
 
 ## Project overview
 
@@ -236,7 +236,7 @@ You can add this to your repository root as `AGENTS.md` to give AI coding agents
 
 ```
 # MixinBot
-> Ruby SDK (gem 3.0.2) and CLI for Mixin Network: Safe UTXO transfers, Blaze messaging, Rails integration, MVM helpers.
+> Ruby SDK (gem 3.0.3) and CLI for Mixin Network: Safe UTXO transfers, Blaze messaging, Rails integration, MVM helpers.
 Wiki: https://github.com/baizhiheizi/mixin_bot/wiki
 To read any page: https://github.com/baizhiheizi/mixin_bot/wiki/{slug}
 Section: https://github.com/baizhiheizi/mixin_bot/wiki/{slug}#{anchor}
@@ -291,7 +291,7 @@ You can serve this at `yoursite.com/llms.txt` or include it in your repository t
 
 ```
 # MixinBot
-> Ruby SDK and CLI for Mixin Network (gem 3.0.2) with Safe UTXO transfers, Blaze messaging, a Rails integration layer, and MVM helpers.
+> Ruby SDK and CLI for Mixin Network (gem 3.0.3) with Safe UTXO transfers, Blaze messaging, a Rails integration layer, and MVM helpers.
 
 ## Wiki Pages
 - [Home](https://github.com/baizhiheizi/mixin_bot/wiki/Home): Project overview and quick links
