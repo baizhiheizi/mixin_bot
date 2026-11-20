@@ -37,7 +37,7 @@ module MixinBot
     #
     def get(path, **kwargs)
       access_token = kwargs.delete(:access_token)
-      exp_in = kwargs.delete(:exp_in) || 600
+      exp_in = kwargs.delete(:exp_in) || 300
       scp = kwargs.delete(:scp) || 'FULL'
 
       kwargs.compact!
@@ -56,7 +56,7 @@ module MixinBot
     #
     def post(path, *args, **kwargs)
       access_token = kwargs.delete(:access_token)
-      exp_in = kwargs.delete(:exp_in) || 600
+      exp_in = kwargs.delete(:exp_in) || 300
       scp = kwargs.delete(:scp) || 'FULL'
 
       body =
@@ -74,7 +74,7 @@ module MixinBot
     ##
     # Explicit query-string GET (preferred for new code).
     #
-    def fetch_get(path, query: nil, access_token: nil, exp_in: 600, scp: 'FULL')
+    def fetch_get(path, query: nil, access_token: nil, exp_in: 300, scp: 'FULL')
       q = (query || {}).dup
       q.compact!
       body = ''
@@ -87,7 +87,7 @@ module MixinBot
     ##
     # Explicit JSON-object POST (preferred for new code).
     #
-    def fetch_post(path, body:, access_token: nil, exp_in: 600, scp: 'FULL')
+    def fetch_post(path, body:, access_token: nil, exp_in: 300, scp: 'FULL')
       payload = body.is_a?(String) ? body : body.compact.to_json
       token = access_token.presence || sign_token('POST', path, payload, exp_in:, scp:)
       response = @conn.post(path, payload, authorization_headers(token))
@@ -97,7 +97,7 @@ module MixinBot
     ##
     # Explicit JSON-array POST (e.g. +/users/fetch+, +/safe/keys+).
     #
-    def fetch_post_array(path, array_body, access_token: nil, exp_in: 600, scp: 'FULL')
+    def fetch_post_array(path, array_body, access_token: nil, exp_in: 300, scp: 'FULL')
       payload = array_body.to_json
       token = access_token.presence || sign_token('POST', path, payload, exp_in:, scp:)
       response = @conn.post(path, payload, authorization_headers(token))

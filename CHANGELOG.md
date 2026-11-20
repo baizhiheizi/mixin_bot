@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Default JWT `exp_in` lowered from 600s to 300s (5 minutes).** The Mixin API now rejects tokens whose validity exceeds 5 minutes (parity: bot-api-go-client `jwtValidDuration = 5 * time.Minute`, bot-api-nodejs-client `exp = iat + 300`). The new default applies to every token-signing path — `MixinBot.utils.access_token`, `Client#get`/`post`/`fetch_get`/`fetch_post`/`fetch_post_array`, `API#access_token`, `API#sign_oauth_access_token`, and `API#fetch_user_sessions`. Explicit `exp_in:` arguments are still honored; only callers relying on the implicit 600s default are affected. Tokens are minted per request, so no behavior changes beyond the shorter validity window.
+
 ### Fixed
 
 - **`MixinBot.utils.unique_uuid` now honors its documented order-independence.** The variadic method called `uuids.sort` but discarded the result (`Array#sort` returns a new array without mutating), so calls with 3+ UUIDs produced different IDs depending on argument order. It now sorts before folding. Two-argument calls and all in-gem callers (conversation IDs, group conversation IDs) are unchanged; only direct callers passing 3+ UUIDs in non-sorted order see a different derived ID. The 3-argument golden test value and its order-independence assertions are updated accordingly.

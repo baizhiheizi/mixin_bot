@@ -8,7 +8,7 @@ module MixinBot
           method,
           uri,
           body,
-          exp_in: kwargs[:exp_in] || 600,
+          exp_in: kwargs[:exp_in] || 300,
           scp: scope,
           app_id: kwargs[:app_id] || config.app_id,
           session_id: kwargs[:session_id] || config.session_id,
