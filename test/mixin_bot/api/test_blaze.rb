@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'test_helper'
+require 'base64'
 
 module MixinBot
   ##
@@ -424,7 +425,65 @@ module MixinBot
       ids.each { |id| assert_match UUID_PATTERN, id }
     end
 
+    # =================================================================
+    # Blaze proxy forwarding
+    # =================================================================
+
+    def test_blaze_omits_proxy_when_unconfigured
+      previous = MixinBot.config.proxy
+      MixinBot.config.proxy = nil
+
+      captured = capture_faye_client_new { MixinBot.api.blaze }
+
+      refute captured[:options].key?(:proxy)
+    ensure
+      MixinBot.config.proxy = previous
+    end
+
+    def test_blaze_forwards_proxy_origin_without_credentials
+      previous = MixinBot.config.proxy
+      MixinBot.config.proxy = 'http://127.0.0.1:7890'
+
+      captured = capture_faye_client_new { MixinBot.api.blaze }
+
+      assert_equal({ origin: 'http://127.0.0.1:7890' }, captured[:options][:proxy])
+    ensure
+      MixinBot.config.proxy = previous
+    end
+
+    def test_blaze_forwards_proxy_origin_and_basic_auth_header
+      previous = MixinBot.config.proxy
+      MixinBot.config.proxy = 'http://alice:s3cr3t@127.0.0.1:7890'
+
+      captured = capture_faye_client_new { MixinBot.api.blaze }
+
+      assert_equal(
+        {
+          origin: 'http://127.0.0.1:7890',
+          headers: { 'Proxy-Authorization' => "Basic #{Base64.strict_encode64('alice:s3cr3t')}" }
+        },
+        captured[:options][:proxy]
+      )
+    ensure
+      MixinBot.config.proxy = previous
+    end
+
     private
+
+    def capture_faye_client_new
+      captured = {}
+      original = Faye::WebSocket::Client.method(:new)
+      Faye::WebSocket::Client.define_singleton_method(:new) do |url, protocols, options|
+        captured[:url] = url
+        captured[:protocols] = protocols
+        captured[:options] = options
+        :fake_ws
+      end
+      captured[:result] = yield
+      captured
+    ensure
+      Faye::WebSocket::Client.define_singleton_method(:new, original) if original
+    end
 
     # Per-helper argument map for the invariant tests above.
     def base_args_for(helper)

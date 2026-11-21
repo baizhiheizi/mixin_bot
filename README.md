@@ -55,6 +55,7 @@ MixinBot.configure do
   # self.pin = self.spend_key        # optional; used where PIN material is required
   # self.api_host = 'api.mixin.one'
   # self.blaze_host = 'blaze.mixin.one'
+  # self.proxy = 'http://127.0.0.1:7890' # optional HTTP/HTTPS proxy for all requests
   # self.http_timeout = 30          # request timeout in seconds (nil = no timeout)
   # self.debug = true               # Faraday response logging
 end
@@ -418,7 +419,7 @@ token = client.sign_request(Time.now.to_i, bot_user_id, 'GET', '/some/path')
 
 ## CLI
 
-Invoke **`mixinbot`** (global options: `-a` / `--apihost`, `-o` / `--output pretty|json|yaml`, `-r` / `--pretty`).
+Invoke **`mixinbot`** (global options: `-a` / `--apihost`, `--proxy`, `-o` / `--output pretty|json|yaml`, `-r` / `--pretty`).
 
 When stdout is piped, output defaults to JSON. Use `mixinbot schema -o json` for machine-readable command discovery. See [docs/agent/cli.md](docs/agent/cli.md).
 

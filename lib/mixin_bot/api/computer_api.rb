@@ -5,31 +5,31 @@ module MixinBot
     # Delegates to {MixinBot::Computer} for API surface parity with Go SDK.
     module ComputerApi
       def get_computer_info
-        MixinBot::Computer.info
+        MixinBot::Computer.info(proxy: config.proxy_config)
       end
 
       def get_computer_user(addr)
-        MixinBot::Computer.user(addr)
+        MixinBot::Computer.user(addr, proxy: config.proxy_config)
       end
 
       def get_computer_deployed_assets
-        MixinBot::Computer.deployed_assets
+        MixinBot::Computer.deployed_assets(proxy: config.proxy_config)
       end
 
       def get_computer_system_call(id)
-        MixinBot::Computer.system_call(id)
+        MixinBot::Computer.system_call(id, proxy: config.proxy_config)
       end
 
       def computer_deploy_external_asset(assets)
-        MixinBot::Computer.deploy_external_assets(assets)
+        MixinBot::Computer.deploy_external_assets(assets, proxy: config.proxy_config)
       end
 
       def lock_computer_nonce_account(mix)
-        MixinBot::Computer.lock_nonce_account(mix)
+        MixinBot::Computer.lock_nonce_account(mix, proxy: config.proxy_config)
       end
 
       def get_fee_on_xin_based_on_sol(sol_amount)
-        MixinBot::Computer.fee_on_xin_from_sol(sol_amount)
+        MixinBot::Computer.fee_on_xin_from_sol(sol_amount, proxy: config.proxy_config)
       end
 
       def register_computer

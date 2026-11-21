@@ -167,6 +167,7 @@ module MixinBot
     # @option kwargs [String] :session_private_key the session private key
     # @option kwargs [String] :server_public_key the server public key
     # @option kwargs [String] :spend_key the spend private key (for Safe API)
+    # @option kwargs [String, URI, Hash] :proxy HTTP/HTTPS proxy URL or options hash
     #
     # @example Using global configuration
     #   api = MixinBot::API.new

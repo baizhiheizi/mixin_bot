@@ -7,11 +7,16 @@ module MixinBot
         access_token = access_token('GET', '/', '')
 
         authorization = format('Bearer %<access_token>s', access_token:)
+        options = {
+          headers: { 'Authorization' => authorization, 'User-Agent' => "mixin_bot/#{MixinBot::VERSION}" },
+          ping: 60
+        }
+        options[:proxy] = config.proxy_config.faye_options if config.proxy_config
+
         Faye::WebSocket::Client.new(
           format('wss://%<host>s/', host: config.blaze_host),
           ['Mixin-Blaze-1'],
-          headers: { 'Authorization' => authorization, 'User-Agent' => "mixin_bot/#{MixinBot::VERSION}" },
-          ping: 60
+          options
         )
       end
 
