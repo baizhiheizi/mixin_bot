@@ -75,6 +75,20 @@ module MixinBot
       assert_match(/nowhere/, error.message)
     end
 
+    def test_register_bot_accepts_isolated_proxy
+      previous = MixinBot.config.proxy
+      MixinBot.config.proxy = nil
+
+      api = MixinBot.register_bot(:shop, **shop_credentials, proxy: 'http://127.0.0.1:7890')
+
+      assert_predicate api.config, :frozen?
+      assert_equal 'http://127.0.0.1:7890', api.config.proxy
+      assert_equal 7890, api.client.conn.proxy.port
+      assert_nil MixinBot.config.proxy
+    ensure
+      MixinBot.config.proxy = previous
+    end
+
     private
 
     def credentials_for(app_id, seed_suffix)

@@ -254,6 +254,8 @@ module MixinBot
       global_args = [
         { 'name' => '--apihost', 'type' => 'string', 'required' => false, 'default' => 'api.mixin.one',
           'aliases' => ['-a'] },
+        { 'name' => '--proxy', 'type' => 'string', 'required' => false,
+          'description' => 'HTTP/HTTPS proxy URL (e.g. http://127.0.0.1:7890)' },
         { 'name' => '--output', 'type' => 'string', 'required' => false,
           'enum' => CLIOutput::OUTPUT_FORMATS, 'aliases' => ['-o'],
           'description' => 'Output format; defaults to pretty in TTY, json when piped' },

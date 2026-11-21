@@ -7,6 +7,7 @@ The `mixinbot` executable wraps `MixinBot::API` and utilities for scripting and 
 | Flag | Description |
 |------|-------------|
 | `-a`, `--apihost` | Mixin API host (default: `api.mixin.one`) |
+| `--proxy` | HTTP/HTTPS proxy URL (e.g. `http://127.0.0.1:7890`) |
 | `-o`, `--output` | Output format: `pretty`, `json`, `yaml` |
 | `-r`, `--pretty` | Alias for `--output pretty` (default in TTY) |
 
@@ -28,11 +29,12 @@ API commands accept `-k` / `--keystore`: path to JSON or inline JSON:
   "server_public_key": "hex-or-base64",
   "spend_key": "hex",
   "client_secret": "...",
-  "pin": "123456"
+  "pin": "123456",
+  "proxy": "http://127.0.0.1:7890"
 }
 ```
 
-Aliases: `client_id` → `app_id`, `private_key` → `session_private_key`, `pin_token` → `server_public_key`.
+Aliases: `client_id` → `app_id`, `private_key` → `session_private_key`, `pin_token` → `server_public_key`. Optional `"proxy"` routes requests from that keystore through an HTTP/HTTPS proxy (overridden by `--proxy`).
 
 Without `-k`, the CLI uses global `MixinBot.configure` credentials.
 

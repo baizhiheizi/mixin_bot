@@ -131,6 +131,65 @@ module MixinBot
       )
     end
 
+    def test_proxy_option_applies_with_and_without_keystore
+      previous_proxy = MixinBot.config.proxy
+      MixinBot.config.proxy = nil
+
+      cli_no_keystore = CLI.new
+      cli_no_keystore.instance_variable_set(:@options, {
+                                              apihost: 'api.mixin.one',
+                                              proxy: 'http://127.0.0.1:7890',
+                                              pretty: false,
+                                              output: 'json'
+                                            })
+      cli_no_keystore.send(:setup_api_instance!)
+      assert_equal 'http://127.0.0.1:7890', MixinBot.config.proxy
+      assert_equal 7890, cli_no_keystore.api_instance.client.conn.proxy.port
+
+      MixinBot.config.proxy = nil
+      keystore_with_proxy = JSON.parse(@keystore_json).merge('proxy' => 'http://127.0.0.1:8080').to_json
+
+      cli_keystore = CLI.new
+      cli_keystore.instance_variable_set(:@options, {
+                                           keystore: keystore_with_proxy,
+                                           apihost: 'api.mixin.one',
+                                           pretty: false,
+                                           output: 'json'
+                                         })
+      cli_keystore.send(:setup_api_instance!)
+      assert_equal 8080, cli_keystore.api_instance.client.conn.proxy.port
+
+      cli_override = CLI.new
+      cli_override.instance_variable_set(:@options, {
+                                           keystore: keystore_with_proxy,
+                                           apihost: 'api.mixin.one',
+                                           proxy: 'https://alice:pass@127.0.0.1:9090',
+                                           pretty: false,
+                                           output: 'json'
+                                         })
+      cli_override.send(:setup_api_instance!)
+      assert_equal 9090, cli_override.api_instance.client.conn.proxy.port
+      assert_equal 'alice', cli_override.api_instance.client.conn.proxy.user
+    ensure
+      MixinBot.config.proxy = previous_proxy
+    end
+
+    def test_cli_call_with_proxy_flag_succeeds_and_invalid_proxy_exits_nonzero
+      previous_proxy = MixinBot.config.proxy
+      MixinBot.config.proxy = nil
+
+      body = capture_cli_json(['call', 'me', '-k', @keystore_json, '--proxy', 'http://127.0.0.1:7890', '-o', 'json'])
+      assert_equal 'ok', body['status']
+
+      _out, err, status = capture_cli_exit(['call', 'me', '-k', @keystore_json, '--proxy', 'socks5://127.0.0.1:1080', '-o', 'json'])
+      assert_equal 1, status
+      err_body = JSON.parse(err)
+      assert_equal 'error', err_body['status']
+      assert_equal 'invalid_args', err_body.dig('error', 'kind')
+    ensure
+      MixinBot.config.proxy = previous_proxy
+    end
+
     private
 
     def keystore_inline_json

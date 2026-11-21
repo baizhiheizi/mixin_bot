@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'proxy'
+
 module MixinBot
   ##
   # Configuration class for storing Mixin bot credentials and settings.
@@ -9,7 +11,7 @@ module MixinBot
   # - Session ID and private key
   # - Server public key
   # - Spend key and PIN
-  # - API and Blaze host settings
+  # - API, Blaze host, and HTTP/HTTPS proxy settings
   #
   # == Usage
   #
@@ -52,6 +54,7 @@ module MixinBot
       pin
       api_host
       blaze_host
+      proxy
       http_timeout
       session_private_key_curve25519
       server_public_key_curve25519
@@ -68,7 +71,7 @@ module MixinBot
 
     DEFAULT_BLAZE_ACK_POLICY = :on_receipt
 
-    attr_reader :blaze_handler, :blaze_ack_policy
+    attr_reader :blaze_handler, :blaze_ack_policy, :proxy_config
 
     ##
     # Initializes a new Configuration instance.
@@ -83,6 +86,7 @@ module MixinBot
     # @option kwargs [String] :pin the PIN (defaults to spend_key if not provided)
     # @option kwargs [String] :api_host ('api.mixin.one') the API host
     # @option kwargs [String] :blaze_host ('blaze.mixin.one') the Blaze WebSocket host
+    # @option kwargs [String, URI, Hash, MixinBot::Proxy, nil] :proxy HTTP/HTTPS proxy URL or options hash
     # @option kwargs [Numeric] :http_timeout (nil) request timeout in seconds; nil keeps Faraday's default
     # @option kwargs [Boolean] :debug (false) enable debug logging
     #
@@ -110,6 +114,7 @@ module MixinBot
       @blaze_ack_policy = DEFAULT_BLAZE_ACK_POLICY
       self.blaze_handler = kwargs[:blaze_handler]
       self.blaze_ack_policy = kwargs[:blaze_ack_policy]
+      self.proxy = kwargs[:proxy]
 
       self.session_private_key = kwargs[:session_private_key] || kwargs[:private_key]
       self.server_public_key = kwargs[:server_public_key] || kwargs[:pin_token]
@@ -255,7 +260,40 @@ module MixinBot
       @blaze_ack_policy = policy
     end
 
+    ##
+    # Sets the HTTP/HTTPS proxy used by REST, attachment upload, Blaze WebSocket,
+    # Computer, and MVM clients.
+    #
+    # @param value [String, URI, Hash, MixinBot::Proxy, nil]
+    # @raise [MixinBot::ArgumentError] when the proxy format or scheme is invalid
+    #
+    def proxy=(value)
+      parsed = MixinBot::Proxy.parse(value)
+      if parsed.nil?
+        @proxy_config = nil
+        @proxy = nil
+      else
+        @proxy_config = parsed
+        @proxy = normalize_stored_proxy(value, parsed)
+      end
+    end
+
     private
+
+    def normalize_stored_proxy(value, parsed)
+      case value
+      when String
+        value.strip.freeze
+      when URI
+        value.dup.freeze
+      when Hash
+        value.transform_values do |v|
+          v.is_a?(String) || v.is_a?(URI) ? v.dup.freeze : v
+        end.freeze
+      else
+        parsed.origin.freeze
+      end
+    end
 
     def decode_key(key)
       MixinBot.utils.decode_key key

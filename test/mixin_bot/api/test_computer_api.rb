@@ -173,6 +173,40 @@ module MixinBot
       assert_equal 41, extra.bytesize
     end
 
+    def test_computer_connection_tracks_global_proxy_and_api_instance_override
+      previous = MixinBot.config.proxy
+      stub_computer('GET', '/') { { 'data' => { 'version' => '1' } } }
+
+      MixinBot.config.proxy = 'http://127.0.0.1:7890'
+      assert_equal 7890, MixinBot::Computer.connection.proxy.port
+      assert_equal '1', MixinBot.api.get_computer_info.dig('data', 'version')
+
+      custom_api = MixinBot::API.new(
+        app_id: OfflineConfig.app_id,
+        session_id: OfflineConfig.session_id,
+        session_private_key: OfflineConfig.session_private_key_hex,
+        server_public_key: OfflineConfig.server_public_key_hex,
+        proxy: 'http://127.0.0.1:9001'
+      )
+
+      seen_ports = []
+      original_connection = MixinBot::Computer.method(:connection)
+      MixinBot::Computer.define_singleton_method(:connection) do |**kwargs|
+        conn = original_connection.call(**kwargs)
+        seen_ports << conn.proxy&.port
+        conn
+      end
+
+      assert_equal '1', custom_api.get_computer_info.dig('data', 'version')
+      assert_equal [9001], seen_ports
+
+      MixinBot.config.proxy = nil
+      assert_nil original_connection.call.proxy
+    ensure
+      MixinBot::Computer.define_singleton_method(:connection, original_connection) if original_connection
+      MixinBot.config.proxy = previous
+    end
+
     private
 
     def stub_computer(method, path)

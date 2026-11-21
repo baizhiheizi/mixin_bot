@@ -3,6 +3,7 @@
 require 'faraday'
 
 require_relative 'json_decoder'
+require_relative 'proxy'
 
 module MixinBot
   # Mixin Computer API client (https://computer.mixin.one).
@@ -14,21 +15,36 @@ module MixinBot
     SOLANA_CHAIN_ID = '64692c23-8971-4cf4-84a7-4dd1271dd887'
 
     class << self
-      def connection
-        @connection ||= Faraday.new(url: BASE_URI) do |f|
-          f.request :json
-          f.response :json, parser_options: { decoder: [MixinBot::JSONDecoder, :parse] }
-          f.adapter Faraday.default_adapter
+      def connection(proxy: MixinBot.config.proxy_config, timeout: MixinBot.config.http_timeout)
+        proxy_config = MixinBot::Proxy.parse(proxy)
+        key = [proxy_config, timeout]
+        return @connection if @connection && @connection_key == key
+
+        (@connection_mutex ||= Mutex.new).synchronize do
+          return @connection if @connection && @connection_key == key
+
+          conn_opts = { url: BASE_URI }
+          conn_opts[:proxy] = proxy_config.faraday_options if proxy_config
+
+          @connection = Faraday.new(**conn_opts) do |f|
+            f.request :json
+            f.options.timeout = timeout if timeout
+            f.response :json, parser_options: { decoder: [MixinBot::JSONDecoder, :parse] }
+            f.adapter Faraday.default_adapter
+          end
+          @connection_key = key
+          @connection
         end
       end
 
-      def request(method, path, body = nil)
+      def request(method, path, body = nil, proxy: MixinBot.config.proxy_config, timeout: MixinBot.config.http_timeout)
+        conn = connection(proxy:, timeout:)
         response =
           case method.to_s.upcase
           when 'GET'
-            connection.get(path)
+            conn.get(path)
           when 'POST'
-            connection.post(path, body)
+            conn.post(path, body)
           else
             raise ArgumentError, "unsupported method #{method}"
           end
@@ -37,46 +53,46 @@ module MixinBot
         response.body
       end
 
-      def info
-        request 'GET', '/'
+      def info(proxy: MixinBot.config.proxy_config)
+        request 'GET', '/', nil, proxy:
       end
       alias get_computer_info info
 
-      def user(addr)
-        request 'GET', "/users/#{addr}"
+      def user(addr, proxy: MixinBot.config.proxy_config)
+        request 'GET', "/users/#{addr}", nil, proxy:
       end
       alias get_computer_user user
 
-      def deployed_assets
-        request 'GET', '/deployed_assets'
+      def deployed_assets(proxy: MixinBot.config.proxy_config)
+        request 'GET', '/deployed_assets', nil, proxy:
       end
       alias get_computer_deployed_assets deployed_assets
 
-      def system_call(id)
-        request 'GET', "/system_calls/#{id}"
+      def system_call(id, proxy: MixinBot.config.proxy_config)
+        request 'GET', "/system_calls/#{id}", nil, proxy:
       end
       alias get_computer_system_call system_call
 
-      def deploy_external_assets(assets)
+      def deploy_external_assets(assets, proxy: MixinBot.config.proxy_config)
         assets = Array(assets)
         raise ArgumentError, "cannot deploy asset from Solana: #{SOLANA_CHAIN_ID}" if assets.include?(SOLANA_CHAIN_ID)
 
-        request 'POST', '/deployed_assets', assets
+        request 'POST', '/deployed_assets', assets, proxy:
       end
       alias computer_deploy_external_asset deploy_external_assets
 
-      def lock_nonce_account(mix)
-        request 'POST', '/nonce_accounts', { mix: }
+      def lock_nonce_account(mix, proxy: MixinBot.config.proxy_config)
+        request 'POST', '/nonce_accounts', { mix: }, proxy:
       end
       alias lock_computer_nonce_account lock_nonce_account
 
-      def fee_on_xin_from_sol(sol_amount)
-        request 'POST', '/fee', { sol_amount: sol_amount.to_s }
+      def fee_on_xin_from_sol(sol_amount, proxy: MixinBot.config.proxy_config)
+        request 'POST', '/fee', { sol_amount: sol_amount.to_s }, proxy:
       end
       alias get_fee_on_xin_based_on_sol fee_on_xin_from_sol
 
       def register_computer(api)
-        info_data = info
+        info_data = info(proxy: api.config.proxy_config)
         mix = MixinBot::MixAddress.from_members(members: [api.config.app_id], threshold: 1).address
         memo = encode_mtg_extra(
           info_data.dig('members', 'app_id'),

@@ -22,14 +22,7 @@ module MixinBot
         attachment = create_attachment['data']
 
         url = attachment.delete('upload_url')
-        conn = Faraday.new(url:) do |f|
-          f.adapter :net_http
-
-          f.request :multipart
-          f.request :retry
-          f.response :raise_error
-          f.response :logger if config.debug
-        end
+        conn = build_upload_connection(url)
 
         conn.put(url) do |req|
           req.headers = {
@@ -51,6 +44,23 @@ module MixinBot
       def attachment(attachment_id, access_token: nil)
         path = format('/attachments/%<id>s', id: attachment_id)
         client.get path, access_token:
+      end
+
+      private
+
+      def build_upload_connection(url)
+        conn_opts = { url: }
+        conn_opts[:proxy] = config.proxy_config.faraday_options if config.proxy_config
+
+        Faraday.new(**conn_opts) do |f|
+          f.adapter :net_http
+
+          f.request :multipart
+          f.request :retry
+          f.options.timeout = config.http_timeout if config.http_timeout
+          f.response :raise_error
+          f.response :logger if config.debug
+        end
       end
     end
   end

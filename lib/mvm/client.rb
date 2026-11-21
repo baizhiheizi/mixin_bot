@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../mixin_bot/proxy'
+
 module MVM
   ##
   # HTTP client for MVM services.
@@ -42,18 +44,31 @@ module MVM
     # - Debug logging
     #
     # @param host [String] the service hostname
+    # @param proxy [String, URI, Hash, MixinBot::Proxy, nil] optional HTTP/HTTPS proxy override
     #
     # @example
     #   client = MVM::Client.new('bridge.mvm.dev')
     #
-    def initialize(host)
+    def initialize(host, proxy: nil)
       @host = host
-      @conn = Faraday.new(url: "#{SERVER_SCHEME}://#{host}") do |f|
-        f.request :json
-        f.request :retry
-        f.response :raise_error
-        f.response :logger
-        f.response :json
+      @proxy = proxy
+      @conn_mutex = Mutex.new
+      rebuild_connection!
+    end
+
+    ##
+    # Returns the Faraday connection, rebuilding it when effective proxy changes.
+    #
+    # @return [Faraday::Connection]
+    #
+    def conn
+      effective = effective_proxy_config
+      return @conn if @conn && @conn_proxy == effective
+
+      @conn_mutex.synchronize do
+        effective = effective_proxy_config
+        rebuild_connection!(effective) if @conn.nil? || @conn_proxy != effective
+        @conn
       end
     end
 
@@ -68,7 +83,7 @@ module MVM
     #   response = client.get('/info')
     #
     def get(path, **)
-      @conn.get(path, **).body
+      conn.get(path, **).body
     end
 
     ##
@@ -82,7 +97,27 @@ module MVM
     #   response = client.post('/users', public_key: '0x...')
     #
     def post(path, **)
-      @conn.post(path, **).body
+      conn.post(path, **).body
+    end
+
+    private
+
+    def effective_proxy_config
+      @proxy.nil? ? MixinBot.config.proxy_config : MixinBot::Proxy.parse(@proxy)
+    end
+
+    def rebuild_connection!(proxy_config = effective_proxy_config)
+      conn_opts = { url: "#{SERVER_SCHEME}://#{host}" }
+      conn_opts[:proxy] = proxy_config.faraday_options if proxy_config
+
+      @conn = Faraday.new(**conn_opts) do |f|
+        f.request :json
+        f.request :retry
+        f.response :raise_error
+        f.response :logger
+        f.response :json
+      end
+      @conn_proxy = proxy_config
     end
   end
 end

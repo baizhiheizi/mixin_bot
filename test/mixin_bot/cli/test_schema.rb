@@ -18,6 +18,9 @@ module MixinBot
       assert_includes names, 'list'
       assert_includes names, 'schema'
       assert_includes names, 'transfer'
+
+      global_names = body.dig('data', 'commands').first.fetch('global_args').map { |a| a['name'] }
+      assert_includes global_names, '--proxy'
     end
 
     def test_schema_includes_error_kinds

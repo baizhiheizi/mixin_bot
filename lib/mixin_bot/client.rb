@@ -10,23 +10,22 @@ module MixinBot
   class Client
     SERVER_SCHEME = 'https'
 
-    attr_reader :config, :conn
+    attr_reader :config
 
     def initialize(config)
       @config = config || MixinBot.config
-      @conn = Faraday.new(
-        url: "#{SERVER_SCHEME}://#{@config.api_host}",
-        headers: {
-          'Content-Type' => 'application/json',
-          'User-Agent' => "mixin_bot/#{MixinBot::VERSION}"
-        }
-      ) do |f|
-        f.request :json
-        f.request :retry, max: 2, interval: 0.5, interval_randomness: 0.5, backoff_factor: 2,
-                          exceptions: [Faraday::ConnectionFailed, Faraday::TimeoutError]
-        f.options.timeout = @config.http_timeout if @config.http_timeout
-        f.response :json, parser_options: { decoder: [JSONDecoder, :parse] }
-        f.response :logger if @config.debug
+      @conn_mutex = Mutex.new
+      rebuild_connection!
+    end
+
+    def conn
+      key = connection_key
+      return @conn if @conn && @conn_key == key
+
+      @conn_mutex.synchronize do
+        key = connection_key
+        rebuild_connection!(key) if @conn.nil? || @conn_key != key
+        @conn
       end
     end
 
@@ -45,7 +44,7 @@ module MixinBot
       full_path = kwargs.empty? ? path : "#{path}?#{URI.encode_www_form(kwargs.sort_by { |k, _| k.to_s })}"
 
       token = access_token.presence || sign_token('GET', full_path, body, exp_in:, scp:)
-      response = @conn.get(full_path, nil, authorization_headers(token))
+      response = conn.get(full_path, nil, authorization_headers(token))
       parse_response!(verb: 'GET', path: full_path, body:, response:)
     end
 
@@ -67,7 +66,7 @@ module MixinBot
         end
 
       token = access_token.presence || sign_token('POST', path, body, exp_in:, scp:)
-      response = @conn.post(path, body, authorization_headers(token))
+      response = conn.post(path, body, authorization_headers(token))
       parse_response!(verb: 'POST', path:, body:, response:)
     end
 
@@ -80,7 +79,7 @@ module MixinBot
       body = ''
       full_path = q.empty? ? path : "#{path}?#{URI.encode_www_form(q.sort_by { |k, _| k.to_s })}"
       token = access_token.presence || sign_token('GET', full_path, body, exp_in:, scp:)
-      response = @conn.get(full_path, nil, authorization_headers(token))
+      response = conn.get(full_path, nil, authorization_headers(token))
       parse_response!(verb: 'GET', path: full_path, body:, response:)
     end
 
@@ -90,7 +89,7 @@ module MixinBot
     def fetch_post(path, body:, access_token: nil, exp_in: 300, scp: 'FULL')
       payload = body.is_a?(String) ? body : body.compact.to_json
       token = access_token.presence || sign_token('POST', path, payload, exp_in:, scp:)
-      response = @conn.post(path, payload, authorization_headers(token))
+      response = conn.post(path, payload, authorization_headers(token))
       parse_response!(verb: 'POST', path:, body: payload, response:)
     end
 
@@ -100,11 +99,36 @@ module MixinBot
     def fetch_post_array(path, array_body, access_token: nil, exp_in: 300, scp: 'FULL')
       payload = array_body.to_json
       token = access_token.presence || sign_token('POST', path, payload, exp_in:, scp:)
-      response = @conn.post(path, payload, authorization_headers(token))
+      response = conn.post(path, payload, authorization_headers(token))
       parse_response!(verb: 'POST', path:, body: payload, response:)
     end
 
     private
+
+    def connection_key
+      [@config.api_host, @config.http_timeout, @config.debug, @config.proxy_config]
+    end
+
+    def rebuild_connection!(key = connection_key)
+      conn_opts = {
+        url: "#{SERVER_SCHEME}://#{@config.api_host}",
+        headers: {
+          'Content-Type' => 'application/json',
+          'User-Agent' => "mixin_bot/#{MixinBot::VERSION}"
+        }
+      }
+      conn_opts[:proxy] = @config.proxy_config.faraday_options if @config.proxy_config
+
+      @conn = Faraday.new(**conn_opts) do |f|
+        f.request :json
+        f.request :retry, max: 2, interval: 0.5, interval_randomness: 0.5, backoff_factor: 2,
+                          exceptions: [Faraday::ConnectionFailed, Faraday::TimeoutError]
+        f.options.timeout = @config.http_timeout if @config.http_timeout
+        f.response :json, parser_options: { decoder: [JSONDecoder, :parse] }
+        f.response :logger if @config.debug
+      end
+      @conn_key = key
+    end
 
     def authorization_headers(token)
       return {} if token.blank?

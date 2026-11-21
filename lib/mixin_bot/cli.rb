@@ -19,6 +19,7 @@ module MixinBot
     UI = ::CLI::UI
 
     class_option :apihost, type: :string, aliases: '-a', default: 'api.mixin.one', desc: 'Specify mixin api host'
+    class_option :proxy, type: :string, desc: 'HTTP/HTTPS proxy URL (e.g. http://127.0.0.1:7890)'
     class_option :output, type: :string, aliases: '-o', enum: CLIOutput::OUTPUT_FORMATS,
                           desc: 'Output format: pretty, json, yaml (default: pretty in TTY, json when piped)'
     class_option :pretty, type: :boolean, aliases: '-r', default: true,
@@ -41,6 +42,7 @@ module MixinBot
 
     def setup_api_instance!
       MixinBot.config.api_host = options[:apihost] if options[:apihost].present?
+      MixinBot.config.proxy = options[:proxy] if options[:proxy].present?
 
       if options[:keystore].blank?
         @api_instance = MixinBot::API.new
@@ -76,15 +78,19 @@ module MixinBot
     end
 
     def build_api_from_keystore(store)
-      MixinBot::API.new(
+      attrs = {
         app_id: store['app_id'] || store['client_id'],
         session_id: store['session_id'],
         server_public_key: store['server_public_key'] || store['pin_token'],
         session_private_key: store['session_private_key'] || store['private_key'],
         spend_key: store['spend_key'],
         client_secret: store['client_secret'],
-        pin: store['pin']
-      )
+        pin: store['pin'],
+        api_host: options[:apihost].presence || store['api_host'],
+        proxy: options[:proxy].presence || store['proxy'].presence || MixinBot.config.proxy
+      }.compact
+
+      MixinBot::API.new(**attrs)
     end
 
     def parse_json_data(json_string, label: 'data')
