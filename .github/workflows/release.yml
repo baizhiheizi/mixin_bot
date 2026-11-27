@@ -71,7 +71,7 @@ jobs:
 
       - name: Configure RubyGems credentials
         if: github.event_name == 'push' || inputs.dry_run != true
-        uses: rubygems/configure-rubygems-credentials@v2.1.0
+        uses: rubygems/configure-rubygems-credentials@v2.2.0
 
       - name: Publish to RubyGems
         if: github.event_name == 'push' || inputs.dry_run != true
